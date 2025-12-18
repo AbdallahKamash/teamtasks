@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "465480346178",
+    "project_id": "team-tasks-203",
+    "storage_bucket": "team-tasks-203.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:465480346178:android:e622a58016e2c7a2859bdb",
+        "android_client_info": {
+          "package_name": "com.example.teamtasks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDUbpE9zOTcHXMVX4YKcQF6p_t3rrAUHA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
