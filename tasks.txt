@@ -1,0 +1,5 @@
+1. make navigation bar and bottom navigation bar
+2. make edit profile screen
+3. logout button
+4. make back button for auth screen to go back to launch screen
+5. toast every error, especially signup/login, all arabic.
