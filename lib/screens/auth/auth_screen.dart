@@ -48,16 +48,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         email.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('جميع الحقول مطلوبة')));
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
-      );
+
       return;
     }
 
@@ -68,10 +63,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           .read(authRepoProvider)
           .signUp(email: email, password: password, displayName: name);
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('فشل إنشاء الحساب: $e')));
+      debugPrint(e.toString());
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -84,9 +76,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('All fields are required')));
       return;
     }
 
@@ -97,9 +86,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       if (!mounted) return;
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
     }
   }
 
@@ -162,13 +148,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               const SizedBox(height: 16),
               MyTextField(
                 hintText: 'البريد الإلكتروني',
+                fieldType: .email,
                 controller: emailController,
                 focusNode: emailFocus,
               ),
               const SizedBox(height: 16),
               MyTextField(
                 hintText: 'كلمة المرور',
-                isPassword: true,
+                fieldType: .password,
                 controller: passwordController,
                 focusNode: passwordFocus,
               ),
@@ -187,7 +174,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     child: _isSignup
                         ? MyTextField(
                             hintText: 'تأكيد كلمة المرور',
-                            isPassword: true,
+                            fieldType: .password,
                             controller: confirmPasswordController,
                             focusNode: confirmPasswordFocus,
                           )
@@ -289,17 +276,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 }
 
+enum FieldType {
+  password,
+  email,
+  text
+}
+
 class MyTextField extends StatefulWidget {
   const MyTextField({
     super.key,
     required this.hintText,
-    this.isPassword = false,
+    this.fieldType = .text,
     this.controller,
     this.focusNode,
   });
 
   final String hintText;
-  final bool isPassword;
+  final FieldType fieldType;
   final TextEditingController? controller;
   final FocusNode? focusNode;
 
@@ -313,20 +306,22 @@ class _MyTextFieldState extends State<MyTextField> {
   @override
   void initState() {
     super.initState();
-    _obscureText = widget.isPassword;
+    _obscureText = widget.fieldType == .password;
   }
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      textAlign: widget.fieldType == .text ? .start : .end,
+      textDirection: widget.fieldType == .text ? .rtl : .ltr,
       controller: widget.controller,
       focusNode: widget.focusNode,
       obscureText: _obscureText,
       cursorColor: Colors.blue[900],
       cursorHeight: 24,
-      keyboardType: widget.isPassword
+      keyboardType: widget.fieldType == .password
           ? TextInputType.visiblePassword
-          : TextInputType.emailAddress,
+          : widget.fieldType == .email ? TextInputType.emailAddress : .text,
       style: const TextStyle(
         fontFamily: 'Alexandria',
         fontSize: 16,
@@ -351,7 +346,7 @@ class _MyTextFieldState extends State<MyTextField> {
           borderSide: .none,
           borderRadius: BorderRadius.circular(10),
         ),
-        suffixIcon: widget.isPassword
+        suffixIcon: widget.fieldType == .password
             ? IconButton(
                 icon: Icon(
                   color: Colors.grey.shade400,

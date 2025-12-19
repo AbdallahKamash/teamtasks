@@ -106,18 +106,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       );
 
       if (!mounted) return;
-      if (!silent) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إعادة إرسال بريد التحقق')),
-        );
-      }
+      if (!silent) {}
     } catch (e) {
       if (!mounted) return;
-      if (!silent) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('فشل الإرسال: $e')));
-      }
+      if (!silent) {}
     }
   }
 

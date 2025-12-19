@@ -27,9 +27,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final email = emailController.text.trim();
 
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إدخال البريد الإلكتروني')),
-      );
       return;
     }
 
@@ -38,19 +35,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     try {
       await ref.read(authRepoProvider).sendPasswordResetEmail(email);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
-          ),
-        ),
-      );
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('فشل إرسال البريد: $e')));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

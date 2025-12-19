@@ -21,7 +21,7 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
       final verified =
           ref.read(authRepoProvider).currentUser?.emailVerified ?? false;
       final isLoggingIn = state.uri.toString() == '/';
-
+      print(verified.toString());
       if (isLoggedIn && isLoggingIn && verified) {
         return '/home';
       } else if (isLoggedIn && isLoggingIn && !verified) {
