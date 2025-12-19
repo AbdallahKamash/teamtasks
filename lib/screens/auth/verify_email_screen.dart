@@ -18,6 +18,7 @@ class VerifyEmailScreen extends ConsumerStatefulWidget {
 class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   int _timerSeconds = 120;
   Timer? _timer;
+  Timer? _refreshTimer;
   bool _canResend = false;
 
   @override
@@ -25,7 +26,26 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initCooldown();
+      _startRefreshTimer();
     });
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _checkEmailVerified();
+    });
+  }
+
+  Future<void> _checkEmailVerified() async {
+    final authRepo = ref.read(authRepoProvider);
+    await authRepo.reloadUser();
+    if (authRepo.currentUser?.emailVerified ?? false) {
+      _refreshTimer?.cancel();
+      if (mounted) {
+        ref.read(routerProvider).go('/home');
+      }
+    }
   }
 
   Future<void> _initCooldown() async {
@@ -73,7 +93,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      debugPrint('Timer: $_timerSeconds');
       if (!mounted) return;
 
       if (_timerSeconds > 0) {
@@ -92,6 +111,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
