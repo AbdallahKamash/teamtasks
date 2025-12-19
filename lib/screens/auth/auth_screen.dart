@@ -68,6 +68,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           .read(authRepoProvider)
           .signUp(email: email, password: password, displayName: name);
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم إنشاء الحساب بنجاح')));
@@ -96,6 +98,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     try {
       await ref.read(authRepoProvider).signIn(email: email, password: password);
       ref.read(routerProvider).go('/home');
+      if (!mounted) return;
     } catch (e) {
       ScaffoldMessenger.of(
         context,

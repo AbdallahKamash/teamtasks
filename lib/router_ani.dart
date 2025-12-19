@@ -14,7 +14,7 @@ CustomTransitionPage buildPageWithTransition<T>({
     transitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       return Directionality(
-        textDirection: dir,
+        textDirection: .rtl,
         child: SlideTransition(
           position:
               Tween<Offset>(
