@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 import 'package:teamtasks/screens/auth/auth_screen.dart';
+import 'package:teamtasks/screens/auth/home_screen.dart';
 
 class App extends ConsumerWidget {
   const App({super.key});
@@ -19,7 +20,7 @@ class App extends ConsumerWidget {
           error: (e, _) => Text(""),
           data: (user) {
             if (user == null) return const AuthScreen();
-            return const AuthScreen();
+            return const HomeScreen();
           },
         ),
       ),
