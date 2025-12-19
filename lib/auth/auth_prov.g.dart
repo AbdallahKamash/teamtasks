@@ -50,10 +50,10 @@ final class FbAuthProvider
 
 String _$fbAuthHash() => r'9f4c98f2cdd2909d6e4117d3c7ad971151d94869';
 
-@ProviderFor(fbfs)
-const fbfsProvider = FbfsProvider._();
+@ProviderFor(fbFirestore)
+const fbFirestoreProvider = FbFirestoreProvider._();
 
-final class FbfsProvider
+final class FbFirestoreProvider
     extends
         $FunctionalProvider<
           FirebaseFirestore,
@@ -61,19 +61,19 @@ final class FbfsProvider
           FirebaseFirestore
         >
     with $Provider<FirebaseFirestore> {
-  const FbfsProvider._()
+  const FbFirestoreProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'fbfsProvider',
+        name: r'fbFirestoreProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$fbfsHash();
+  String debugGetCreateSourceHash() => _$fbFirestoreHash();
 
   @$internal
   @override
@@ -83,7 +83,7 @@ final class FbfsProvider
 
   @override
   FirebaseFirestore create(Ref ref) {
-    return fbfs(ref);
+    return fbFirestore(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -95,7 +95,7 @@ final class FbfsProvider
   }
 }
 
-String _$fbfsHash() => r'fe906ae935fbea79141d0165ace89f91cf5b60a6';
+String _$fbFirestoreHash() => r'294a8ce737934ee2bbb194e5bb11681df8d39b1b';
 
 @ProviderFor(authRepo)
 const authRepoProvider = AuthRepoProvider._();
@@ -136,7 +136,7 @@ final class AuthRepoProvider
   }
 }
 
-String _$authRepoHash() => r'4645b4be77f2c167d23c792aa335508848996ba1';
+String _$authRepoHash() => r'6639431e989c75600daa015e6bcc0482b7a5cc7d';
 
 @ProviderFor(authState)
 const authStateProvider = AuthStateProvider._();
@@ -169,4 +169,42 @@ final class AuthStateProvider
   }
 }
 
-String _$authStateHash() => r'2f6c8c4838ee8ca9ff4746c4b713587bb1538c12';
+String _$authStateHash() => r'55f91f3b0f1711beaf8dad7ad594fa5d7c3f2bca';
+
+@ProviderFor(currentUserData)
+const currentUserDataProvider = CurrentUserDataProvider._();
+
+final class CurrentUserDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<UserModel?>,
+          UserModel?,
+          Stream<UserModel?>
+        >
+    with $FutureModifier<UserModel?>, $StreamProvider<UserModel?> {
+  const CurrentUserDataProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentUserDataProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentUserDataHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<UserModel?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<UserModel?> create(Ref ref) {
+    return currentUserData(ref);
+  }
+}
+
+String _$currentUserDataHash() => r'36ee541741e44b91d1c22ffb36323156640814c3';

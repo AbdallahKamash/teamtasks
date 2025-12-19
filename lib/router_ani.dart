@@ -26,7 +26,7 @@ CustomTransitionPage buildPageWithTransition<T>({
                 CurvedAnimation(
                   parent: animation,
                   curve:
-                      Curves.easeInOutCubic, // Smooth acceleration/deceleration
+                      Curves.easeInOutCirc, // Smooth acceleration/deceleration
                 ),
               ),
           child: child,

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:teamtasks/router_ani.dart';
 import 'package:teamtasks/screens/auth/auth_screen.dart';
+import 'package:teamtasks/screens/auth/forgot_password_screen.dart';
+import 'package:teamtasks/screens/auth/verify_email_screen.dart';
 import 'package:teamtasks/screens/auth/home_screen.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
@@ -14,15 +16,21 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     refreshListenable: GoRouterRefreshStream(authState),
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final isLoggedIn = ref.read(authRepoProvider).currentUser != null;
+      final verified =
+          ref.read(authRepoProvider).currentUser?.emailVerified ?? false;
       final isLoggingIn = state.uri.toString() == '/';
 
-      if (isLoggedIn && isLoggingIn) {
+      if (isLoggedIn && isLoggingIn && verified) {
         return '/home';
+      } else if (isLoggedIn && isLoggingIn && !verified) {
+        return '/verify';
       }
 
-      if (!isLoggedIn && !isLoggingIn) {
+      if (!isLoggedIn &&
+          !isLoggingIn &&
+          state.uri.toString() != '/forgot-password') {
         return '/';
       }
 
@@ -44,6 +52,24 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
           context: context,
           state: state,
           child: const HomeScreen(),
+          dir: TextDirection.rtl,
+        ),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const ForgotPasswordScreen(),
+          dir: TextDirection.rtl,
+        ),
+      ),
+      GoRoute(
+        path: '/verify',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const VerifyEmailScreen(),
           dir: TextDirection.rtl,
         ),
       ),

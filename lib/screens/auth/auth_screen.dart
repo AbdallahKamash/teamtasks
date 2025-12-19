@@ -67,18 +67,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       await ref
           .read(authRepoProvider)
           .signUp(email: email, password: password, displayName: name);
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تم إنشاء الحساب بنجاح')));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('فشل إنشاء الحساب: $e')));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -97,19 +94,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     try {
       await ref.read(authRepoProvider).signIn(email: email, password: password);
-      ref.read(routerProvider).go('/home');
       if (!mounted) return;
     } catch (e) {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
-    } finally {
-      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final router = ref.read(routerProvider);
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       body: SafeArea(
@@ -119,55 +116,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 450),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.2),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                },
-                child: Text(
-                  _isSignup ? 'إنشاء حساب   ' : 'مرحبًا بعودتك ',
-                  key: ValueKey(_isSignup),
-                  style: const TextStyle(
-                    fontFamily: 'Alexandria',
-                    fontSize: 40,
-                    fontVariations: [FontVariation('wght', 700)],
-                  ),
+              Text(
+                _isSignup ? 'إنشاء حساب   ' : 'مرحبًا بعودتك ',
+                style: const TextStyle(
+                  fontFamily: 'Alexandria',
+                  fontSize: 40,
+                  fontVariations: [FontVariation('wght', 700)],
                 ),
               ),
               const SizedBox(height: 12),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 400),
-                transitionBuilder: (child, animation) {
-                  return SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0.2, 0),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOutCubicEmphasized,
-                          ),
-                        ),
-                    child: FadeTransition(opacity: animation, child: child),
-                  );
-                },
-                child: Text(
+
+              Text(
                   _isSignup
                       ? 'أنشئ حسابك لحفظ حالتك في السحابة'
                       : 'سجّل الدخول للمتابعة',
-                  key: ValueKey(_isSignup),
                   style: const TextStyle(
                     fontFamily: 'Alexandria',
                     color: Colors.grey,
@@ -175,7 +137,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     fontVariations: [FontVariation('wght', 400)],
                   ),
                 ),
-              ),
+
               const SizedBox(height: 12),
               AnimatedSize(
                 duration: const Duration(milliseconds: 400),
@@ -237,13 +199,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               Row(
                 children: [
                   Spacer(),
-                  Text(
-                    'نسيت كلمة السر؟',
-                    style: TextStyle(
-                      fontFamily: 'Alexandria',
-                      fontWeight: .bold,
-                      fontSize: 12,
-                      color: Colors.blueAccent.shade700,
+                  GestureDetector(
+                    onTap: () {
+                      router.push('/forgot-password');
+                    },
+                    child: Text(
+                      'نسيت كلمة السر؟',
+                      style: TextStyle(
+                        fontFamily: 'Alexandria',
+                        fontWeight: .bold,
+                        fontSize: 12,
+                        color: Colors.blueAccent.shade700,
+                      ),
                     ),
                   ),
                 ],
