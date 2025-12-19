@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
+import 'package:teamtasks/router.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -94,10 +95,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     try {
       await ref.read(authRepoProvider).signIn(email: email, password: password);
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login successful!')));
+      ref.read(routerProvider).go('/home');
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -254,24 +252,24 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 },
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
-                  child: _isLoading
-                      ? Container(
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 5,
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.purple,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Center(
+                      child: _isLoading
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 5,
 
-                              valueColor: AlwaysStoppedAnimation(Colors.purple),
-                            ),
-                          ),
-                        )
-                      : Container(
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.purple,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Center(
-                            child: Text(
+                                valueColor: AlwaysStoppedAnimation(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : Text(
                               _isSignup ? 'إنشاء حساب' : 'تسجيل الدخول',
                               key: ValueKey(_isSignup),
                               style: const TextStyle(
@@ -281,8 +279,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ),
-                        ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
