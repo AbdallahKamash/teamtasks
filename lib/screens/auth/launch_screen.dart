@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:teamtasks/router.dart';
+import 'package:teamtasks/router/router.dart';
 
 class LaunchScreen extends ConsumerWidget {
   const LaunchScreen({super.key});

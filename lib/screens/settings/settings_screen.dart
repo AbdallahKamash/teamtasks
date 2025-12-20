@@ -1,10 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
-import 'package:teamtasks/router.dart';
+import 'package:teamtasks/router/router.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -15,6 +13,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _showLogoutConfirmation() async {
+    final router = ref.read(routerProvider);
+
     return showDialog(
       context: context,
       builder: (context) => Directionality(
@@ -33,7 +33,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => router.pop(),
               child: const Text(
                 'إلغاء',
                 style: TextStyle(fontFamily: 'Alexandria', color: Colors.grey),
@@ -41,11 +41,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                router.pop();
                 final authRepo = ref.read(authRepoProvider);
                 await authRepo.signOut();
                 if (mounted) {
-                  ref.read(routerProvider).go('/');
+                  router.go('/');
                 }
               },
               child: const Text(
@@ -62,15 +62,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserDataProvider);
+    final router = ref.read(routerProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'الإعدادات',
           style: TextStyle(
+            fontSize: 18,
             fontFamily: 'Alexandria',
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -78,8 +80,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () {
+            router.pop();
+            router.pop();
+          },
         ),
       ),
       body: userAsync.when(
@@ -143,7 +148,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => context.push('/edit-profile'),
+                      onPressed: () => router.push('/edit-profile'),
                       icon: const Icon(Icons.edit_outlined, size: 20),
                       label: const Text(
                         'تعديل بيانات الحساب',

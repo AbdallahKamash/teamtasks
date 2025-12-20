@@ -85,11 +85,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'تعديل الملف الشخصي',
           style: TextStyle(
+            fontSize: 18,
             fontFamily: 'Alexandria',
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -97,7 +98,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () => context.pop(),
         ),
       ),

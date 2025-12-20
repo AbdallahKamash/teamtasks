@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teamtasks/router_ani.dart';
+import 'package:teamtasks/router/router_ani.dart';
 import 'package:teamtasks/screens/auth/auth_screen.dart';
 import 'package:teamtasks/screens/auth/forgot_password_screen.dart';
 import 'package:teamtasks/screens/auth/launch_screen.dart';
 import 'package:teamtasks/screens/auth/verify_email_screen.dart';
-import 'package:teamtasks/screens/auth/home_screen.dart';
-import 'package:teamtasks/screens/settings_screen.dart';
-import 'package:teamtasks/screens/edit_profile_screen.dart';
+import 'package:teamtasks/screens/home/home_screen.dart';
+import 'package:teamtasks/screens/settings/settings_screen.dart';
+import 'package:teamtasks/screens/settings/edit_profile_screen.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
 final routerProvider = Provider.autoDispose<GoRouter>((ref) {
@@ -90,7 +90,7 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
           context: context,
           state: state,
           child: const SettingsScreen(),
-          dir: TextDirection.ltr,
+          dir: TextDirection.rtl,
         ),
       ),
       GoRoute(

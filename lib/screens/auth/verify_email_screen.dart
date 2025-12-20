@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
-import 'package:teamtasks/router.dart';
+import 'package:teamtasks/router/router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _verifyCooldownSeconds = 120;
