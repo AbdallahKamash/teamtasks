@@ -13,120 +13,144 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
   bool _expanded = false;
   String chosen = 'Workspace';
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // TOP BUTTON
-        AnimatedContainer(
-          duration: Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(_expanded ? 12 : 0))
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              setState(() {
-                _expanded = !_expanded;
-              });
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: .center,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(left: 8),
-                  height: 30, width: 30, decoration: BoxDecoration(
-                  borderRadius: .circular(5),
-                  color: Colors.purple.shade100
-                ),),
-                Text(
-                  chosen,
-                  style: TextStyle(
-                    fontFamily: 'Alexandria',
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Spacer(),
-                // ROTATING ARROW
-                AnimatedRotation(
-                  turns: _expanded ? -0.25 : 0, // 0.25 = 90°
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  child: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+  // LayerLink connects the button to the floating dropdown
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
 
-        // EXPANDABLE LIST
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          child: _expanded
-              ? AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(_expanded ? 12 : 0))
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(milliseconds: 250),
+    vsync: this,
+  );
+
+  void _toggleDropdown() {
+    if (_expanded) {
+      _closeDropdown();
+    } else {
+      _openDropdown();
+    }
+  }
+
+  void _openDropdown() {
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context).insert(_overlayEntry!);
+    _controller.forward();
+    setState(() => _expanded = true);
+  }
+
+  void _closeDropdown() async {
+    await _controller.reverse();
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    if (mounted) setState(() => _expanded = false);
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, size.height), // Starts exactly below the button
+          child: Material(
+            color: Colors.transparent,
+            child: SizeTransition(
+              sizeFactor: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+              axisAlignment: -1.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _item('Workspace 1'),
+                    _item('Workspace'),
+                    _item('Create new workspace'),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
             ),
-            child: Column(
-              children: [
-                _item('Workspace 1'),
-                _item('Workspace'),
-                _item('Create new workspace'),
-              ],
-            ),
-          )
-              : const SizedBox(),
+          ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _item(String text) {
-    if (text != chosen) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              chosen = text;
-              _expanded = false;
-            });
-          },
+  @override
+  Widget build(BuildContext context) {
+    // CompositedTransformTarget ensures the overlay follows this specific widget
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: _toggleDropdown,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: .center,
             children: [
               Container(
-                margin: EdgeInsets.only(left: 8),
-                height: 30, width: 30, decoration: BoxDecoration(
-                  borderRadius: .circular(5),
-                  color: Colors.purple.shade100
-              ),),
-              Text(
-                text,
-                style: TextStyle(
-                  fontFamily: 'Alexandria',
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                margin: const EdgeInsets.only(left: 8),
+                height: 30, width: 30,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: Colors.purple.shade100,
                 ),
+              ),
+              Text(
+                chosen,
+                style: const TextStyle(fontFamily: 'Alexandria', fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              AnimatedRotation(
+                turns: _expanded ? -0.25 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: const Icon(Icons.arrow_forward_ios_rounded, size: 12),
               ),
             ],
           ),
         ),
-      );
-    } else {
-      return SizedBox.shrink();
-    }
+      ),
+    );
+  }
+
+  Widget _item(String text) {
+    if (text == chosen) return const SizedBox.shrink();
+    return InkWell(
+      onTap: () {
+        setState(() => chosen = text);
+        _closeDropdown();
+      },
+      child: Directionality(
+        textDirection: .rtl,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                height: 30, width: 30,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: Colors.purple.shade100,
+                ),
+              ),
+              Text(
+                text,
+                style: const TextStyle(fontFamily: 'Alexandria', fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
