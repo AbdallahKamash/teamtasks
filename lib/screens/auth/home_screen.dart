@@ -139,7 +139,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                     style: TextStyle(fontFamily: 'Alexandria'),
                   ),
                   onTap: () {
-                    context.pop(); // Close drawer
                     context.push('/settings');
                   },
                 ),

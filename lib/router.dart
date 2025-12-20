@@ -90,7 +90,7 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
           context: context,
           state: state,
           child: const SettingsScreen(),
-          dir: TextDirection.rtl,
+          dir: TextDirection.ltr,
         ),
       ),
       GoRoute(

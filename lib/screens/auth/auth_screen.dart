@@ -94,180 +94,201 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _isSignup ? 'إنشاء حساب   ' : 'مرحبًا بعودتك ',
-                style: const TextStyle(
-                  fontFamily: 'Alexandria',
-                  fontSize: 40,
-                  fontVariations: [FontVariation('wght', 700)],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Text(
-                _isSignup
-                    ? 'أنشئ حسابك لحفظ حالتك في السحابة'
-                    : 'سجّل الدخول للمتابعة',
-                style: const TextStyle(
-                  fontFamily: 'Alexandria',
-                  color: Colors.grey,
-                  fontSize: 16,
-                  fontVariations: [FontVariation('wght', 400)],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOutCubic,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
-                  opacity: _isSignup ? 1 : 0,
-                  child: AnimatedSlide(
-                    duration: const Duration(milliseconds: 400),
-                    offset: _isSignup ? Offset.zero : const Offset(0, -0.1),
-                    curve: Curves.easeOutCubic,
-                    child: _isSignup
-                        ? MyTextField(
-                            hintText: 'الاسم بالكامل',
-                            controller: displayNameController,
-                            focusNode: displayNameFocus,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              MyTextField(
-                hintText: 'البريد الإلكتروني',
-                fieldType: .email,
-                controller: emailController,
-                focusNode: emailFocus,
-              ),
-              const SizedBox(height: 16),
-              MyTextField(
-                hintText: 'كلمة المرور',
-                fieldType: .password,
-                controller: passwordController,
-                focusNode: passwordFocus,
-              ),
-              const SizedBox(height: 16),
-
-              AnimatedSize(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOutCubic,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
-                  opacity: _isSignup ? 1 : 0,
-                  child: AnimatedSlide(
-                    duration: const Duration(milliseconds: 400),
-                    offset: _isSignup ? Offset.zero : const Offset(0, -0.1),
-                    curve: Curves.easeOutCubic,
-                    child: _isSignup
-                        ? MyTextField(
-                            hintText: 'تأكيد كلمة المرور',
-                            fieldType: .password,
-                            controller: confirmPasswordController,
-                            focusNode: confirmPasswordFocus,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 5),
-              Row(
+      body: Container(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SingleChildScrollView(
+              reverse: true,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      router.push('/forgot-password');
-                    },
-                    child: Text(
-                      'نسيت كلمة السر؟',
-                      style: TextStyle(
-                        fontFamily: 'Alexandria',
-                        fontWeight: .bold,
-                        fontSize: 12,
-                        color: Colors.blueAccent.shade700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  _isSignup ? _signUp() : _login();
-                },
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.purple,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Center(
-                      child: _isLoading
-                          ? Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 5,
-
-                                valueColor: AlwaysStoppedAnimation(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : Text(
-                              _isSignup ? 'إنشاء حساب' : 'تسجيل الدخول',
-                              key: ValueKey(_isSignup),
-                              style: const TextStyle(
-                                fontFamily: 'Alexandria',
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
+                  AutofillGroup(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isSignup ? 'إنشاء حساب   ' : 'مرحبًا بعودتك ',
+                          style: const TextStyle(
+                            fontFamily: 'Alexandria',
+                            fontSize: 40,
+                            fontVariations: [FontVariation('wght', 700)],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _isSignup
+                              ? 'أنشئ حسابك لحفظ حالتك في السحابة'
+                              : 'سجّل الدخول للمتابعة',
+                          style: const TextStyle(
+                            fontFamily: 'Alexandria',
+                            color: Colors.grey,
+                            fontSize: 16,
+                            fontVariations: [FontVariation('wght', 400)],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOutCubic,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: _isSignup ? 1 : 0,
+                            child: AnimatedSlide(
+                              duration: const Duration(milliseconds: 400),
+                              offset: _isSignup
+                                  ? Offset.zero
+                                  : const Offset(0, -0.1),
+                              curve: Curves.easeOutCubic,
+                              child: _isSignup
+                                  ? MyTextField(
+                                      hintText: 'الاسم بالكامل',
+                                      controller: displayNameController,
+                                      focusNode: displayNameFocus,
+                                      autofillHints: const [AutofillHints.name],
+                                    )
+                                  : const SizedBox.shrink(),
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        MyTextField(
+                          hintText: 'البريد الإلكتروني',
+                          fieldType: .email,
+                          controller: emailController,
+                          focusNode: emailFocus,
+                          autofillHints: const [AutofillHints.email],
+                        ),
+                        const SizedBox(height: 16),
+                        MyTextField(
+                          hintText: 'كلمة المرور',
+                          fieldType: .password,
+                          controller: passwordController,
+                          focusNode: passwordFocus,
+                          autofillHints: const [AutofillHints.password],
+                        ),
+                        const SizedBox(height: 16),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOutCubic,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: _isSignup ? 1 : 0,
+                            child: AnimatedSlide(
+                              duration: const Duration(milliseconds: 400),
+                              offset: _isSignup
+                                  ? Offset.zero
+                                  : const Offset(0, -0.1),
+                              curve: Curves.easeOutCubic,
+                              child: _isSignup
+                                  ? MyTextField(
+                                      hintText: 'تأكيد كلمة المرور',
+                                      fieldType: .password,
+                                      controller: confirmPasswordController,
+                                      focusNode: confirmPasswordFocus,
+                                      autofillHints: const [AutofillHints.password],
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'لديك ${_isSignup ? '' : 'ليس '}حساب؟  ',
-                    style: TextStyle(fontFamily: 'Alexandria', fontSize: 12),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          router.push('/forgot-password');
+                        },
+                        child: Text(
+                          'نسيت كلمة السر؟',
+                          style: TextStyle(
+                            fontFamily: 'Alexandria',
+                            fontWeight: .bold,
+                            fontSize: 12,
+                            color: Colors.blueAccent.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 10),
                   GestureDetector(
                     onTap: () {
-                      setState(() {
-                        _isSignup = !_isSignup;
-                      });
+                      _isSignup ? _signUp() : _login();
                     },
-                    child: Text(
-                      _isSignup ? 'سجل دخولك' : 'أنشئ حسابك',
-                      style: TextStyle(
-                        fontFamily: 'Alexandria',
-                        fontWeight: .bold,
-                        fontSize: 12,
-                        color: Colors.blueAccent.shade700,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.purple,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Center(
+                          child: _isLoading
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 5,
+
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  _isSignup ? 'إنشاء حساب' : 'تسجيل الدخول',
+                                  key: ValueKey(_isSignup),
+                                  style: const TextStyle(
+                                    fontFamily: 'Alexandria',
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'لديك ${_isSignup ? '' : 'ليس '}حساب؟  ',
+                        style: TextStyle(fontFamily: 'Alexandria', fontSize: 12),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isSignup = !_isSignup;
+                          });
+                        },
+                        child: Text(
+                          _isSignup ? 'سجل دخولك' : 'أنشئ حسابك',
+                          style: TextStyle(
+                            fontFamily: 'Alexandria',
+                            fontWeight: .bold,
+                            fontSize: 12,
+                            color: Colors.blueAccent.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
         ),
       ),
@@ -284,12 +305,14 @@ class MyTextField extends StatefulWidget {
     this.fieldType = .text,
     this.controller,
     this.focusNode,
+    this.autofillHints,
   });
 
   final String hintText;
   final FieldType fieldType;
   final TextEditingController? controller;
   final FocusNode? focusNode;
+  final Iterable<String>? autofillHints;
 
   @override
   State<MyTextField> createState() => _MyTextFieldState();
@@ -312,6 +335,7 @@ class _MyTextFieldState extends State<MyTextField> {
       controller: widget.controller,
       focusNode: widget.focusNode,
       obscureText: _obscureText,
+      autofillHints: widget.autofillHints,
       cursorColor: Colors.blue[900],
       cursorHeight: 24,
       keyboardType: widget.fieldType == .password
