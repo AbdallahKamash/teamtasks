@@ -25,7 +25,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
           child: SafeArea(
             child: Column(
               children: [
-                // 🔹 FIXED HEADER
                 const SizedBox(height: 24),
 
                 if (user != null) ...[
@@ -82,13 +81,12 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ),
 
                   const SizedBox(height: 16),
+                  Divider(height: 0, color: Colors.grey.shade300,)
 
-                  // 🔹 FIXED WORKSPACE BUTTON
-                  const WorkspaceButton(),
+                  //const WorkspaceButton(),
 
                 ],
 
-                // 🔹 SCROLLABLE CONTENT
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.zero,
@@ -112,7 +110,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ),
                 ),
 
-                // 🔹 FIXED BOTTOM
                 Divider(height: 1, color: Colors.grey.shade300,),
 
                 ListTile(

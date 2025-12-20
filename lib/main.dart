@@ -33,7 +33,16 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       title: 'Animated Riverpod Routing',
-      theme: ThemeData(useMaterial3: true),
+      theme: ThemeData(useMaterial3: true,
+        // This removes the splash/ripple effect globally
+        splashFactory: NoSplash.splashFactory,
+        // This removes the grey highlight that appears on tap/hold
+        highlightColor: Colors.transparent,
+        // Optional: removes the hover color (useful for Web/Desktop)
+        hoverColor: Colors.transparent,
+        // Optional: ensures buttons specifically don't show an overlay
+        splashColor: Colors.transparent,
+      ),
     );
   }
 }

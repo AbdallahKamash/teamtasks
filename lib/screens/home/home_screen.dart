@@ -15,17 +15,14 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         surfaceTintColor: Colors.grey,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.menu_rounded, color: Colors.transparent),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+          const SizedBox(width: 56),
         ],
         backgroundColor: Colors.white.withValues(alpha: 0),
         elevation: 1,
         actionsPadding: EdgeInsets.all(0),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded, color: Colors.black),
+            icon: Icon(Icons.menu_rounded, color: Colors.grey.shade600),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),

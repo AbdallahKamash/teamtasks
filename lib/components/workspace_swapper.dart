@@ -75,10 +75,10 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    SizedBox(height: 8,),
                     _item('Workspace 1'),
                     _item('Workspace'),
                     _item('Create new workspace'),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -116,7 +116,7 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
             children: [
               Container(
                 margin: const EdgeInsets.only(left: 8),
-                height: 30, width: 30,
+                height: 20, width: 20,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
                   color: Colors.purple.shade100,
@@ -156,12 +156,12 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
       child: Directionality(
         textDirection: .rtl,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: EdgeInsets.fromLTRB(8,0,8,8),
           child: Row(
             children: [
               Container(
                 margin: const EdgeInsets.only(left: 8),
-                height: 30, width: 30,
+                height: 20, width: 20,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
                   color: Colors.purple.shade100,
