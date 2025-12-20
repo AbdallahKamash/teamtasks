@@ -1,38 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/components/workspace_swapper.dart';
 
 import '../../components/app_drawer.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       drawerEnableOpenDragGesture: false,
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         surfaceTintColor: Colors.grey,
         actions: [
-          const SizedBox(width: 56),
+          Stack(
+            alignment: .center,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.notifications_none_rounded,
+                  color: Colors.grey.shade600,
+                ),
+                onPressed: () {},
+              ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: CircleAvatar(backgroundColor: Colors.red, radius: 3),
+              ),
+            ],
+          ),
         ],
         backgroundColor: Colors.white.withValues(alpha: 0),
         elevation: 1,
-        actionsPadding: EdgeInsets.all(0),
-        leading: Builder(
-          builder: (context) => IconButton(
+        leadingWidth: 50,
+        leading: Builder(builder: (context) {
+          return IconButton(
+            padding: EdgeInsets.all(0),
             icon: Icon(Icons.menu_rounded, color: Colors.grey.shade600),
             onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+          );
+        }),
         title: WorkspaceSwapper(),
       ),
       drawer: AppDrawer(),
       body: Container(
-        color: Colors.red,
+        color: Colors.white24,
         constraints: BoxConstraints(
           minHeight: MediaQuery.of(context).size.height,
+          minWidth: MediaQuery.of(context).size.width,
         ),
         child: SafeArea(
           child: Padding(

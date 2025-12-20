@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:teamtasks/components/workspace_button.dart';
 
 import '../auth/auth_prov.dart';
 import '../router/router.dart';
