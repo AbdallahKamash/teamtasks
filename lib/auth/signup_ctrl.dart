@@ -12,7 +12,11 @@ class SignUpCtrl extends _$SignUpCtrl {
   }
 
   /// Sign up user with email and password
-  Future<void> signUp(String email, String password) async {
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
     // Set state to loading
     state = const AsyncLoading();
 
@@ -20,7 +24,7 @@ class SignUpCtrl extends _$SignUpCtrl {
     state = await AsyncValue.guard(() async {
       await ref
           .read(authRepoProvider)
-          .signUp(email: email, password: password, displayName: "");
+          .signUp(email: email, password: password, displayName: displayName);
     });
   }
 }

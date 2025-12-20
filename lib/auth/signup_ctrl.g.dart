@@ -41,7 +41,7 @@ final class SignUpCtrlProvider
   }
 }
 
-String _$signUpCtrlHash() => r'266392d3c2540624b025c05c9c76f815e5c0fbaa';
+String _$signUpCtrlHash() => r'd26726d272de924f1786acc8acb2efc38f51fad9';
 
 abstract class _$SignUpCtrl extends $Notifier<AsyncValue<void>> {
   AsyncValue<void> build();

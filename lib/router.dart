@@ -10,6 +10,7 @@ import 'package:teamtasks/screens/auth/launch_screen.dart';
 import 'package:teamtasks/screens/auth/verify_email_screen.dart';
 import 'package:teamtasks/screens/auth/home_screen.dart';
 import 'package:teamtasks/screens/settings_screen.dart';
+import 'package:teamtasks/screens/edit_profile_screen.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
 final routerProvider = Provider.autoDispose<GoRouter>((ref) {
@@ -89,6 +90,15 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
           context: context,
           state: state,
           child: const SettingsScreen(),
+          dir: TextDirection.rtl,
+        ),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const EditProfileScreen(),
           dir: TextDirection.rtl,
         ),
       ),

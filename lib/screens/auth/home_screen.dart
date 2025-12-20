@@ -46,7 +46,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
           child: SafeArea(
             child: Column(
               children: [
-                SizedBox(height: 10,),
+                SizedBox(height: 10),
                 if (user != null) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -57,16 +57,22 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                           children: [
                             CircleAvatar(
                               backgroundColor: Colors.purple.shade100,
-                              child: Text(
-                                user.displayName.isNotEmpty
-                                    ? user.displayName[0].toUpperCase()
-                                    : 'U',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple,
-                                ),
-                              ),
+                              backgroundImage:
+                                  user.pfp != null && user.pfp!.isNotEmpty
+                                  ? NetworkImage(user.pfp!)
+                                  : null,
+                              child: user.pfp == null || user.pfp!.isEmpty
+                                  ? Text(
+                                      user.displayName.isNotEmpty
+                                          ? user.displayName[0].toUpperCase()
+                                          : 'U',
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.purple,
+                                      ),
+                                    )
+                                  : null,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -157,8 +163,9 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
           ),
         ),
         loading: () => Container(
-            color: Colors.grey.shade200,
-            child: Center(child: CircularProgressIndicator())),
+          color: Colors.grey.shade200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
         error: (e, s) => Center(child: Text('Error: $e')),
       ),
     );
@@ -191,7 +198,8 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton> {
               ),
               builder: (context) {
                 // Determine the max height based on the screen size and your 0.25 ratio
-                final double maxHeight = MediaQuery.of(context).size.height * 0.35;
+                final double maxHeight =
+                    MediaQuery.of(context).size.height * 0.35;
 
                 return Directionality(
                   textDirection: TextDirection.rtl,
@@ -201,7 +209,8 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton> {
                       maxHeight: maxHeight, // Your forced maximum ratio
                     ),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min, // Allows the column to shrink to content if below max
+                      mainAxisSize: MainAxisSize
+                          .min, // Allows the column to shrink to content if below max
                       children: [
                         // Handle Bar Decoration
                         Center(
@@ -217,7 +226,10 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton> {
                         ),
                         // Title Section
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
                           child: Row(
                             children: const [
                               Text(
@@ -231,12 +243,13 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton> {
                             ],
                           ),
                         ),
-                        Divider(height: 0, color: Colors.grey.shade300,),
+                        Divider(height: 0, color: Colors.grey.shade300),
                         // Scrollable List
                         Expanded(
                           child: ListView.separated(
                             itemCount: 14, // Example count
-                            separatorBuilder: (context, index) => Divider(height: 0, color: Colors.grey.shade200,),
+                            separatorBuilder: (context, index) =>
+                                Divider(height: 0, color: Colors.grey.shade200),
                             itemBuilder: (context, index) {
                               return ListTile(
                                 splashColor: Colors.transparent,
@@ -245,13 +258,21 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton> {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     color: Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(8)
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Center(child: Text('${index + 1}', style: const TextStyle(fontSize: 12))),
+                                  child: Center(
+                                    child: Text(
+                                      '${index + 1}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ),
                                 ),
                                 title: Text(
                                   'مساحة العمل ${index + 1}',
-                                  style: const TextStyle(fontFamily: 'Alexandria', fontSize: 14),
+                                  style: const TextStyle(
+                                    fontFamily: 'Alexandria',
+                                    fontSize: 14,
+                                  ),
                                 ),
                                 onTap: () => Navigator.pop(context),
                               );

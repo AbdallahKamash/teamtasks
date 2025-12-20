@@ -29,6 +29,8 @@ class AuthRepo {
     required String email,
     required String password,
     required String displayName,
+    String? pfp,
+    DateTime? dob,
     String role = 'user',
   }) async {
     await _auth.createUserWithEmailAndPassword(
@@ -44,9 +46,32 @@ class AuthRepo {
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
         'displayName': displayName,
+        'pfp': pfp ?? "",
+        'dob': dob != null ? Timestamp.fromDate(dob) : null,
         'role': role,
         'createdAt': FieldValue.serverTimestamp(),
       });
+    }
+  }
+
+  Future<void> updateUserMetadata({
+    String? displayName,
+    String? pfp,
+    DateTime? dob,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final Map<String, dynamic> updates = {};
+    if (displayName != null) {
+      updates['displayName'] = displayName;
+      await user.updateDisplayName(displayName);
+    }
+    if (pfp != null) updates['pfp'] = pfp;
+    if (dob != null) updates['dob'] = Timestamp.fromDate(dob);
+
+    if (updates.isNotEmpty) {
+      await _firestore.collection('users').doc(user.uid).update(updates);
     }
   }
 

@@ -3,3 +3,5 @@
 3. logout button
 4. make back button for auth screen to go back to launch screen
 5. toast every error, especially signup/login, all arabic.
+6. make auth_screen scrollable and anchored to the bottom
+7. fix pfp field

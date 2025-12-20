@@ -11,12 +11,12 @@ class AuthScreen extends ConsumerStatefulWidget {
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
-  final nameController = TextEditingController();
+  final displayNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  final nameFocus = FocusNode();
+  final displayNameFocus = FocusNode();
   final emailFocus = FocusNode();
   final passwordFocus = FocusNode();
   final confirmPasswordFocus = FocusNode();
@@ -27,11 +27,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   void dispose() {
-    nameController.dispose();
+    displayNameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
-    nameFocus.dispose();
+    displayNameFocus.dispose();
     emailFocus.dispose();
     passwordFocus.dispose();
     confirmPasswordFocus.dispose();
@@ -39,12 +39,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _signUp() async {
-    final name = nameController.text.trim();
+    final displayName = displayNameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
-    if (name.isEmpty ||
+    if (displayName.isEmpty ||
         email.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
@@ -52,7 +52,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
 
     if (password != confirmPassword) {
-
       return;
     }
 
@@ -61,7 +60,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     try {
       await ref
           .read(authRepoProvider)
-          .signUp(email: email, password: password, displayName: name);
+          .signUp(email: email, password: password, displayName: displayName);
     } catch (e) {
       debugPrint(e.toString());
     } finally {
@@ -113,16 +112,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               const SizedBox(height: 12),
 
               Text(
-                  _isSignup
-                      ? 'أنشئ حسابك لحفظ حالتك في السحابة'
-                      : 'سجّل الدخول للمتابعة',
-                  style: const TextStyle(
-                    fontFamily: 'Alexandria',
-                    color: Colors.grey,
-                    fontSize: 16,
-                    fontVariations: [FontVariation('wght', 400)],
-                  ),
+                _isSignup
+                    ? 'أنشئ حسابك لحفظ حالتك في السحابة'
+                    : 'سجّل الدخول للمتابعة',
+                style: const TextStyle(
+                  fontFamily: 'Alexandria',
+                  color: Colors.grey,
+                  fontSize: 16,
+                  fontVariations: [FontVariation('wght', 400)],
                 ),
+              ),
 
               const SizedBox(height: 12),
               AnimatedSize(
@@ -138,8 +137,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     child: _isSignup
                         ? MyTextField(
                             hintText: 'الاسم بالكامل',
-                            controller: nameController,
-                            focusNode: nameFocus,
+                            controller: displayNameController,
+                            focusNode: displayNameFocus,
                           )
                         : const SizedBox.shrink(),
                   ),
@@ -276,11 +275,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 }
 
-enum FieldType {
-  password,
-  email,
-  text
-}
+enum FieldType { password, email, text }
 
 class MyTextField extends StatefulWidget {
   const MyTextField({
@@ -321,7 +316,9 @@ class _MyTextFieldState extends State<MyTextField> {
       cursorHeight: 24,
       keyboardType: widget.fieldType == .password
           ? TextInputType.visiblePassword
-          : widget.fieldType == .email ? TextInputType.emailAddress : .text,
+          : widget.fieldType == .email
+          ? TextInputType.emailAddress
+          : .text,
       style: const TextStyle(
         fontFamily: 'Alexandria',
         fontSize: 16,

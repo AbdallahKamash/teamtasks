@@ -10,6 +10,8 @@ _UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
   uid: json['uid'] as String,
   email: json['email'] as String,
   displayName: json['displayName'] as String,
+  pfp: json['pfp'] as String?,
+  dob: const TimestampConverter().fromJson(json['dob']),
   role: json['role'] as String,
   createdAt: const TimestampConverter().fromJson(json['createdAt']),
 );
@@ -19,6 +21,8 @@ Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
       'uid': instance.uid,
       'email': instance.email,
       'displayName': instance.displayName,
+      'pfp': instance.pfp,
+      'dob': const TimestampConverter().toJson(instance.dob),
       'role': instance.role,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
     };
