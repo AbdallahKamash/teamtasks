@@ -83,7 +83,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () {
             router.pop();
-            router.pop();
           },
         ),
       ),

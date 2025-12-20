@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../screens/auth/marquee_text.dart';
+
 class WorkspaceButton extends ConsumerStatefulWidget {
   const WorkspaceButton({super.key});
 
@@ -70,7 +72,7 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
                   children: [
                     _item('Workspace 1'),
                     _item('Workspace'),
-                    _item('Create new workspace'),
+                    _item('سيبس سيب شيس يبل سي لب شسي بشس بس'),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -105,11 +107,16 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
                   color: Colors.purple.shade100,
                 ),
               ),
-              Text(
-                chosen,
-                style: const TextStyle(fontFamily: 'Alexandria', fontSize: 13, fontWeight: FontWeight.bold),
+              Expanded(
+                child: MarqueeText(
+                  text: chosen,
+                  style: const TextStyle(
+                    fontFamily: 'Alexandria',
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              const Spacer(),
               AnimatedRotation(
                 turns: _expanded ? -0.25 : 0,
                 duration: const Duration(milliseconds: 200),
@@ -124,28 +131,38 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
 
   Widget _item(String text) {
     if (text == chosen) return const SizedBox.shrink();
+
     return InkWell(
       onTap: () {
         setState(() => chosen = text);
         _closeDropdown();
       },
       child: Directionality(
-        textDirection: .rtl,
+        textDirection: TextDirection.rtl,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               Container(
                 margin: const EdgeInsets.only(left: 8),
-                height: 30, width: 30,
+                height: 30,
+                width: 30,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
                   color: Colors.purple.shade100,
                 ),
               ),
-              Text(
-                text,
-                style: const TextStyle(fontFamily: 'Alexandria', fontSize: 13),
+
+              /// 👇 THIS is the important part
+              Expanded(
+                child: MarqueeText(
+                  text: text,
+                  style: const TextStyle(
+                    fontFamily: 'Alexandria',
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),

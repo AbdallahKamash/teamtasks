@@ -150,7 +150,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 0,
-                        disabledBackgroundColor: Colors.purple.withOpacity(0.6),
+                        disabledBackgroundColor: Colors.purple.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                       child: _isLoading
                           ? const SizedBox(

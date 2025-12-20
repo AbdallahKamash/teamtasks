@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:teamtasks/auth/auth_prov.dart';
-import 'package:teamtasks/router/router.dart';
+import 'package:teamtasks/components/workspace_swapper.dart';
 
 import '../../components/app_drawer.dart';
 
@@ -14,17 +13,44 @@ class HomeScreen extends ConsumerWidget {
       drawerEnableOpenDragGesture: false,
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: Colors.white70,
-        elevation: 0,
+        surfaceTintColor: Colors.grey,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu_rounded, color: Colors.transparent),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ],
+        backgroundColor: Colors.white.withValues(alpha: 0),
+        elevation: 1,
+        actionsPadding: EdgeInsets.all(0),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
+            icon: const Icon(Icons.menu_rounded, color: Colors.black),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: null,
+        title: WorkspaceSwapper(),
       ),
       drawer: AppDrawer(),
+      body: Container(
+        color: Colors.red,
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SingleChildScrollView(
+              reverse: true,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
