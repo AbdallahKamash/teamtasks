@@ -10,10 +10,12 @@ class WorkspaceSwapper extends ConsumerStatefulWidget {
   ConsumerState<WorkspaceSwapper> createState() => _WorkspaceButtonState();
 }
 
+List<String> workspaces = ["sdfsd"];
+
 class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
     with TickerProviderStateMixin {
   bool _expanded = false;
-  String chosen = 'Workspace';
+  String chosen = workspaces.isNotEmpty ? workspaces.first : "";
 
   // LayerLink connects the button to the floating dropdown
   final LayerLink _layerLink = LayerLink();
@@ -36,7 +38,7 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
     _controller.forward();
-    setState(() => _expanded = true);
+    setState(() => _expanded = true && workspaces.isNotEmpty);
   }
 
   void _closeDropdown() async {
@@ -76,9 +78,12 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(height: 8,),
-                    _item('Workspace 1'),
-                    _item('Workspace'),
-                    _item('Create new workspace'),
+                    for (final workspace in workspaces)
+                      workspaceItem(workspace),
+                    if (workspaces.length > 1) Divider(height: 0, color: Colors.grey.shade300,),
+                    if (workspaces.length > 1) SizedBox(height: 8,),
+                    addWorkspace(),
+                    SizedBox(height: 8,),
                   ],
                 ),
               ),
@@ -112,7 +117,7 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
                 : BorderRadius.circular(12),
           ),
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
+          child: workspaces.isNotEmpty ? Row(
             children: [
               Container(
                 margin: const EdgeInsets.only(left: 8),
@@ -140,13 +145,13 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
               ),
               SizedBox(width: 8),
             ],
-          ),
+          ) : addWorkspace(),
         ),
       ),
     );
   }
 
-  Widget _item(String text) {
+  Widget workspaceItem(String text) {
     if (text == chosen) return const SizedBox.shrink();
     return InkWell(
       onTap: () {
@@ -177,6 +182,35 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget addWorkspace() {
+    return InkWell(
+      onTap: () {
+        _closeDropdown();
+      },
+      child: Directionality(
+        textDirection: .rtl,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(workspaces.isNotEmpty ? 8 : 0,0,8,0),
+          child: Row(
+            children: [
+              Expanded(
+                child: MarqueeText(
+                  text: 'إضافة مساحة عمل جديدة',
+                  style: const TextStyle(
+                    fontFamily: 'Alexandria',
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Center(child: Icon(Icons.add_rounded, size: 20,)),
             ],
           ),
         ),

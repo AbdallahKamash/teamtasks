@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       drawerEnableOpenDragGesture: false,
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Colors.grey.shade200,
       appBar: AppBar(
         surfaceTintColor: Colors.grey,
         actions: [
