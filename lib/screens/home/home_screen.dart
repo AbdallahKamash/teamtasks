@@ -1,28 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:teamtasks/workspace/workspace_prov.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final workspacesAsync = ref.watch(workspacesProvider);
+    final workspaces = workspacesAsync.asData?.value ?? [];
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Center(
-          child: Text(
-            'لا يوجد مساحة عمل \n قم بإضافة مساحة عمل جديدة من الاعلى',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontFamily: 'Alexandria',
-            ),
-          ),
-        ),
+        child: workspaces.isEmpty
+            ? Center(
+                child: Text(
+                  'لا يوجد مساحة عمل \n قم بإضافة مساحة عمل جديدة من الاعلى',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey.shade500,
+                    fontFamily: 'Alexandria',
+                  ),
+                ),
+              )
+            : Text('sadas'),
       ),
     );
   }
