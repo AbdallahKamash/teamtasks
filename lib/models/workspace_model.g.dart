@@ -15,6 +15,12 @@ _WorkspaceModel _$WorkspaceModelFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['createdAt'] as String),
       description: json['description'] as String?,
       logoUrl: json['logoUrl'] as String?,
+      titles: (json['titles'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      scheme: (json['scheme'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$WorkspaceModelToJson(_WorkspaceModel instance) =>
@@ -26,4 +32,6 @@ Map<String, dynamic> _$WorkspaceModelToJson(_WorkspaceModel instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'description': instance.description,
       'logoUrl': instance.logoUrl,
+      'titles': instance.titles,
+      'scheme': instance.scheme,
     };

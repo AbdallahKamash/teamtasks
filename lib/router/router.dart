@@ -13,6 +13,7 @@ import 'package:teamtasks/screens/settings/settings_screen.dart';
 import 'package:teamtasks/screens/settings/edit_profile_screen.dart';
 import 'package:teamtasks/screens/workspace/add_workspace_screen.dart';
 import 'package:teamtasks/screens/workspace/edit_workspace_screen.dart';
+import 'package:teamtasks/screens/workspace/edit_workspace_scheme_screen.dart';
 import 'package:teamtasks/models/workspace_model.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
@@ -122,6 +123,18 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
             context: context,
             state: state,
             child: EditWorkspaceScreen(workspace: workspace),
+            dir: TextDirection.rtl,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/edit-workspace-scheme',
+        pageBuilder: (context, state) {
+          final workspace = state.extra as WorkspaceModel;
+          return buildPageWithTransition(
+            context: context,
+            state: state,
+            child: EditWorkspaceSchemeScreen(workspace: workspace),
             dir: TextDirection.rtl,
           );
         },

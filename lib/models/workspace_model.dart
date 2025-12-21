@@ -13,6 +13,8 @@ abstract class WorkspaceModel with _$WorkspaceModel {
     required DateTime createdAt,
     String? description,
     String? logoUrl,
+    List<String>? titles,
+    Map<String, String>? scheme,
   }) = _WorkspaceModel;
 
   factory WorkspaceModel.fromJson(Map<String, dynamic> json) =>
