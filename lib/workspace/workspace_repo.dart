@@ -14,13 +14,26 @@ class WorkspaceRepo {
         .snapshots()
         .switchMap((userDoc) {
           final data = userDoc.data();
-          if (data == null || data['workspaceIds'] == null) {
+          if (data == null) {
             return Stream.value([]);
           }
 
-          final List<String> workspaceIds = List<String>.from(
-            data['workspaceIds'],
-          );
+          final List<String> workspaceIds = [];
+
+          // Handle new structure: 'workspaces' list of maps
+          if (data['workspaces'] != null) {
+            final List<dynamic> workspacesList = data['workspaces'];
+            for (final w in workspacesList) {
+              if (w is Map && w['workspaceId'] != null) {
+                workspaceIds.add(w['workspaceId'] as String);
+              }
+            }
+          }
+          // Fallback/Legacy: 'workspaceIds' list of strings
+          else if (data['workspaceIds'] != null) {
+            workspaceIds.addAll(List<String>.from(data['workspaceIds']));
+          }
+
           if (workspaceIds.isEmpty) {
             return Stream.value([]);
           }
@@ -62,7 +75,9 @@ class WorkspaceRepo {
         .collection('users_workspaces')
         .doc(workspace.creatorId)
         .set({
-          'workspaceIds': FieldValue.arrayUnion([workspaceRef.id]),
+          'workspaces': FieldValue.arrayUnion([
+            {'workspaceId': workspaceRef.id, 'role': 'admin'},
+          ]),
         }, SetOptions(merge: true));
 
     return workspaceRef.id;
