@@ -89,7 +89,7 @@ final class WorkspacesProvider
   }
 }
 
-String _$workspacesHash() => r'02a9ef1ba12c8925970b5e5620ef59d4dd58e4b2';
+String _$workspacesHash() => r'90c77fbb021e297c5954e609643c1c831da339f4';
 
 @ProviderFor(SelectedWorkspaceId)
 const selectedWorkspaceIdProvider = SelectedWorkspaceIdProvider._();

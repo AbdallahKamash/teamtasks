@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
 import '../models/workspace_model.dart';
+import '../models/user_model.dart';
+import '../models/pending_assignment_model.dart';
 
 class WorkspaceRepo {
   final FirebaseFirestore _firestore;
@@ -88,5 +90,26 @@ class WorkspaceRepo {
         .collection('workspaces')
         .doc(workspace.id)
         .update(workspace.toJson());
+  }
+
+  Future<UserModel?> getUserByEmail(String email) async {
+    final querySnapshot = await _firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) return null;
+
+    final doc = querySnapshot.docs.first;
+    // Ensure uid is included if it's not in the data map
+    final data = doc.data();
+    return UserModel.fromJson({...data, 'uid': doc.id});
+  }
+
+  Future<void> addPendingAssignment(PendingAssignmentModel assignment) async {
+    final docRef = _firestore.collection('pending_assignments').doc();
+    final assignmentWithId = assignment.copyWith(id: docRef.id);
+    await docRef.set(assignmentWithId.toJson());
   }
 }

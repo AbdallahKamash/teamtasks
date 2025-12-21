@@ -22,13 +22,8 @@ AuthRepo authRepo(Ref ref) {
 }
 
 @riverpod
-Stream<User?> authState(Ref ref) {
-  return ref.watch(authRepoProvider).authStateChanges();
-}
-
-@riverpod
 Stream<UserModel?> currentUserData(Ref ref) {
-  final user = ref.watch(authStateProvider).value;
+  final user = ref.watch(authRepoProvider).currentUser;
   if (user == null) {
     return Stream.value(null);
   }

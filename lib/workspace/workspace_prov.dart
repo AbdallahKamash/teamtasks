@@ -12,7 +12,7 @@ WorkspaceRepo workspaceRepo(Ref ref) {
 
 @riverpod
 Stream<List<WorkspaceModel>> workspaces(Ref ref) {
-  final user = ref.watch(authStateProvider).value;
+  final user = ref.watch(authRepoProvider).currentUser;
   if (user == null) {
     return Stream.value([]);
   }
@@ -31,10 +31,9 @@ class SelectedWorkspaceId extends _$SelectedWorkspaceId {
 
 @riverpod
 WorkspaceModel? selectedWorkspace(Ref ref) {
-  final workspaces = ref.watch(workspacesProvider).maybeWhen(
-    data: (data) => data,
-    orElse: () => <WorkspaceModel>[],
-  );
+  final workspaces = ref
+      .watch(workspacesProvider)
+      .maybeWhen(data: (data) => data, orElse: () => <WorkspaceModel>[]);
 
   final selectedId = ref.watch(selectedWorkspaceIdProvider);
 

@@ -63,7 +63,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final user = ref.read(authStateProvider).value;
+      final user = ref.read(authRepoProvider).currentUser;
       if (user == null) return;
 
       final workspace = WorkspaceModel(

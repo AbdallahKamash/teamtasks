@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/workspace/workspace_prov.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teamtasks/router/router.dart';
 
 class WorkspaceSettings extends ConsumerWidget {
   const WorkspaceSettings({super.key});
@@ -40,7 +41,7 @@ class WorkspaceSettings extends ConsumerWidget {
                             ? DecorationImage(
                                 image: NetworkImage(selectedWorkspace.logoUrl!),
                                 fit: BoxFit.cover,
-                                onError: (_, __) {}, // Handle error silently
+                                onError: (_, _) {}, // Handle error silently
                               )
                             : null,
                       ),
@@ -126,6 +127,36 @@ class WorkspaceSettings extends ConsumerWidget {
                         icon: const Icon(Icons.account_tree),
                         label: const Text(
                           'تعديل الهيكل التنظيمي',
+                          style: TextStyle(
+                            fontFamily: 'Alexandria',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.purple,
+                          side: const BorderSide(color: Colors.purple),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          ref
+                              .read(routerProvider)
+                              .push(
+                                '/workspace-users',
+                                extra: selectedWorkspace.id,
+                              );
+                        },
+                        icon: const Icon(Icons.people_outline),
+                        label: const Text(
+                          'الأعضاء والصلاحيات',
                           style: TextStyle(
                             fontFamily: 'Alexandria',
                             fontWeight: FontWeight.bold,
