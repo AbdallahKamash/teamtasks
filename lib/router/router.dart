@@ -8,7 +8,7 @@ import 'package:teamtasks/screens/auth/auth_screen.dart';
 import 'package:teamtasks/screens/auth/forgot_password_screen.dart';
 import 'package:teamtasks/screens/auth/launch_screen.dart';
 import 'package:teamtasks/screens/auth/verify_email_screen.dart';
-import 'package:teamtasks/screens/home/home_screen.dart';
+import 'package:teamtasks/screens/home/main_page.dart';
 import 'package:teamtasks/screens/settings/settings_screen.dart';
 import 'package:teamtasks/screens/settings/edit_profile_screen.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
@@ -62,7 +62,7 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
         pageBuilder: (context, state) => buildPageWithTransition(
           context: context,
           state: state,
-          child: const HomeScreen(),
+          child: const MainPage(),
           dir: TextDirection.rtl,
         ),
       ),

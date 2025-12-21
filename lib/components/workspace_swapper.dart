@@ -143,7 +143,6 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
                 duration: const Duration(milliseconds: 100),
                 child: const Icon(Icons.arrow_forward_ios_rounded, size: 12),
               ),
-              SizedBox(width: 8),
             ],
           ) : addWorkspace(),
         ),
