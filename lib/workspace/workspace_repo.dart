@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 import '../models/workspace_model.dart';
 
 class WorkspaceRepo {
@@ -8,16 +9,37 @@ class WorkspaceRepo {
 
   Stream<List<WorkspaceModel>> getWorkspacesStream(String userId) {
     return _firestore
-        .collection('workspaces')
-        .where('creatorId', isEqualTo: userId)
+        .collection('users_workspaces')
+        .doc(userId)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => WorkspaceModel.fromJson({...doc.data(), 'id': doc.id}),
-              )
-              .toList(),
-        );
+        .switchMap((userDoc) {
+          final data = userDoc.data();
+          if (data == null || data['workspaceIds'] == null) {
+            return Stream.value([]);
+          }
+
+          final List<String> workspaceIds = List<String>.from(
+            data['workspaceIds'],
+          );
+          if (workspaceIds.isEmpty) {
+            return Stream.value([]);
+          }
+
+          // Create a stream for each workspace ID
+          final workspaceStreams = workspaceIds.map((id) {
+            return _firestore.collection('workspaces').doc(id).snapshots().map((
+              doc,
+            ) {
+              if (!doc.exists) return null;
+              return WorkspaceModel.fromJson({...doc.data()!, 'id': doc.id});
+            });
+          }).toList();
+
+          // Combine all workspace streams into one stream of a list of workspaces
+          return CombineLatestStream.list(
+            workspaceStreams,
+          ).map((list) => list.whereType<WorkspaceModel>().toList());
+        });
   }
 
   Future<void> createWorkspace(WorkspaceModel workspace) async {
