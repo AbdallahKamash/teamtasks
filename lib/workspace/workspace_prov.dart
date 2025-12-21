@@ -18,3 +18,31 @@ Stream<List<WorkspaceModel>> workspaces(Ref ref) {
   }
   return ref.watch(workspaceRepoProvider).getWorkspacesStream(user.uid);
 }
+
+@riverpod
+class SelectedWorkspaceId extends _$SelectedWorkspaceId {
+  @override
+  String? build() => null;
+
+  void select(String id) {
+    state = id;
+  }
+}
+
+@riverpod
+WorkspaceModel? selectedWorkspace(Ref ref) {
+  final workspaces = ref.watch(workspacesProvider).maybeWhen(
+    data: (data) => data,
+    orElse: () => <WorkspaceModel>[],
+  );
+
+  final selectedId = ref.watch(selectedWorkspaceIdProvider);
+
+  if (selectedId != null) {
+    for (final w in workspaces) {
+      if (w.id == selectedId) return w;
+    }
+  }
+
+  return workspaces.isNotEmpty ? workspaces.first : null;
+}

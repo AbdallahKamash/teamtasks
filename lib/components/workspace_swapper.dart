@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teamtasks/workspace/workspace_prov.dart';
+
 import '../models/workspace_model.dart';
+import '../workspace/workspace_prov.dart';
 import '../screens/auth/marquee_text.dart';
 
 class WorkspaceSwapper extends ConsumerStatefulWidget {
   const WorkspaceSwapper({super.key});
 
   @override
-  ConsumerState<WorkspaceSwapper> createState() => _WorkspaceButtonState();
+  ConsumerState<WorkspaceSwapper> createState() =>
+      _WorkspaceSwapperState();
 }
 
-class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
+class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
     with TickerProviderStateMixin {
   bool _expanded = false;
-  WorkspaceModel? _chosenWorkspace;
 
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
@@ -48,16 +49,16 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
   }
 
   OverlayEntry _createOverlayEntry(List<WorkspaceModel> workspaces) {
-    RenderBox renderBox = context.findRenderObject() as RenderBox;
-    var size = renderBox.size;
+    final renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
 
     return OverlayEntry(
-      builder: (context) => Positioned(
+      builder: (_) => Positioned(
         width: size.width,
         child: CompositedTransformFollower(
           link: _layerLink,
-          showWhenUnlinked: false,
           offset: Offset(0, size.height),
+          showWhenUnlinked: false,
           child: Material(
             color: Colors.transparent,
             child: SizeTransition(
@@ -65,29 +66,25 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
                 parent: _controller,
                 curve: Curves.easeOut,
               ),
-              axisAlignment: -1.0,
+              axisAlignment: -1,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.grey.shade200,
                   borderRadius: const BorderRadius.vertical(
                     bottom: Radius.circular(12),
                   ),
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade300),
-                    left: BorderSide(color: Colors.grey.shade300),
-                    right: BorderSide(color: Colors.grey.shade300),
-                  ),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 8),
                     for (final workspace in workspaces)
-                      workspaceItem(workspace),
+                      _workspaceItem(workspace),
                     if (workspaces.length > 1)
                       Divider(height: 0, color: Colors.grey.shade300),
                     if (workspaces.length > 1) const SizedBox(height: 8),
-                    addWorkspace(hasWorkspaces: workspaces.isNotEmpty),
+                    _addWorkspace(hasWorkspaces: workspaces.isNotEmpty),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -101,105 +98,91 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
 
   @override
   Widget build(BuildContext context) {
+    // 🔥 THIS IS THE IMPORTANT PART
+    ref.listen<AsyncValue<List<WorkspaceModel>>>(
+      workspacesProvider,
+          (previous, next) {
+        if (!_expanded || _overlayEntry == null) return;
+        if (!next.hasValue) return;
+
+        _overlayEntry!.remove();
+        _overlayEntry = _createOverlayEntry(next.value!);
+        Overlay.of(context).insert(_overlayEntry!);
+      },
+    );
+
     final workspacesAsync = ref.watch(workspacesProvider);
+    final selected = ref.watch(selectedWorkspaceProvider);
 
     return workspacesAsync.when(
+      loading: _loading,
+      error: (_, _) => _error(),
       data: (workspaces) {
-        if (_chosenWorkspace == null && workspaces.isNotEmpty) {
-          _chosenWorkspace = workspaces.first;
-        } else if (workspaces.isEmpty) {
-          _chosenWorkspace = null;
-        } else if (_chosenWorkspace != null &&
-            !workspaces.any((w) => w.id == _chosenWorkspace!.id)) {
-          _chosenWorkspace = workspaces.first;
-        }
         return CompositedTransformTarget(
           link: _layerLink,
           child: GestureDetector(
             onTap: () => _toggleDropdown(workspaces),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 100),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: _expanded
-                    ? const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      )
+                    ? const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                )
                     : BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: _chosenWorkspace != null
-                  ? Row(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          height: 20,
-                          width: 20,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: _hexToColor(_chosenWorkspace!.color),
-                          ),
-                        ),
-                        Expanded(
-                          child: MarqueeText(
-                            text: _chosenWorkspace!.name,
-                            style: const TextStyle(
-                              fontFamily: 'Alexandria',
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        AnimatedRotation(
-                          turns: _expanded ? -0.25 : 0,
-                          duration: const Duration(milliseconds: 100),
-                          child: const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 12,
-                          ),
-                        ),
-                      ],
-                    )
-                  : addWorkspace(),
+              child: selected == null
+                  ? _addWorkspace()
+                  : Row(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    height: 20,
+                    width: 20,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: _hexToColor(selected.color),
+                    ),
+                  ),
+                  Expanded(
+                    child: MarqueeText(
+                      text: selected.name,
+                      style: const TextStyle(
+                        fontFamily: 'Alexandria',
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? -0.25 : 0,
+                    duration: const Duration(milliseconds: 100),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
-      loading: () => Container(
-        height: 45,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(
-          child: SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-      error: (e, s) => Container(
-        height: 45,
-        decoration: BoxDecoration(
-          color: Colors.red.shade50,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(
-          child: Text('Error', style: TextStyle(fontSize: 10)),
-        ),
-      ),
     );
   }
 
-  Widget workspaceItem(WorkspaceModel workspace) {
-    if (workspace.id == _chosenWorkspace?.id) return const SizedBox.shrink();
+  Widget _workspaceItem(WorkspaceModel workspace) {
+    final selected = ref.read(selectedWorkspaceProvider);
+    if (workspace.id == selected?.id) return const SizedBox.shrink();
+
     return InkWell(
       onTap: () {
-        setState(() => _chosenWorkspace = workspace);
+        ref
+            .read(selectedWorkspaceIdProvider.notifier)
+            .select(workspace.id);
         _closeDropdown();
       },
       child: Directionality(
@@ -234,7 +217,7 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
     );
   }
 
-  Widget addWorkspace({bool hasWorkspaces = true}) {
+  Widget _addWorkspace({bool hasWorkspaces = true}) {
     return InkWell(
       onTap: () {
         _closeDropdown();
@@ -245,18 +228,18 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
         child: Padding(
           padding: EdgeInsets.fromLTRB(hasWorkspaces ? 8 : 0, 0, 8, 0),
           child: Row(
-            children: [
+            children: const [
               Expanded(
                 child: MarqueeText(
                   text: 'إضافة مساحة عمل جديدة',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Alexandria',
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              const Center(child: Icon(Icons.add_rounded, size: 20)),
+              Icon(Icons.add_rounded, size: 20),
             ],
           ),
         ),
@@ -264,10 +247,43 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
     );
   }
 
+  Widget _loading() => Container(
+    height: 45,
+    decoration: BoxDecoration(
+      color: Colors.grey.shade200,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: const Center(
+      child: SizedBox(
+        height: 20,
+        width: 20,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    ),
+  );
+
+  Widget _error() => Container(
+    height: 45,
+    decoration: BoxDecoration(
+      color: Colors.red.shade50,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: const Center(
+      child: Text('Error', style: TextStyle(fontSize: 10)),
+    ),
+  );
+
   Color _hexToColor(String hex) {
     final buffer = StringBuffer();
     if (hex.length == 6 || hex.length == 7) buffer.write('ff');
     buffer.write(hex.replaceFirst('#', ''));
     return Color(int.parse(buffer.toString(), radix: 16));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _overlayEntry?.remove();
+    super.dispose();
   }
 }

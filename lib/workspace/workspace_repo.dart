@@ -25,24 +25,32 @@ class WorkspaceRepo {
             return Stream.value([]);
           }
 
-          // Create a stream for each workspace ID
-          final workspaceStreams = workspaceIds.map((id) {
-            return _firestore.collection('workspaces').doc(id).snapshots().map((
-              doc,
-            ) {
-              if (!doc.exists) return null;
-              return WorkspaceModel.fromJson({...doc.data()!, 'id': doc.id});
-            });
-          }).toList();
+          // Query workspaces where the document ID is in the list of IDs
+          // Note: 'whereIn' supports up to 10 values. If users can have more,
+          // we'd need to chunk this. Assuming < 10 for now as per plan.
+          return _firestore
+              .collection('workspaces')
+              .where(FieldPath.documentId, whereIn: workspaceIds)
+              .snapshots()
+              .map((snapshot) {
+                final workspaces = snapshot.docs
+                    .map(
+                      (doc) => WorkspaceModel.fromJson({
+                        ...doc.data(),
+                        'id': doc.id,
+                      }),
+                    )
+                    .toList();
 
-          // Combine all workspace streams into one stream of a list of workspaces
-          return CombineLatestStream.list(
-            workspaceStreams,
-          ).map((list) => list.whereType<WorkspaceModel>().toList());
+                // Sort by creation time (newest first)
+                workspaces.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+                return workspaces;
+              });
         });
   }
 
-  Future<void> createWorkspace(WorkspaceModel workspace) async {
+  Future<String> createWorkspace(WorkspaceModel workspace) async {
     // 1. Create the workspace document
     final workspaceRef = _firestore.collection('workspaces').doc();
     final workspaceWithId = workspace.copyWith(id: workspaceRef.id);
@@ -50,14 +58,13 @@ class WorkspaceRepo {
     await workspaceRef.set(workspaceWithId.toJson());
 
     // 2. Save to users_workspaces collection as requested
-    // "the document should be with the user's id and within it save a value of the workspace id"
-    // To support multiple, I'll use arrayUnion if possible, but the prompt says "save a value".
-    // I'll assume they meant adding it to a list in that doc.
     await _firestore
         .collection('users_workspaces')
         .doc(workspace.creatorId)
         .set({
           'workspaceIds': FieldValue.arrayUnion([workspaceRef.id]),
         }, SetOptions(merge: true));
+
+    return workspaceRef.id;
   }
 }
