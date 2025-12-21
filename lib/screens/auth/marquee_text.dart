@@ -70,13 +70,10 @@ class _MarqueeTextState extends State<MarqueeText>
     _running = true;
 
     while (mounted && _shouldScroll) {
-      // Scroll
       await _animController.forward(from: 0);
 
-      // Pause
       await Future.delayed(widget.pauseDuration);
 
-      // Reset position
       _scrollController.jumpTo(0);
     }
 

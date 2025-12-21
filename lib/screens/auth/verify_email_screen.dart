@@ -55,7 +55,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     int remaining;
 
     if (lastSentMillis == null) {
-      // First time, send email and start timer
       await _sendEmailVerification(silent: true);
       remaining = _verifyCooldownSeconds;
     } else {
@@ -63,11 +62,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       final elapsed = DateTime.now().difference(lastSent).inSeconds;
 
       if (elapsed >= _verifyCooldownSeconds) {
-        // Cooldown expired, send email and start timer
         await _sendEmailVerification(silent: true);
         remaining = _verifyCooldownSeconds;
       } else {
-        // Cooldown still active, just start timer with remaining time
         remaining = _verifyCooldownSeconds - elapsed;
       }
     }

@@ -81,9 +81,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
 
                   const SizedBox(height: 16),
                   Divider(height: 0, color: Colors.grey.shade300,)
-
-                  //const WorkspaceButton(),
-
                 ],
 
                 Expanded(

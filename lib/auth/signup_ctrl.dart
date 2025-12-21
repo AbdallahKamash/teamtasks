@@ -7,7 +7,6 @@ part 'signup_ctrl.g.dart';
 class SignUpCtrl extends _$SignUpCtrl {
   @override
   AsyncValue<void> build() {
-    // Initial state is "no operation yet"
     return const AsyncData(null);
   }
 

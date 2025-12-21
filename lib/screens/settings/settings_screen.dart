@@ -97,7 +97,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Profile Header
                   Center(
                     child: Column(
                       children: [
@@ -143,7 +142,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Edit Profile Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -172,7 +170,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   const Spacer(),
 
-                  // Logout Button
                   SizedBox(
                     width: double.infinity,
                     child: TextButton.icon(

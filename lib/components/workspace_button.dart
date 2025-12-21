@@ -15,7 +15,6 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
   bool _expanded = false;
   String chosen = 'Workspace';
 
-  // LayerLink connects the button to the floating dropdown
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
@@ -56,7 +55,7 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(0, size.height), // Starts exactly below the button
+          offset: Offset(0, size.height),
           child: Material(
             color: Colors.transparent,
             child: SizeTransition(
@@ -86,7 +85,6 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
 
   @override
   Widget build(BuildContext context) {
-    // CompositedTransformTarget ensures the overlay follows this specific widget
     return CompositedTransformTarget(
       link: _layerLink,
       child: GestureDetector(
@@ -153,7 +151,6 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
                 ),
               ),
 
-              /// 👇 THIS is the important part
               Expanded(
                 child: MarqueeText(
                   text: text,

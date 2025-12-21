@@ -8,7 +8,7 @@ abstract class WorkspaceModel with _$WorkspaceModel {
   const factory WorkspaceModel({
     required String id,
     required String name,
-    required String color, // hex string
+    required String color,
     required String creatorId,
     required DateTime createdAt,
   }) = _WorkspaceModel;

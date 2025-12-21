@@ -30,13 +30,12 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    // This listener ensures the PageView slides when the BottomNavbar is tapped
     ref.listen(navIndexProvider, (previous, next) {
       if (_pageController.hasClients) {
         _pageController.animateToPage(
           next,
           duration: const Duration(milliseconds: 350),
-          curve: Curves.easeInOutQuad, // Smooth, decelerating curve
+          curve: Curves.easeInOutQuad,
         );
       }
     });

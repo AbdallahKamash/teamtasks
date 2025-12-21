@@ -18,14 +18,12 @@ class LaunchScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Spacer(),
-              // App Logo Placeholder
               const Icon(
                 Icons.rocket_launch_rounded,
                 size: 120,
                 color: Colors.purple,
               ),
               const SizedBox(height: 24),
-              // App Name
               const Text(
                 'TeamTasks',
                 style: TextStyle(
@@ -37,7 +35,6 @@ class LaunchScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              // Slogan
               Text(
                 'إنجاز المهام، معاً',
                 style: TextStyle(
@@ -48,7 +45,6 @@ class LaunchScreen extends ConsumerWidget {
                 ),
               ),
               const Spacer(),
-              // Get Started Button
               GestureDetector(
                 onTap: () {
                   router.push('/auth');

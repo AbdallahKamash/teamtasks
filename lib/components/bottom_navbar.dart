@@ -14,18 +14,17 @@ class BottomNavbar extends ConsumerWidget {
     final bool hasWorkspaces = workspacesAsync.when(
       data: (workspaces) => workspaces.isNotEmpty,
       loading: () => false,
-      error: (_, __) => false,
+      error: (_, _) => false,
     );
 
     return Container(
-      // This mimics the elevation look of an AppBar
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade300, // Soft shadow color
-            blurRadius: 1, // Matches low elevation
+            color: Colors.grey.shade300,
+            blurRadius: 1,
             spreadRadius: 0,
-            offset: const Offset(0, -2), // Move shadow UPWARDS
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -34,7 +33,6 @@ class BottomNavbar extends ConsumerWidget {
         currentIndex: currentIndex,
         onTap: (index) {
           if (index != 0 && !hasWorkspaces) {
-            // Ignore taps on other tabs if no workspace is available
             return;
           }
           ref.read(navIndexProvider.notifier).setIndex(index);

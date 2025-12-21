@@ -17,7 +17,6 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
   bool _expanded = false;
   WorkspaceModel? _chosenWorkspace;
 
-  // LayerLink connects the button to the floating dropdown
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
@@ -58,7 +57,7 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(0, size.height), // Starts exactly below the button
+          offset: Offset(0, size.height),
           child: Material(
             color: Colors.transparent,
             child: SizeTransition(
@@ -107,13 +106,11 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceSwapper>
     return workspacesAsync.when(
       data: (workspaces) {
         if (_chosenWorkspace == null && workspaces.isNotEmpty) {
-          // Default to first workspace if none chosen
           _chosenWorkspace = workspaces.first;
         } else if (workspaces.isEmpty) {
           _chosenWorkspace = null;
         } else if (_chosenWorkspace != null &&
             !workspaces.any((w) => w.id == _chosenWorkspace!.id)) {
-          // If chosen workspace was deleted or no longer available, reset to first
           _chosenWorkspace = workspaces.first;
         }
         return CompositedTransformTarget(
