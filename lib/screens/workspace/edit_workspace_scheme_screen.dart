@@ -116,203 +116,276 @@ class _EditWorkspaceSchemeScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
+        backgroundColor: Colors.grey.shade200,
+        elevation: 0,
+        centerTitle: true,
         title: const Text(
           'تعديل الهيكل التنظيمي',
           style: TextStyle(
             fontFamily: 'Alexandria',
+            fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
-        centerTitle: true,
-        actions: [
-          if (_isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                ),
-              ),
-            )
-          else
-            IconButton(
-              onPressed: _save,
-              icon: const Icon(Icons.check),
-              tooltip: 'حفظ',
-            ),
-        ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => context.pop(),
+        ),
       ),
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Add Title Section
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        hintText: 'أدخل المسمى الوظيفي (مثال: مدير)',
-                        hintStyle: const TextStyle(fontFamily: 'Alexandria'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 0,
-                        ),
-                      ),
-                      style: const TextStyle(fontFamily: 'Alexandria'),
-                    ),
+      body: SafeArea(
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Add Title Section
+                const Text(
+                  'إضافة مسمى وظيفي جديد',
+                  style: TextStyle(
+                    fontFamily: 'Alexandria',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54,
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _addTitle,
-                    icon: const Icon(
-                      Icons.add_circle,
-                      color: Colors.purple,
-                      size: 32,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'المسميات والعلاقات',
-                style: TextStyle(
-                  fontFamily: 'Alexandria',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: _titles.isEmpty
-                    ? Center(
-                        child: Text(
-                          'لا يوجد مسميات بعد',
-                          style: TextStyle(
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _titleController,
+                        style: const TextStyle(
+                          fontFamily: 'Alexandria',
+                          fontSize: 14,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'أدخل المسمى الوظيفي (مثال: مدير)',
+                          hintStyle: const TextStyle(
                             fontFamily: 'Alexandria',
-                            color: Colors.grey.shade500,
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
                           ),
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: _titles.length,
-                        itemBuilder: (context, index) {
-                          final role = _titles[index];
-                          final manager = _scheme[role];
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        onPressed: _addTitle,
+                        icon: const Icon(Icons.add, color: Colors.purple),
+                        tooltip: 'إضافة',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'المسميات والعلاقات',
+                  style: TextStyle(
+                    fontFamily: 'Alexandria',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: _titles.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.account_tree_outlined,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'لا يوجد مسميات وظيفية بعد',
+                                style: TextStyle(
+                                  fontFamily: 'Alexandria',
+                                  color: Colors.grey.shade500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _titles.length,
+                          padding: const EdgeInsets.only(bottom: 80),
+                          itemBuilder: (context, index) {
+                            final role = _titles[index];
+                            final manager = _scheme[role];
 
-                          // Available managers: All titles except self
-                          final possibleManagers = _titles
-                              .where((t) => t != role)
-                              .toList();
+                            // Available managers: All titles except self
+                            final possibleManagers = _titles
+                                .where((t) => t != role)
+                                .toList();
 
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.grey.shade200),
-                            ),
-                            elevation: 0,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        role,
-                                        style: const TextStyle(
-                                          fontFamily: 'Alexandria',
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () => _removeTitle(role),
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          color: Colors.red,
-                                        ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      const Text(
-                                        'يتبع لـ: ',
-                                        style: TextStyle(
-                                          fontFamily: 'Alexandria',
-                                          color: Colors.grey,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: DropdownButtonHideUnderline(
-                                          child: DropdownButton<String>(
-                                            isExpanded: true,
-                                            value: manager,
-                                            hint: const Text(
-                                              '—', // No manager
-                                              style: TextStyle(
-                                                fontFamily: 'Alexandria',
-                                              ),
-                                            ),
-                                            items: [
-                                              const DropdownMenuItem<String>(
-                                                value: null,
-                                                child: Text(
-                                                  '— (لا أحد)',
-                                                  style: TextStyle(
-                                                    fontFamily: 'Alexandria',
-                                                  ),
-                                                ),
-                                              ),
-                                              ...possibleManagers.map((m) {
-                                                return DropdownMenuItem<String>(
-                                                  value: m,
-                                                  child: Text(
-                                                    m,
-                                                    style: const TextStyle(
-                                                      fontFamily: 'Alexandria',
-                                                    ),
-                                                  ),
-                                                );
-                                              }),
-                                            ],
-                                            onChanged: (val) =>
-                                                _updateScheme(role, val),
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide.none,
+                              ),
+                              elevation: 0,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          role,
+                                          style: const TextStyle(
+                                            fontFamily: 'Alexandria',
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
+                                        IconButton(
+                                          onPressed: () => _removeTitle(role),
+                                          icon: Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.red.shade400,
+                                            size: 20,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                    ],
-                                  ),
-                                ],
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'يتبع لـ: ',
+                                            style: TextStyle(
+                                              fontFamily: 'Alexandria',
+                                              color: Colors.grey.shade600,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                isExpanded: true,
+                                                value: manager,
+                                                icon: Icon(
+                                                  Icons.keyboard_arrow_down,
+                                                  color: Colors.grey.shade600,
+                                                  size: 20,
+                                                ),
+                                                hint: Text(
+                                                  '—',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Alexandria',
+                                                    fontSize: 14,
+                                                    color: Colors.grey.shade800,
+                                                  ),
+                                                ),
+                                                style: TextStyle(
+                                                  fontFamily: 'Alexandria',
+                                                  fontSize: 14,
+                                                  color: Colors.grey.shade800,
+                                                ),
+                                                items: [
+                                                  const DropdownMenuItem<
+                                                    String
+                                                  >(
+                                                    value: null,
+                                                    child: Text('— (لا أحد)'),
+                                                  ),
+                                                  ...possibleManagers.map((m) {
+                                                    return DropdownMenuItem<
+                                                      String
+                                                    >(value: m, child: Text(m));
+                                                  }),
+                                                ],
+                                                onChanged: (val) =>
+                                                    _updateScheme(role, val),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-              ),
-            ],
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'حفظ التغييرات',
+                            style: TextStyle(
+                              fontFamily: 'Alexandria',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
