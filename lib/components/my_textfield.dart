@@ -73,18 +73,18 @@ class _MyTextFieldState extends State<MyTextField> {
         ),
         suffixIcon: widget.fieldType == .password
             ? IconButton(
-          icon: Icon(
-            color: Colors.grey.shade400,
-            _obscureText ? Icons.visibility : Icons.visibility_off,
-          ),
-          onPressed: () {
-            setState(() => _obscureText = !_obscureText);
-          },
-        )
+                icon: Icon(
+                  color: Colors.grey.shade400,
+                  _obscureText ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () {
+                  setState(() => _obscureText = !_obscureText);
+                },
+              )
             : null,
       ),
       validator: (val) =>
-      val == null || val.isEmpty ? 'ادخل ${widget.hintText}' : null,
+          val == null || val.isEmpty ? 'ادخل ${widget.hintText}' : null,
     );
   }
 }

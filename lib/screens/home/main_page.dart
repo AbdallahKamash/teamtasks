@@ -10,10 +10,10 @@ class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
-  ConsumerState<MainPage> createState() => _HomeScreenState();
+  ConsumerState<MainPage> createState() => _MainPageState();
 }
 
-class _HomeScreenState extends ConsumerState<MainPage> {
+class _MainPageState extends ConsumerState<MainPage> {
   late PageController _pageController;
 
   @override
@@ -47,46 +47,34 @@ class _HomeScreenState extends ConsumerState<MainPage> {
       bottomNavigationBar: const BottomNavbar(),
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
-        actions: [
-          _buildNotificationStack(),
-        ],
+        actions: [_buildNotificationStack()],
         backgroundColor: Colors.grey.shade200,
         shadowColor: Colors.grey.shade50,
         elevation: 1,
         leadingWidth: 50,
-        leading: Builder(builder: (context) {
-          return IconButton(
-            padding: EdgeInsets.all(8),
-            icon: Icon(Icons.menu_rounded, color: Colors.grey.shade600),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          );
-        }),
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              padding: const EdgeInsets.all(8),
+              icon: Icon(Icons.menu_rounded, color: Colors.grey.shade600),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            );
+          },
+        ),
         title: const WorkspaceSwapper(),
       ),
       drawer: const AppDrawer(),
       // PageView allows for the smooth sliding transition between bodies
       body: PageView(
         controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(), // Prevents accidental swiping
-        children: [
+        physics:
+            const NeverScrollableScrollPhysics(), // Prevents accidental swiping
+        children: const [
           HomeScreen(),
           HomeScreen(),
           HomeScreen(),
           HomeScreen(),
         ],
-      ),
-    );
-  }
-
-  // Helper to keep the styling consistent with your original body
-  Widget _buildPage(String title) {
-    return Container(
-      color: Colors.white24,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Center(child: Text(title, style: TextStyle(color: Colors.grey.shade800))),
-        ),
       ),
     );
   }
@@ -96,7 +84,10 @@ class _HomeScreenState extends ConsumerState<MainPage> {
       alignment: Alignment.center,
       children: [
         IconButton(
-          icon: Icon(Icons.notifications_none_rounded, color: Colors.grey.shade600),
+          icon: Icon(
+            Icons.notifications_none_rounded,
+            color: Colors.grey.shade600,
+          ),
           onPressed: () {},
         ),
         const Positioned(

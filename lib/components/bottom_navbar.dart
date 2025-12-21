@@ -36,9 +36,15 @@ class BottomNavbar extends ConsumerWidget {
         iconSize: 32,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment_rounded), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_rounded),
+            label: '',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.group_rounded), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_rounded),
+            label: '',
+          ),
         ],
       ),
     );
