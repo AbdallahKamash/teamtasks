@@ -67,4 +67,11 @@ class WorkspaceRepo {
 
     return workspaceRef.id;
   }
+
+  Future<void> updateWorkspace(WorkspaceModel workspace) async {
+    await _firestore
+        .collection('workspaces')
+        .doc(workspace.id)
+        .update(workspace.toJson());
+  }
 }

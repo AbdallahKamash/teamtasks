@@ -10,8 +10,7 @@ class WorkspaceSwapper extends ConsumerStatefulWidget {
   const WorkspaceSwapper({super.key});
 
   @override
-  ConsumerState<WorkspaceSwapper> createState() =>
-      _WorkspaceSwapperState();
+  ConsumerState<WorkspaceSwapper> createState() => _WorkspaceSwapperState();
 }
 
 class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
@@ -99,17 +98,17 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
   @override
   Widget build(BuildContext context) {
     // 🔥 THIS IS THE IMPORTANT PART
-    ref.listen<AsyncValue<List<WorkspaceModel>>>(
-      workspacesProvider,
-          (previous, next) {
-        if (!_expanded || _overlayEntry == null) return;
-        if (!next.hasValue) return;
+    ref.listen<AsyncValue<List<WorkspaceModel>>>(workspacesProvider, (
+      previous,
+      next,
+    ) {
+      if (!_expanded || _overlayEntry == null) return;
+      if (!next.hasValue) return;
 
-        _overlayEntry!.remove();
-        _overlayEntry = _createOverlayEntry(next.value!);
-        Overlay.of(context).insert(_overlayEntry!);
-      },
-    );
+      _overlayEntry!.remove();
+      _overlayEntry = _createOverlayEntry(next.value!);
+      Overlay.of(context).insert(_overlayEntry!);
+    });
 
     final workspacesAsync = ref.watch(workspacesProvider);
     final selected = ref.watch(selectedWorkspaceProvider);
@@ -129,44 +128,42 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
                 color: Colors.grey.shade200,
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: _expanded
-                    ? const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                )
+                    ? const BorderRadius.vertical(top: Radius.circular(12))
                     : BorderRadius.circular(12),
               ),
               child: selected == null
                   ? _addWorkspace()
                   : Row(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    height: 20,
-                    width: 20,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: _hexToColor(selected.color),
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          height: 20,
+                          width: 20,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: _hexToColor(selected.color),
+                          ),
+                        ),
+                        Expanded(
+                          child: MarqueeText(
+                            text: selected.name,
+                            style: const TextStyle(
+                              fontFamily: 'Alexandria',
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        AnimatedRotation(
+                          turns: _expanded ? -0.25 : 0,
+                          duration: const Duration(milliseconds: 100),
+                          child: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Expanded(
-                    child: MarqueeText(
-                      text: selected.name,
-                      style: const TextStyle(
-                        fontFamily: 'Alexandria',
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  AnimatedRotation(
-                    turns: _expanded ? -0.25 : 0,
-                    duration: const Duration(milliseconds: 100),
-                    child: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 12,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         );
@@ -176,13 +173,12 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
 
   Widget _workspaceItem(WorkspaceModel workspace) {
     final selected = ref.read(selectedWorkspaceProvider);
+    final selectedNotifier = ref.read(selectedWorkspaceIdProvider.notifier);
     if (workspace.id == selected?.id) return const SizedBox.shrink();
 
     return InkWell(
       onTap: () {
-        ref
-            .read(selectedWorkspaceIdProvider.notifier)
-            .select(workspace.id);
+        selectedNotifier.select(workspace.id);
         _closeDropdown();
       },
       child: Directionality(
@@ -268,9 +264,7 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
       color: Colors.red.shade50,
       borderRadius: BorderRadius.circular(12),
     ),
-    child: const Center(
-      child: Text('Error', style: TextStyle(fontSize: 10)),
-    ),
+    child: const Center(child: Text('Error', style: TextStyle(fontSize: 10))),
   );
 
   Color _hexToColor(String hex) {

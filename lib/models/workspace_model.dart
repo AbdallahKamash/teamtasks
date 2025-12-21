@@ -11,6 +11,8 @@ abstract class WorkspaceModel with _$WorkspaceModel {
     required String color,
     required String creatorId,
     required DateTime createdAt,
+    String? description,
+    String? logoUrl,
   }) = _WorkspaceModel;
 
   factory WorkspaceModel.fromJson(Map<String, dynamic> json) =>

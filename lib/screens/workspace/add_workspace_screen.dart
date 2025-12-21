@@ -5,18 +5,18 @@ import 'package:go_router/go_router.dart';
 import '../../auth/auth_prov.dart';
 import '../../models/workspace_model.dart';
 import '../../workspace/workspace_prov.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class AddWorkspaceScreen extends ConsumerStatefulWidget {
   const AddWorkspaceScreen({super.key});
 
   @override
-  ConsumerState<AddWorkspaceScreen> createState() =>
-      _AddWorkspaceScreenState();
+  ConsumerState<AddWorkspaceScreen> createState() => _AddWorkspaceScreenState();
 }
 
-class _AddWorkspaceScreenState
-    extends ConsumerState<AddWorkspaceScreen> {
+class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   Color _selectedColor = Colors.purple;
   bool _isLoading = false;
@@ -35,6 +35,7 @@ class _AddWorkspaceScreenState
   @override
   void dispose() {
     _nameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -71,6 +72,9 @@ class _AddWorkspaceScreenState
         color: _colorToHex(_selectedColor),
         creatorId: user.uid,
         createdAt: DateTime.now(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
       );
 
       final workspaceId = await ref
@@ -79,9 +83,7 @@ class _AddWorkspaceScreenState
 
       if (!mounted) return;
 
-      ref
-          .read(selectedWorkspaceIdProvider.notifier)
-          .select(workspaceId);
+      ref.read(selectedWorkspaceIdProvider.notifier).select(workspaceId);
 
       _nameController.clear();
 
@@ -159,12 +161,39 @@ class _AddWorkspaceScreenState
 
               TextField(
                 controller: _nameController,
-                style: const TextStyle(
-                  fontFamily: 'Alexandria',
-                  fontSize: 14,
-                ),
+                style: const TextStyle(fontFamily: 'Alexandria', fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'مثلاً: مشروعي الجديد',
+                  hintStyle: const TextStyle(
+                    fontFamily: 'Alexandria',
+                    fontSize: 13,
+                    color: Colors.grey,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              _buildLabel('وصف مساحة العمل (اختياري)'),
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _descriptionController,
+                maxLength: 250,
+                maxLines: 3,
+                style: const TextStyle(fontFamily: 'Alexandria', fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'وصف قصير لمساحة العمل...',
                   hintStyle: const TextStyle(
                     fontFamily: 'Alexandria',
                     fontSize: 13,
@@ -190,41 +219,82 @@ class _AddWorkspaceScreenState
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
-                children: _presetColors.map((color) {
-                  final isSelected = _selectedColor == color;
-                  return GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedColor = color),
+                children: [
+                  ..._presetColors.take(7).map((color) {
+                    final isSelected = _selectedColor == color;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedColor = color),
+                      child: Container(
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(color: Colors.black, width: 2)
+                              : null,
+                          boxShadow: [
+                            BoxShadow(
+                              color: color.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: isSelected
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 20,
+                              )
+                            : null,
+                      ),
+                    );
+                  }),
+                  GestureDetector(
+                    onTap: _showColorPicker,
                     child: Container(
                       width: 45,
                       height: 45,
                       decoration: BoxDecoration(
-                        color: color,
+                        gradient: const SweepGradient(
+                          colors: [
+                            Colors.red,
+                            Colors.orange,
+                            Colors.yellow,
+                            Colors.green,
+                            Colors.blue,
+                            Colors.indigo,
+                            Colors.purple,
+                            Colors.red,
+                          ],
+                        ),
                         shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(
-                          color: Colors.black,
-                          width: 2,
-                        )
+                        border: !_presetColors.contains(_selectedColor)
+                            ? Border.all(color: Colors.black, width: 2)
                             : null,
                         boxShadow: [
                           BoxShadow(
-                            color: color.withValues(alpha: 0.3),
+                            color: Colors.grey.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: isSelected
+                      child: !_presetColors.contains(_selectedColor)
                           ? const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 20,
-                      )
-                          : null,
+                              Icons.check,
+                              color: Colors.white,
+                              size: 20,
+                            )
+                          : const Icon(
+                              Icons.colorize,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 48),
@@ -244,21 +314,21 @@ class _AddWorkspaceScreenState
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text(
-                    'حفظ مساحة العمل',
-                    style: TextStyle(
-                      fontFamily: 'Alexandria',
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                          'حفظ مساحة العمل',
+                          style: TextStyle(
+                            fontFamily: 'Alexandria',
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -277,6 +347,59 @@ class _AddWorkspaceScreenState
         fontWeight: FontWeight.w500,
         color: Colors.grey.shade700,
       ),
+    );
+  }
+
+  void _showColorPicker() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        Color pickedColor = _selectedColor;
+        return AlertDialog(
+          title: const Text(
+            'اختر لوناً',
+            style: TextStyle(fontFamily: 'Alexandria'),
+            textAlign: TextAlign.center,
+          ),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickedColor,
+              onColorChanged: (color) {
+                pickedColor = color;
+              },
+              enableAlpha: false,
+              displayThumbColor: true,
+              paletteType: PaletteType.hsvWithHue,
+              labelTypes: const [],
+              pickerAreaHeightPercent: 0.8,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'إلغاء',
+                style: TextStyle(fontFamily: 'Alexandria'),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text(
+                'تحقق',
+                style: TextStyle(
+                  fontFamily: 'Alexandria',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onPressed: () {
+                setState(() => _selectedColor = pickedColor);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/components/bottom_navbar.dart';
 import 'package:teamtasks/components/workspace_swapper.dart';
 import 'package:teamtasks/screens/home/home_screen.dart';
+import 'package:teamtasks/screens/home/workspace_settings.dart';
 import '../../components/app_drawer.dart';
 import '../../nav_prov.dart';
 
@@ -72,7 +73,7 @@ class _MainPageState extends ConsumerState<MainPage> {
           HomeScreen(),
           HomeScreen(),
           HomeScreen(),
-          HomeScreen(),
+          WorkspaceSettings(),
         ],
       ),
     );
