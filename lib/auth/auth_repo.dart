@@ -31,7 +31,6 @@ class AuthRepo {
     required String displayName,
     String? pfp,
     DateTime? dob,
-    String role = 'user',
   }) async {
     await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -48,7 +47,6 @@ class AuthRepo {
         'displayName': displayName,
         'pfp': pfp ?? "",
         'dob': dob != null ? Timestamp.fromDate(dob) : null,
-        'role': role,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }

@@ -16,9 +16,9 @@ class EditWorkspaceSchemeScreen extends ConsumerStatefulWidget {
 
 class _EditWorkspaceSchemeScreenState
     extends ConsumerState<EditWorkspaceSchemeScreen> {
-  late List<String> _titles;
-  // Scheme maps a Role -> Manager Role.
-  // Key: The role that reports. Value: The role they report to.
+  // Roles: Map<ID, Name>
+  late Map<String, String> _roles;
+  // Scheme: Role ID -> Manager Role ID
   late Map<String, String> _scheme;
   final TextEditingController _titleController = TextEditingController();
   bool _isLoading = false;
@@ -26,7 +26,8 @@ class _EditWorkspaceSchemeScreenState
   @override
   void initState() {
     super.initState();
-    _titles = List.from(widget.workspace.titles ?? []);
+    // Copy to modifiable maps
+    _roles = Map.from(widget.workspace.roles ?? {});
     _scheme = Map.from(widget.workspace.scheme ?? {});
   }
 
@@ -36,45 +37,83 @@ class _EditWorkspaceSchemeScreenState
     super.dispose();
   }
 
-  void _addTitle() {
+  void _addRole() {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
-    if (_titles.contains(title)) {
+
+    // Check if name already exists
+    if (_roles.containsValue(title)) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('المسمى موجود بالفعل')));
       return;
     }
+
+    // Generate ID (simple usage of timestamp + randomish suffix not strictly needed if low volume)
+    final id = DateTime.now().microsecondsSinceEpoch.toString();
+
     setState(() {
-      _titles.add(title);
+      _roles[id] = title;
       _titleController.clear();
     });
   }
 
-  void _removeTitle(String title) {
-    setState(() {
-      _titles.remove(title);
-      // Remove any scheme entries involving this title
-      _scheme.remove(title);
-      _scheme.removeWhere((key, value) => value == title);
-    });
+  Future<void> _removeRole(String roleId) async {
+    // Validation: Check if pending users are assigned to this role
+    setState(() => _isLoading = true);
+
+    try {
+      final count = await ref
+          .read(workspaceRepoProvider)
+          .getPendingAssignmentsCountForRole(widget.workspace.id, roleId);
+
+      if (count > 0) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'لا يمكن حذف الدور: يوجد $count دعوات معلقة لهذا الدور',
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Also check if any users currently have this role?
+      // The requirement was: "cannot delete role if there is users that are pending assignment to that role".
+      // Assuming we only check pending for now as requested.
+      // Ideally we should also check active users, but following specific request.
+
+      setState(() {
+        _roles.remove(roleId);
+        // Remove relationships
+        _scheme.remove(roleId);
+        _scheme.removeWhere((key, value) => value == roleId);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('خطأ أثناء التحقق: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-  void _updateScheme(String role, String? manager) {
+  void _updateScheme(String roleId, String? managerId) {
     setState(() {
-      if (manager == null) {
-        _scheme.remove(role);
+      if (managerId == null) {
+        _scheme.remove(roleId);
       } else {
-        // Prevent simple cycles (A -> B, B -> A) and self-reference
-        if (role == manager) return;
-        if (_scheme[manager] == role) {
+        if (roleId == managerId) return;
+        // Check immediate cycle
+        if (_scheme[managerId] == roleId) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('لا يمكن إنشاء حلقة دائرية')),
           );
           return;
         }
-        // Deep cycle check could be added here but simple checks suffice for now
-        _scheme[role] = manager;
+        _scheme[roleId] = managerId;
       }
     });
   }
@@ -86,7 +125,7 @@ class _EditWorkspaceSchemeScreenState
 
     try {
       final updatedWorkspace = widget.workspace.copyWith(
-        titles: _titles,
+        roles: _roles,
         scheme: _scheme,
       );
 
@@ -115,6 +154,10 @@ class _EditWorkspaceSchemeScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Sort roles by name for display? Or insertion order? Map keys are somewhat arbitrary.
+    // Let's convert to list of MapEntries for display
+    final roleEntries = _roles.entries.toList();
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -190,7 +233,7 @@ class _EditWorkspaceSchemeScreenState
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
-                        onPressed: _addTitle,
+                        onPressed: _addRole,
                         icon: const Icon(Icons.add, color: Colors.purple),
                         tooltip: 'إضافة',
                       ),
@@ -209,7 +252,7 @@ class _EditWorkspaceSchemeScreenState
                 ),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: _titles.isEmpty
+                  child: _roles.isEmpty
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -232,15 +275,17 @@ class _EditWorkspaceSchemeScreenState
                           ),
                         )
                       : ListView.builder(
-                          itemCount: _titles.length,
+                          itemCount: roleEntries.length,
                           padding: const EdgeInsets.only(bottom: 80),
                           itemBuilder: (context, index) {
-                            final role = _titles[index];
-                            final manager = _scheme[role];
+                            final entry = roleEntries[index];
+                            final roleId = entry.key;
+                            final roleName = entry.value;
+                            final managerId = _scheme[roleId];
 
-                            // Available managers: All titles except self
-                            final possibleManagers = _titles
-                                .where((t) => t != role)
+                            // Available managers: All roles except self
+                            final possibleManagers = roleEntries
+                                .where((e) => e.key != roleId)
                                 .toList();
 
                             return Card(
@@ -261,7 +306,7 @@ class _EditWorkspaceSchemeScreenState
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          role,
+                                          roleName,
                                           style: const TextStyle(
                                             fontFamily: 'Alexandria',
                                             fontSize: 16,
@@ -269,7 +314,7 @@ class _EditWorkspaceSchemeScreenState
                                           ),
                                         ),
                                         IconButton(
-                                          onPressed: () => _removeTitle(role),
+                                          onPressed: () => _removeRole(roleId),
                                           icon: Icon(
                                             Icons.delete_outline,
                                             color: Colors.red.shade400,
@@ -304,7 +349,7 @@ class _EditWorkspaceSchemeScreenState
                                             child: DropdownButtonHideUnderline(
                                               child: DropdownButton<String>(
                                                 isExpanded: true,
-                                                value: manager,
+                                                value: managerId,
                                                 icon: Icon(
                                                   Icons.keyboard_arrow_down,
                                                   color: Colors.grey.shade600,
@@ -333,11 +378,14 @@ class _EditWorkspaceSchemeScreenState
                                                   ...possibleManagers.map((m) {
                                                     return DropdownMenuItem<
                                                       String
-                                                    >(value: m, child: Text(m));
+                                                    >(
+                                                      value: m.key,
+                                                      child: Text(m.value),
+                                                    );
                                                   }),
                                                 ],
                                                 onChanged: (val) =>
-                                                    _updateScheme(role, val),
+                                                    _updateScheme(roleId, val),
                                               ),
                                             ),
                                           ),

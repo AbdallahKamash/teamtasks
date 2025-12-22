@@ -13,7 +13,7 @@ abstract class WorkspaceModel with _$WorkspaceModel {
     required DateTime createdAt,
     String? description,
     String? logoUrl,
-    List<String>? titles,
+    Map<String, String>? roles,
     Map<String, String>? scheme,
   }) = _WorkspaceModel;
 

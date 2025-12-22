@@ -112,4 +112,27 @@ class WorkspaceRepo {
     final assignmentWithId = assignment.copyWith(id: docRef.id);
     await docRef.set(assignmentWithId.toJson());
   }
+
+  Future<bool> isUserPending(String workspaceId, String email) async {
+    final snapshot = await _firestore
+        .collection('pending_assignments')
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+    return snapshot.docs.isNotEmpty;
+  }
+
+  Future<int> getPendingAssignmentsCountForRole(
+    String workspaceId,
+    String roleId,
+  ) async {
+    final snapshot = await _firestore
+        .collection('pending_assignments')
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('roleId', isEqualTo: roleId)
+        .count()
+        .get();
+    return snapshot.count ?? 0;
+  }
 }

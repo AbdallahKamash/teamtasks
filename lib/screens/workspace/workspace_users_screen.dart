@@ -19,7 +19,7 @@ class WorkspaceUsersScreen extends ConsumerStatefulWidget {
 
 class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
   final TextEditingController _emailController = TextEditingController();
-  String? _selectedRole;
+  String? _selectedRoleId;
   bool _isLoading = false;
 
   @override
@@ -34,7 +34,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       _showError('يرجى إدخال البريد الإلكتروني');
       return;
     }
-    if (_selectedRole == null) {
+    if (_selectedRoleId == null) {
       _showError('يرجى اختيار الدور');
       return;
     }
@@ -50,6 +50,14 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
 
     try {
       final repo = ref.read(workspaceRepoProvider);
+
+      // Check if user is already pending
+      final isPending = await repo.isUserPending(workspace.id, email);
+      if (isPending) {
+        _showError('المستخدم لديه دعوة معلقة بالفعل');
+        return;
+      }
+
       final user = await repo.getUserByEmail(email);
 
       if (user == null) {
@@ -65,7 +73,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
         workspaceId: workspace.id,
         inviterName: inviterName,
         inviterId: inviterId,
-        role: _selectedRole!,
+        roleId: _selectedRoleId!,
         email: email,
         inviteeId: user.uid,
         createdAt: DateTime.now(),
@@ -84,7 +92,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
         ),
       );
       _emailController.clear();
-      setState(() => _selectedRole = null);
+      setState(() => _selectedRoleId = null);
     } catch (e) {
       _showError('حدث خطأ: $e');
     } finally {
@@ -132,7 +140,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
           );
         }
 
-        final roles = workspace.titles ?? [];
+        final roles = workspace.roles ?? {};
 
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
@@ -275,12 +283,12 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            initialValue: _selectedRole,
-                            items: roles.map((role) {
+                            initialValue: _selectedRoleId,
+                            items: roles.entries.map((entry) {
                               return DropdownMenuItem(
-                                value: role,
+                                value: entry.key, // ID
                                 child: Text(
-                                  role,
+                                  entry.value, // Name
                                   style: const TextStyle(
                                     fontFamily: 'Alexandria',
                                   ),
@@ -288,7 +296,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                               );
                             }).toList(),
                             onChanged: (val) =>
-                                setState(() => _selectedRole = val),
+                                setState(() => _selectedRoleId = val),
                             decoration: InputDecoration(
                               labelText: 'تعيين الدور',
                               labelStyle: const TextStyle(

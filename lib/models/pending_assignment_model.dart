@@ -10,7 +10,7 @@ abstract class PendingAssignmentModel with _$PendingAssignmentModel {
     required String workspaceId,
     required String inviterName,
     required String inviterId,
-    required String role,
+    required String roleId,
     required String email,
     required DateTime createdAt,
     String? inviteeId,

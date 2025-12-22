@@ -12,7 +12,7 @@ abstract class UserModel with _$UserModel {
     required String displayName,
     String? pfp,
     @TimestampConverter() DateTime? dob,
-    required String role,
+
     @TimestampConverter() DateTime? createdAt,
   }) = _UserModel;
 
