@@ -185,4 +185,46 @@ final class SelectedWorkspaceProvider
   }
 }
 
-String _$selectedWorkspaceHash() => r'1b92040628e5af8ffea2c65d603ad55417ea28c1';
+String _$selectedWorkspaceHash() => r'007eed17738e8dff7a07b45404435cd6d84815c0';
+
+@ProviderFor(isCurrentWorkspaceAdmin)
+const isCurrentWorkspaceAdminProvider = IsCurrentWorkspaceAdminProvider._();
+
+final class IsCurrentWorkspaceAdminProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  const IsCurrentWorkspaceAdminProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'isCurrentWorkspaceAdminProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$isCurrentWorkspaceAdminHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return isCurrentWorkspaceAdmin(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$isCurrentWorkspaceAdminHash() =>
+    r'9f90cb13d28c12e3aa7f1a9334af603733a81690';

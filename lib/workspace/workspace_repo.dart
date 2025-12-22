@@ -66,19 +66,22 @@ class WorkspaceRepo {
   }
 
   Future<String> createWorkspace(WorkspaceModel workspace) async {
-    // 1. Create the workspace document
+    // 1. Create the workspace document with the creator as the first admin
     final workspaceRef = _firestore.collection('workspaces').doc();
-    final workspaceWithId = workspace.copyWith(id: workspaceRef.id);
+    final workspaceWithId = workspace.copyWith(
+      id: workspaceRef.id,
+      admins: [workspace.creatorId],
+    );
 
     await workspaceRef.set(workspaceWithId.toJson());
 
-    // 2. Save to users_workspaces collection as requested
+    // 2. Save to users_workspaces collection
     await _firestore
         .collection('users_workspaces')
         .doc(workspace.creatorId)
         .set({
           'workspaces': FieldValue.arrayUnion([
-            {'workspaceId': workspaceRef.id, 'role': 'admin'},
+            {'workspaceId': workspaceRef.id},
           ]),
         }, SetOptions(merge: true));
 

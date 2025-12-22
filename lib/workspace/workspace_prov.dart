@@ -31,17 +31,33 @@ class SelectedWorkspaceId extends _$SelectedWorkspaceId {
 
 @riverpod
 WorkspaceModel? selectedWorkspace(Ref ref) {
-  final workspaces = ref
-      .watch(workspacesProvider)
-      .maybeWhen(data: (data) => data, orElse: () => <WorkspaceModel>[]);
+  final workspacesAsync = ref.watch(workspacesProvider);
 
-  final selectedId = ref.watch(selectedWorkspaceIdProvider);
+  return workspacesAsync.maybeWhen(
+    data: (workspaces) {
+      final selectedId = ref.watch(selectedWorkspaceIdProvider);
 
-  if (selectedId != null) {
-    for (final w in workspaces) {
-      if (w.id == selectedId) return w;
-    }
+      if (selectedId != null) {
+        return workspaces.firstWhere(
+          (w) => w.id == selectedId,
+          orElse: () => workspaces.first,
+        );
+      }
+
+      return workspaces.isNotEmpty ? workspaces.first : null;
+    },
+    orElse: () => null,
+  );
+}
+
+@riverpod
+bool isCurrentWorkspaceAdmin(Ref ref) {
+  final workspace = ref.watch(selectedWorkspaceProvider);
+  final user = ref.watch(authRepoProvider).currentUser;
+
+  if (workspace == null || user == null) {
+    return false;
   }
 
-  return workspaces.isNotEmpty ? workspaces.first : null;
+  return workspace.admins.contains(user.uid);
 }

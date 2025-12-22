@@ -9,6 +9,7 @@ class BottomNavbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(navIndexProvider);
+    final isAdmin = ref.watch(isCurrentWorkspaceAdminProvider);
     final workspacesAsync = ref.watch(workspacesProvider);
 
     final bool hasWorkspaces = workspacesAsync.when(
@@ -30,7 +31,7 @@ class BottomNavbar extends ConsumerWidget {
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.grey.shade200,
-        currentIndex: currentIndex,
+        currentIndex: currentIndex >= (isAdmin ? 4 : 3) ? 0 : currentIndex,
         onTap: (index) {
           if (index != 0 && !hasWorkspaces) {
             return;
@@ -65,13 +66,14 @@ class BottomNavbar extends ConsumerWidget {
             ),
             label: '',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.settings_rounded,
-              color: !hasWorkspaces ? Colors.grey.shade300 : null,
+          if (isAdmin)
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.settings_rounded,
+                color: !hasWorkspaces ? Colors.grey.shade300 : null,
+              ),
+              label: '',
             ),
-            label: '',
-          ),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:teamtasks/components/bottom_navbar.dart';
 import 'package:teamtasks/components/workspace_swapper.dart';
 import 'package:teamtasks/screens/home/home_screen.dart';
 import 'package:teamtasks/screens/home/workspace_settings.dart';
+import 'package:teamtasks/workspace/workspace_prov.dart';
 import '../../components/app_drawer.dart';
 import '../../nav_prov.dart';
 
@@ -31,13 +32,28 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = ref.watch(isCurrentWorkspaceAdminProvider);
+
     ref.listen(navIndexProvider, (previous, next) {
       if (_pageController.hasClients) {
+        // If not admin and trying to go to settings tab (index 3), prevent it
+        if (!isAdmin && next >= 3) {
+          ref.read(navIndexProvider.notifier).setIndex(0);
+          return;
+        }
+
         _pageController.animateToPage(
           next,
           duration: const Duration(milliseconds: 350),
           curve: Curves.easeInOutQuad,
         );
+      }
+    });
+
+    // If suddenly not admin but on settings tab, move to home
+    ref.listen(isCurrentWorkspaceAdminProvider, (previous, next) {
+      if (!next && ref.read(navIndexProvider) >= 3) {
+        ref.read(navIndexProvider.notifier).setIndex(0);
       }
     });
 
@@ -69,11 +85,11 @@ class _MainPageState extends ConsumerState<MainPage> {
         controller: _pageController,
         physics:
             const NeverScrollableScrollPhysics(), // Prevents accidental swiping
-        children: const [
-          HomeScreen(),
-          HomeScreen(),
-          HomeScreen(),
-          WorkspaceSettings(),
+        children: [
+          const HomeScreen(),
+          const HomeScreen(),
+          const HomeScreen(),
+          if (isAdmin) const WorkspaceSettings(),
         ],
       ),
     );
