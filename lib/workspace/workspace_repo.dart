@@ -3,6 +3,7 @@ import 'package:rxdart/rxdart.dart';
 import '../models/workspace_model.dart';
 import '../models/user_model.dart';
 import '../models/pending_assignment_model.dart';
+import '../models/workspace_member_model.dart';
 
 class WorkspaceRepo {
   final FirebaseFirestore _firestore;
@@ -84,6 +85,22 @@ class WorkspaceRepo {
             {'workspaceId': workspaceRef.id},
           ]),
         }, SetOptions(merge: true));
+
+    // 3. Add creator to members subcollection
+    final member = WorkspaceMemberModel(
+      uid: workspace.creatorId,
+      email: '', // We should ideally pass this or fetch it.
+      // For now, let's assume we can fetch it from the auth provider or pass it in.
+      // But creatorId is what we have.
+      displayName: 'المنشئ',
+      joinedAt: DateTime.now(),
+      roleId: null, // No specific scheme role yet
+    );
+
+    await workspaceRef
+        .collection('members')
+        .doc(workspace.creatorId)
+        .set(member.toJson());
 
     return workspaceRef.id;
   }
@@ -206,5 +223,52 @@ class WorkspaceRepo {
     for (final doc in pendingQuery.docs) {
       await doc.reference.delete();
     }
+  }
+
+  Stream<List<WorkspaceMemberModel>> getWorkspaceMembersStream(
+    String workspaceId,
+  ) {
+    return _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .collection('members')
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => WorkspaceMemberModel.fromJson(doc.data()))
+              .toList();
+        });
+  }
+
+  Future<void> updateMemberRole(
+    String workspaceId,
+    String memberId,
+    String? roleId,
+  ) async {
+    await _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .collection('members')
+        .doc(memberId)
+        .update({'roleId': roleId});
+  }
+
+  Future<void> addMemberToWorkspace(
+    String workspaceId,
+    WorkspaceMemberModel member,
+  ) async {
+    await _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .collection('members')
+        .doc(member.uid)
+        .set(member.toJson());
+
+    // Also link in users_workspaces
+    await _firestore.collection('users_workspaces').doc(member.uid).set({
+      'workspaces': FieldValue.arrayUnion([
+        {'workspaceId': workspaceId},
+      ]),
+    }, SetOptions(merge: true));
   }
 }

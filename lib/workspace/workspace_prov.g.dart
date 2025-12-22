@@ -228,3 +228,80 @@ final class IsCurrentWorkspaceAdminProvider
 
 String _$isCurrentWorkspaceAdminHash() =>
     r'9f90cb13d28c12e3aa7f1a9334af603733a81690';
+
+@ProviderFor(workspaceMembers)
+const workspaceMembersProvider = WorkspaceMembersFamily._();
+
+final class WorkspaceMembersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<WorkspaceMemberModel>>,
+          List<WorkspaceMemberModel>,
+          Stream<List<WorkspaceMemberModel>>
+        >
+    with
+        $FutureModifier<List<WorkspaceMemberModel>>,
+        $StreamProvider<List<WorkspaceMemberModel>> {
+  const WorkspaceMembersProvider._({
+    required WorkspaceMembersFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'workspaceMembersProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$workspaceMembersHash();
+
+  @override
+  String toString() {
+    return r'workspaceMembersProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<WorkspaceMemberModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<WorkspaceMemberModel>> create(Ref ref) {
+    final argument = this.argument as String;
+    return workspaceMembers(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is WorkspaceMembersProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$workspaceMembersHash() => r'ba31dfcc886fd43cdfc4c181b362f3606beba38d';
+
+final class WorkspaceMembersFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<WorkspaceMemberModel>>, String> {
+  const WorkspaceMembersFamily._()
+    : super(
+        retry: null,
+        name: r'workspaceMembersProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  WorkspaceMembersProvider call(String workspaceId) =>
+      WorkspaceMembersProvider._(argument: workspaceId, from: this);
+
+  @override
+  String toString() => r'workspaceMembersProvider';
+}

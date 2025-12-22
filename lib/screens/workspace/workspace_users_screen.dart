@@ -19,12 +19,14 @@ class WorkspaceUsersScreen extends ConsumerStatefulWidget {
 
 class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String? _selectedRoleId;
   bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -113,9 +115,37 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     );
   }
 
+  Future<void> _updateRole(
+    String memberId,
+    String? currentRoleId,
+    Map<String, String> roles,
+  ) async {
+    final newRole = await showDialog<String?>(
+      context: context,
+      builder: (context) =>
+          _RoleSelectionDialog(currentRoleId: currentRoleId, roles: roles),
+    );
+
+    if (newRole == currentRoleId) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await ref
+          .read(workspaceRepoProvider)
+          .updateMemberRole(widget.workspaceId, memberId, newRole);
+    } catch (e) {
+      _showError('حدث خطأ أثناء تحديث الدور: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final workspacesAsync = ref.watch(workspacesProvider);
+    final membersAsync = ref.watch(
+      workspaceMembersProvider(widget.workspaceId),
+    );
 
     return workspacesAsync.when(
       data: (workspaces) {
@@ -132,8 +162,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                 ),
         );
 
-        // If 'null as dynamic' above crashes, it's just a fallback dummy.
-        // Realistically we handle not found:
         if (workspace.id == '') {
           return const Scaffold(
             body: Center(child: Text('Workspace not found')),
@@ -164,211 +192,201 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
           ),
           body: Directionality(
             textDirection: TextDirection.rtl,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (roles.isEmpty) ...[
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            size: 48,
-                            color: Colors.orange.shade300,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                    child: _buildInviteCard(workspace, roles),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'قائمة الأعضاء',
+                          style: TextStyle(
+                            fontFamily: 'Alexandria',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'لا يوجد أدوار في مساحة العمل هذه.',
-                            textAlign: TextAlign.center,
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            // TODO: Implement global search or filter toggle
+                          },
+                          icon: const Icon(Icons.filter_list, size: 20),
+                          label: const Text(
+                            'تصفية',
                             style: TextStyle(
                               fontFamily: 'Alexandria',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'يجب إضافة أدوار (مثل: مدير، موظف) قبل إضافة مستخدمين.',
-                            textAlign: TextAlign.center,
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.purple,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                membersAsync.when(
+                  data: (members) {
+                    final query = _searchController.text.toLowerCase();
+                    final filteredMembers = members.where((m) {
+                      return m.displayName.toLowerCase().contains(query) ||
+                          m.email.toLowerCase().contains(query);
+                    }).toList();
+
+                    if (filteredMembers.isEmpty) {
+                      return const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Text(
+                            'لم يتم العثور على أعضاء',
                             style: TextStyle(
                               fontFamily: 'Alexandria',
-                              fontSize: 14,
                               color: Colors.grey,
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: () {
-                              ref
-                                  .read(routerProvider)
-                                  .push(
-                                    '/edit-workspace-scheme',
-                                    extra: workspace,
-                                  );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.purple,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
+                        ),
+                      );
+                    }
+
+                    return SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final member = filteredMembers[index];
+                          final roleName = roles[member.roleId] ?? 'بدون مسمى';
+                          final isCreator = member.uid == workspace.creatorId;
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            child: const Text(
-                              'إعداد الأدوار والهيكل',
-                              style: TextStyle(
-                                fontFamily: 'Alexandria',
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ] else ...[
-                    // Add User Form Card
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'إضافة مستخدم جديد',
-                            style: TextStyle(
-                              fontFamily: 'Alexandria',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _emailController,
-                            style: const TextStyle(fontFamily: 'Alexandria'),
-                            decoration: InputDecoration(
-                              labelText: 'البريد الإلكتروني',
-                              labelStyle: const TextStyle(
-                                fontFamily: 'Alexandria',
-                                fontSize: 13,
-                              ),
-                              prefixIcon: const Icon(Icons.email_outlined),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                            elevation: 0,
+                            color: Colors.white,
+                            child: ListTile(
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 14,
+                                vertical: 8,
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
-                            initialValue: _selectedRoleId,
-                            items: roles.entries.map((entry) {
-                              return DropdownMenuItem(
-                                value: entry.key, // ID
-                                child: Text(
-                                  entry.value, // Name
-                                  style: const TextStyle(
-                                    fontFamily: 'Alexandria',
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.purple.shade50,
+                                backgroundImage: member.pfp != null
+                                    ? NetworkImage(member.pfp!)
+                                    : null,
+                                child: member.pfp == null
+                                    ? Text(
+                                        member.displayName[0].toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Colors.purple,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              title: Row(
+                                children: [
+                                  Text(
+                                    member.displayName,
+                                    style: const TextStyle(
+                                      fontFamily: 'Alexandria',
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (val) =>
-                                setState(() => _selectedRoleId = val),
-                            decoration: InputDecoration(
-                              labelText: 'تعيين الدور',
-                              labelStyle: const TextStyle(
-                                fontFamily: 'Alexandria',
-                                fontSize: 13,
-                              ),
-                              prefixIcon: const Icon(Icons.work_outline),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () => _addUser(workspace),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                backgroundColor: Colors.purple,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
+                                  if (isCreator) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
                                       ),
-                                    )
-                                  : const Text(
-                                      'إرسال الدعوة',
-                                      style: TextStyle(
-                                        fontFamily: 'Alexandria',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.shade50,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'المنشئ',
+                                        style: TextStyle(
+                                          color: Colors.orange.shade800,
+                                          fontSize: 10,
+                                          fontFamily: 'Alexandria',
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
+                                  ],
+                                ],
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    member.email,
+                                    style: TextStyle(
+                                      fontFamily: 'Alexandria',
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      roleName,
+                                      style: TextStyle(
+                                        color: Colors.blue.shade800,
+                                        fontSize: 11,
+                                        fontFamily: 'Alexandria',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 20),
+                                onPressed: () => _updateRole(
+                                  member.uid,
+                                  member.roleId,
+                                  roles,
+                                ),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade100,
+                                  foregroundColor: Colors.grey.shade700,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                          );
+                        }, childCount: filteredMembers.length),
                       ),
-                    ),
-
-                    const SizedBox(height: 24),
-                    const Center(
-                      child: Text(
-                        'سيتم إضافة المستخدم إلى قائمة "التعيينات المعلقة" بانتظار الموافقة أو التفعيل.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'Alexandria',
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                    );
+                  },
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (e, s) => SliverFillRemaining(
+                    child: Center(child: Text('حدث خطأ: $e')),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              ],
             ),
           ),
         );
@@ -376,6 +394,288 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, s) => Scaffold(body: Center(child: Text('Error: $e'))),
+    );
+  }
+
+  Widget _buildInviteCard(WorkspaceModel workspace, Map<String, String> roles) {
+    if (roles.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 64,
+              color: Colors.orange.shade300,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'لا يوجد أدوار في مساحة العمل هذه',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Alexandria',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'يجب إعداد هيكل الأدوار (مثل: مدير، موظف) قبل دعوة الآخرين.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Alexandria',
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => ref
+                  .read(routerProvider)
+                  .push('/edit-workspace-scheme', extra: workspace),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'إعداد الأدوار والهيكل',
+                style: TextStyle(
+                  fontFamily: 'Alexandria',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.person_add_outlined,
+                  color: Colors.purple,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'دعوة عضو جديد',
+                style: TextStyle(
+                  fontFamily: 'Alexandria',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _emailController,
+            style: const TextStyle(fontFamily: 'Alexandria'),
+            decoration: InputDecoration(
+              labelText: 'البريد الإلكتروني',
+              labelStyle: const TextStyle(
+                fontFamily: 'Alexandria',
+                fontSize: 14,
+              ),
+              prefixIcon: const Icon(Icons.email_outlined),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.purple),
+              ),
+              filled: true,
+              fillColor: Colors.grey.shade50,
+            ),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _selectedRoleId,
+            items: roles.entries.map((entry) {
+              return DropdownMenuItem(
+                value: entry.key,
+                child: Text(
+                  entry.value,
+                  style: const TextStyle(fontFamily: 'Alexandria'),
+                ),
+              );
+            }).toList(),
+            onChanged: (val) => setState(() => _selectedRoleId = val),
+            decoration: InputDecoration(
+              labelText: 'تعيين الدور',
+              labelStyle: const TextStyle(
+                fontFamily: 'Alexandria',
+                fontSize: 14,
+              ),
+              prefixIcon: const Icon(Icons.work_outline),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.purple),
+              ),
+              filled: true,
+              fillColor: Colors.grey.shade50,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : () => _addUser(workspace),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                backgroundColor: Colors.purple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'إرسال الدعوة',
+                      style: TextStyle(
+                        fontFamily: 'Alexandria',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoleSelectionDialog extends StatelessWidget {
+  final String? currentRoleId;
+  final Map<String, String> roles;
+
+  const _RoleSelectionDialog({this.currentRoleId, required this.roles});
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: AlertDialog(
+        title: const Text(
+          'تغيير الدور',
+          style: TextStyle(
+            fontFamily: 'Alexandria',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: roles.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return ListTile(
+                  title: const Text(
+                    'بدون مسمى',
+                    style: TextStyle(fontFamily: 'Alexandria'),
+                  ),
+                  leading: Radio<String?>(
+                    value: null,
+                    groupValue: currentRoleId,
+                    onChanged: (val) => Navigator.of(context).pop(val),
+                  ),
+                  onTap: () => Navigator.of(context).pop(null),
+                );
+              }
+              final entry = roles.entries.elementAt(index - 1);
+              return ListTile(
+                title: Text(
+                  entry.value,
+                  style: const TextStyle(fontFamily: 'Alexandria'),
+                ),
+                leading: Radio<String?>(
+                  value: entry.key,
+                  groupValue: currentRoleId,
+                  onChanged: (val) => Navigator.of(context).pop(val),
+                ),
+                onTap: () => Navigator.of(context).pop(entry.key),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(currentRoleId),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(fontFamily: 'Alexandria'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

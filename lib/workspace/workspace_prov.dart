@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../auth/auth_prov.dart';
 import '../models/workspace_model.dart';
+import '../models/workspace_member_model.dart';
 import 'workspace_repo.dart';
 
 part 'workspace_prov.g.dart';
@@ -60,4 +61,14 @@ bool isCurrentWorkspaceAdmin(Ref ref) {
   }
 
   return workspace.admins.contains(user.uid);
+}
+
+@riverpod
+Stream<List<WorkspaceMemberModel>> workspaceMembers(
+  Ref ref,
+  String workspaceId,
+) {
+  return ref
+      .watch(workspaceRepoProvider)
+      .getWorkspaceMembersStream(workspaceId);
 }
