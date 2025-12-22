@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../models/workspace_model.dart';
 import '../../workspace/workspace_prov.dart';
+import 'delete_confirmation_dialog.dart';
 
 class EditWorkspaceScreen extends ConsumerStatefulWidget {
   final WorkspaceModel workspace;
@@ -216,11 +217,78 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
                         ),
                 ),
               ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: _isLoading ? null : _confirmDeleteWorkspace,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: Colors.red,
+                  ),
+                  child: const Text(
+                    'حذف مساحة العمل',
+                    style: TextStyle(
+                      fontFamily: 'Alexandria',
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteWorkspace() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) =>
+          DeleteConfirmationDialog(workspaceName: widget.workspace.name),
+    );
+
+    if (confirmed == true && mounted) {
+      await _deleteWorkspace();
+    }
+  }
+
+  Future<void> _deleteWorkspace() async {
+    setState(() => _isLoading = true);
+    try {
+      await ref
+          .read(workspaceRepoProvider)
+          .deleteWorkspace(widget.workspace.id, widget.workspace.creatorId);
+
+      if (!mounted) return;
+
+      // Navigate to home and clear stack to avoid back navigation to deleted workspace
+      context.go('/home');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'تم حذف مساحة العمل بنجاح',
+            style: TextStyle(fontFamily: 'Alexandria'),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'خطأ في حذف مساحة العمل: $e',
+            style: const TextStyle(fontFamily: 'Alexandria'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      setState(() => _isLoading = false);
+    }
   }
 
   Widget _buildLabel(String text) {
