@@ -62,6 +62,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       drawerEnableOpenDragGesture: false,
       backgroundColor: Colors.grey.shade200,
       bottomNavigationBar: const BottomNavbar(),
+      floatingActionButton: _buildFloatingActionButton(),
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
         actions: [_buildNotificationStack()],
@@ -152,5 +153,26 @@ class _MainPageState extends ConsumerState<MainPage> {
         onPressed: null,
       ),
     );
+  }
+
+  Widget? _buildFloatingActionButton() {
+    final currentIndex = ref.watch(navIndexProvider);
+    final selectedWorkspace = ref.watch(selectedWorkspaceProvider);
+
+    // Only show FAB on home (0) and assignment (1) tabs, and when workspace is selected
+    if ((currentIndex == 0 || currentIndex == 1) && selectedWorkspace != null) {
+      return Directionality(
+        textDirection: .rtl,
+        child: FloatingActionButton(
+          onPressed: () {
+            context.push('/add-task');
+          },
+          backgroundColor: Colors.grey.shade200,
+          elevation: 1,
+          child: Icon(Icons.add_rounded, color: Colors.grey.shade700, size: 36),
+        ),
+      );
+    }
+    return null;
   }
 }
