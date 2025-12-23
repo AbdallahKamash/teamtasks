@@ -227,7 +227,7 @@ final class IsCurrentWorkspaceAdminProvider
 }
 
 String _$isCurrentWorkspaceAdminHash() =>
-    r'5e17e7fef5f294c5ec50b3511e0b6d8185cbb179';
+    r'512115eebec539e181f007120544230ea91e8090';
 
 @ProviderFor(workspaceMembers)
 const workspaceMembersProvider = WorkspaceMembersFamily._();
@@ -304,4 +304,121 @@ final class WorkspaceMembersFamily extends $Family
 
   @override
   String toString() => r'workspaceMembersProvider';
+}
+
+@ProviderFor(pendingAssignments)
+const pendingAssignmentsProvider = PendingAssignmentsProvider._();
+
+final class PendingAssignmentsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<PendingAssignmentModel>>,
+          List<PendingAssignmentModel>,
+          Stream<List<PendingAssignmentModel>>
+        >
+    with
+        $FutureModifier<List<PendingAssignmentModel>>,
+        $StreamProvider<List<PendingAssignmentModel>> {
+  const PendingAssignmentsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pendingAssignmentsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$pendingAssignmentsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<PendingAssignmentModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<PendingAssignmentModel>> create(Ref ref) {
+    return pendingAssignments(ref);
+  }
+}
+
+String _$pendingAssignmentsHash() =>
+    r'8a6c16ba99b52e6a23740445134516db25ed7238';
+
+@ProviderFor(workspaceById)
+const workspaceByIdProvider = WorkspaceByIdFamily._();
+
+final class WorkspaceByIdProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<WorkspaceModel?>,
+          WorkspaceModel?,
+          FutureOr<WorkspaceModel?>
+        >
+    with $FutureModifier<WorkspaceModel?>, $FutureProvider<WorkspaceModel?> {
+  const WorkspaceByIdProvider._({
+    required WorkspaceByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'workspaceByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$workspaceByIdHash();
+
+  @override
+  String toString() {
+    return r'workspaceByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<WorkspaceModel?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<WorkspaceModel?> create(Ref ref) {
+    final argument = this.argument as String;
+    return workspaceById(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is WorkspaceByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$workspaceByIdHash() => r'e172317339a0bf88940efb4f12c74f0b285edb56';
+
+final class WorkspaceByIdFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<WorkspaceModel?>, String> {
+  const WorkspaceByIdFamily._()
+    : super(
+        retry: null,
+        name: r'workspaceByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  WorkspaceByIdProvider call(String workspaceId) =>
+      WorkspaceByIdProvider._(argument: workspaceId, from: this);
+
+  @override
+  String toString() => r'workspaceByIdProvider';
 }

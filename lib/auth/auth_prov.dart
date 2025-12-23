@@ -28,13 +28,7 @@ Stream<User?> authState(Ref ref) {
 
 @riverpod
 Stream<UserModel?> currentUserData(Ref ref) {
-  final userAsync = ref.watch(authStateProvider);
-  return userAsync.when(
-    data: (user) {
-      if (user == null) return Stream.value(null);
-      return ref.watch(authRepoProvider).getUserDataStream(user.uid);
-    },
-    loading: () => const Stream.empty(),
-    error: (e, s) => Stream.error(e, s),
-  );
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value(null);
+  return ref.watch(authRepoProvider).getUserDataStream(user.uid);
 }

@@ -225,6 +225,66 @@ class WorkspaceRepo {
     }
   }
 
+  Stream<List<PendingAssignmentModel>> getPendingAssignmentsStream(
+    String email,
+  ) {
+    return _firestore
+        .collection('pending_assignments')
+        .where('email', isEqualTo: email)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => PendingAssignmentModel.fromJson(doc.data()))
+              .toList();
+        });
+  }
+
+  Future<WorkspaceModel?> getWorkspaceById(String id) async {
+    final doc = await _firestore.collection('workspaces').doc(id).get();
+    if (!doc.exists) return null;
+    return WorkspaceModel.fromJson({...doc.data()!, 'id': doc.id});
+  }
+
+  Future<void> rejectAssignment(String assignmentId) async {
+    await _firestore
+        .collection('pending_assignments')
+        .doc(assignmentId)
+        .delete();
+  }
+
+  Future<void> acceptAssignment(
+    PendingAssignmentModel assignment,
+    String userId,
+    String? displayName,
+    String? email,
+  ) async {
+    // 1. Add to members subcollection
+    final member = WorkspaceMemberModel(
+      uid: userId,
+      email: email ?? assignment.email,
+      displayName: displayName ?? 'User',
+      joinedAt: DateTime.now(),
+      roleId: assignment.roleId,
+    );
+
+    await _firestore
+        .collection('workspaces')
+        .doc(assignment.workspaceId)
+        .collection('members')
+        .doc(userId)
+        .set(member.toJson());
+
+    // 2. Add to users_workspaces
+    await _firestore.collection('users_workspaces').doc(userId).set({
+      'workspaces': FieldValue.arrayUnion([
+        {'workspaceId': assignment.workspaceId},
+      ]),
+    }, SetOptions(merge: true));
+
+    // 3. Delete pending assignment
+    await rejectAssignment(assignment.id);
+  }
+
   Stream<List<WorkspaceMemberModel>> getWorkspaceMembersStream(
     String workspaceId,
   ) {

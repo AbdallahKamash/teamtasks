@@ -15,7 +15,10 @@ import 'package:teamtasks/screens/workspace/add_workspace_screen.dart';
 import 'package:teamtasks/screens/workspace/edit_workspace_screen.dart';
 import 'package:teamtasks/screens/workspace/edit_workspace_scheme_screen.dart';
 import 'package:teamtasks/screens/workspace/workspace_users_screen.dart';
+import 'package:teamtasks/screens/home/notifications_screen.dart';
+import 'package:teamtasks/screens/home/notification_detail_screen.dart';
 import 'package:teamtasks/models/workspace_model.dart';
+import 'package:teamtasks/models/pending_assignment_model.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
 final routerProvider = Provider.autoDispose<GoRouter>((ref) {
@@ -152,6 +155,27 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
             context: context,
             state: state,
             child: WorkspaceUsersScreen(workspaceId: workspaceId),
+            dir: TextDirection.rtl,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/notifications',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const NotificationsScreen(),
+          dir: TextDirection.rtl,
+        ),
+      ),
+      GoRoute(
+        path: '/notification-detail',
+        pageBuilder: (context, state) {
+          final assignment = state.extra as PendingAssignmentModel;
+          return buildPageWithTransition(
+            context: context,
+            state: state,
+            child: NotificationDetailScreen(assignment: assignment),
             dir: TextDirection.rtl,
           );
         },

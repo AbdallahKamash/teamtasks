@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../auth/auth_prov.dart';
 import '../models/workspace_model.dart';
 import '../models/workspace_member_model.dart';
+import '../models/pending_assignment_model.dart';
 import 'workspace_repo.dart';
 
 part 'workspace_prov.g.dart';
@@ -79,4 +80,24 @@ Stream<List<WorkspaceMemberModel>> workspaceMembers(
   return ref
       .watch(workspaceRepoProvider)
       .getWorkspaceMembersStream(workspaceId);
+}
+
+@riverpod
+Stream<List<PendingAssignmentModel>> pendingAssignments(Ref ref) {
+  final userAsync = ref.watch(authStateProvider);
+  return userAsync.when(
+    data: (user) {
+      if (user == null || user.email == null) return Stream.value([]);
+      return ref
+          .watch(workspaceRepoProvider)
+          .getPendingAssignmentsStream(user.email!);
+    },
+    loading: () => const Stream.empty(),
+    error: (e, s) => Stream.error(e, s),
+  );
+}
+
+@riverpod
+Future<WorkspaceModel?> workspaceById(Ref ref, String workspaceId) {
+  return ref.watch(workspaceRepoProvider).getWorkspaceById(workspaceId);
 }

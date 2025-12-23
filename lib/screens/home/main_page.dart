@@ -5,6 +5,7 @@ import 'package:teamtasks/components/workspace_swapper.dart';
 import 'package:teamtasks/screens/home/home_screen.dart';
 import 'package:teamtasks/screens/home/workspace_settings.dart';
 import 'package:teamtasks/workspace/workspace_prov.dart';
+import 'package:go_router/go_router.dart';
 import '../../components/app_drawer.dart';
 import '../../nav_prov.dart';
 
@@ -96,22 +97,60 @@ class _MainPageState extends ConsumerState<MainPage> {
   }
 
   Widget _buildNotificationStack() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        IconButton(
-          icon: Icon(
-            Icons.notifications_none_rounded,
-            color: Colors.grey.shade600,
-          ),
-          onPressed: () {},
+    final pendingAssignmentsAsync = ref.watch(pendingAssignmentsProvider);
+
+    return pendingAssignmentsAsync.when(
+      data: (assignments) {
+        final hasNotifications = assignments.isNotEmpty;
+
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            IconButton(
+              icon: Icon(
+                hasNotifications
+                    ? Icons.notifications_active_rounded
+                    : Icons.notifications_none_rounded,
+                color: hasNotifications ? Colors.purple : Colors.grey.shade600,
+              ),
+              onPressed: () {
+                context.push('/notifications');
+              },
+            ),
+            if (hasNotifications)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 12,
+                    minHeight: 12,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => IconButton(
+        icon: Icon(
+          Icons.notifications_none_rounded,
+          color: Colors.grey.shade600,
         ),
-        const Positioned(
-          top: 12,
-          right: 12,
-          child: CircleAvatar(backgroundColor: Colors.red, radius: 3),
+        onPressed: null,
+      ),
+      error: (_, __) => IconButton(
+        icon: Icon(
+          Icons.notifications_none_rounded,
+          color: Colors.grey.shade600,
         ),
-      ],
+        onPressed: null,
+      ),
     );
   }
 }
