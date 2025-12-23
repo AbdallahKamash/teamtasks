@@ -47,10 +47,14 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
   }
 
   void _closeDropdown() async {
-    await _controller.reverse();
-    _overlayEntry?.remove();
+    if (_overlayEntry == null) return;
+
+    final entry = _overlayEntry;
     _overlayEntry = null;
     if (mounted) setState(() => _expanded = false);
+
+    await _controller.reverse();
+    entry?.remove();
   }
 
   OverlayEntry _createOverlayEntry(List<WorkspaceModel> workspaces) {
@@ -58,45 +62,53 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
     final size = renderBox.size;
 
     return OverlayEntry(
-      builder: (_) => Positioned(
-        width: size.width,
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          offset: Offset(0, size.height),
-          showWhenUnlinked: false,
-          child: Material(
-            color: Colors.transparent,
-            child: SizeTransition(
-              sizeFactor: CurvedAnimation(
-                parent: _controller,
-                curve: Curves.easeOut,
-              ),
-              axisAlignment: -1,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(12),
+      builder: (_) => Stack(
+        children: [
+          GestureDetector(
+            onTap: _closeDropdown,
+            behavior: HitTestBehavior.translucent,
+          ),
+          Positioned(
+            width: size.width,
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              offset: Offset(0, size.height),
+              showWhenUnlinked: false,
+              child: Material(
+                color: Colors.transparent,
+                child: SizeTransition(
+                  sizeFactor: CurvedAnimation(
+                    parent: _controller,
+                    curve: Curves.easeOut,
                   ),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 8),
-                    for (final workspace in workspaces)
-                      _workspaceItem(workspace),
-                    if (workspaces.length > 1)
-                      Divider(height: 0, color: Colors.grey.shade300),
-                    if (workspaces.length > 1) const SizedBox(height: 8),
-                    _addWorkspace(hasWorkspaces: workspaces.isNotEmpty),
-                    const SizedBox(height: 8),
-                  ],
+                  axisAlignment: -1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(12),
+                      ),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 8),
+                        for (final workspace in workspaces)
+                          _workspaceItem(workspace),
+                        if (workspaces.length > 1)
+                          Divider(height: 0, color: Colors.grey.shade300),
+                        if (workspaces.length > 1) const SizedBox(height: 8),
+                        _addWorkspace(hasWorkspaces: workspaces.isNotEmpty),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
