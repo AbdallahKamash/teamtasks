@@ -79,7 +79,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
 
       final workspaceId = await ref
           .read(workspaceRepoProvider)
-          .createWorkspace(workspace);
+          .createWorkspace(workspace, user.displayName ?? 'مستخدم');
 
       if (!mounted) return;
 

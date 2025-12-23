@@ -66,7 +66,10 @@ class WorkspaceRepo {
         });
   }
 
-  Future<String> createWorkspace(WorkspaceModel workspace) async {
+  Future<String> createWorkspace(
+    WorkspaceModel workspace,
+    String creatorName,
+  ) async {
     // 1. Create the workspace document with the creator as the first admin
     final workspaceRef = _firestore.collection('workspaces').doc();
     final workspaceWithId = workspace.copyWith(
@@ -89,10 +92,9 @@ class WorkspaceRepo {
     // 3. Add creator to members subcollection
     final member = WorkspaceMemberModel(
       uid: workspace.creatorId,
-      email: '', // We should ideally pass this or fetch it.
-      // For now, let's assume we can fetch it from the auth provider or pass it in.
-      // But creatorId is what we have.
-      displayName: 'المنشئ',
+      email:
+          '', // We should ideally pass this too, but we can update later or fetch it.
+      displayName: creatorName,
       joinedAt: DateTime.now(),
       roleId: null, // No specific scheme role yet
     );
@@ -150,6 +152,20 @@ class WorkspaceRepo {
     final snapshot = await _firestore
         .collection('pending_assignments')
         .where('workspaceId', isEqualTo: workspaceId)
+        .where('roleId', isEqualTo: roleId)
+        .count()
+        .get();
+    return snapshot.count ?? 0;
+  }
+
+  Future<int> getActiveMembersCountForRole(
+    String workspaceId,
+    String roleId,
+  ) async {
+    final snapshot = await _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .collection('members')
         .where('roleId', isEqualTo: roleId)
         .count()
         .get();
@@ -311,6 +327,42 @@ class WorkspaceRepo {
         .collection('members')
         .doc(memberId)
         .update({'roleId': roleId});
+  }
+
+  Future<void> removeMemberFromWorkspace(
+    String workspaceId,
+    String memberId,
+  ) async {
+    // 1. Remove from members subcollection
+    await _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .collection('members')
+        .doc(memberId)
+        .delete();
+
+    // 2. Remove from users_workspaces
+    final userWorkspacesRef = _firestore
+        .collection('users_workspaces')
+        .doc(memberId);
+    final doc = await userWorkspacesRef.get();
+    if (doc.exists) {
+      final data = doc.data();
+      if (data != null && data['workspaces'] != null) {
+        final List<dynamic> workspaces = List.from(data['workspaces']);
+        workspaces.removeWhere((w) => w['workspaceId'] == workspaceId);
+        await userWorkspacesRef.update({'workspaces': workspaces});
+      }
+    }
+  }
+
+  Future<void> updateWorkspaceAdmins(
+    String workspaceId,
+    List<String> adminIds,
+  ) async {
+    await _firestore.collection('workspaces').doc(workspaceId).update({
+      'admins': adminIds,
+    });
   }
 
   Future<void> addMemberToWorkspace(

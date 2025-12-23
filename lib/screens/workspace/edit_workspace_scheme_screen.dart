@@ -59,30 +59,50 @@ class _EditWorkspaceSchemeScreenState
   }
 
   Future<void> _removeRole(String roleId) async {
-    // Validation: Check if pending users are assigned to this role
     setState(() => _isLoading = true);
 
     try {
-      final count = await ref
-          .read(workspaceRepoProvider)
-          .getPendingAssignmentsCountForRole(widget.workspace.id, roleId);
+      final repo = ref.read(workspaceRepoProvider);
 
-      if (count > 0) {
+      // 1. Check pending assignments
+      final pendingCount = await repo.getPendingAssignmentsCountForRole(
+        widget.workspace.id,
+        roleId,
+      );
+
+      if (pendingCount > 0) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'لا يمكن حذف الدور: يوجد $count دعوات معلقة لهذا الدور',
+              'لا يمكن حذف الدور: يوجد $pendingCount دعوات معلقة بهذا الدور',
+              style: const TextStyle(fontFamily: 'Alexandria'),
             ),
+            backgroundColor: Colors.red,
           ),
         );
         return;
       }
 
-      // Also check if any users currently have this role?
-      // The requirement was: "cannot delete role if there is users that are pending assignment to that role".
-      // Assuming we only check pending for now as requested.
-      // Ideally we should also check active users, but following specific request.
+      // 2. Check active members
+      final activeCount = await repo.getActiveMembersCountForRole(
+        widget.workspace.id,
+        roleId,
+      );
+
+      if (activeCount > 0) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'لا يمكن حذف الدور: يوجد $activeCount أعضاء حاليين بهذا الدور',
+              style: const TextStyle(fontFamily: 'Alexandria'),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
       setState(() {
         _roles.remove(roleId);
@@ -92,9 +112,12 @@ class _EditWorkspaceSchemeScreenState
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('خطأ أثناء التحقق: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطأ أثناء التحقق: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
