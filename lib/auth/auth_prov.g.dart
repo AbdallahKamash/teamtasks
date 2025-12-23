@@ -136,7 +136,40 @@ final class AuthRepoProvider
   }
 }
 
-String _$authRepoHash() => r'6639431e989c75600daa015e6bcc0482b7a5cc7d';
+String _$authRepoHash() => r'6578c6b762bdab638e2d7c0f5e80331e2ea131c8';
+
+@ProviderFor(authState)
+const authStateProvider = AuthStateProvider._();
+
+final class AuthStateProvider
+    extends $FunctionalProvider<AsyncValue<User?>, User?, Stream<User?>>
+    with $FutureModifier<User?>, $StreamProvider<User?> {
+  const AuthStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authStateHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<User?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<User?> create(Ref ref) {
+    return authState(ref);
+  }
+}
+
+String _$authStateHash() => r'55f91f3b0f1711beaf8dad7ad594fa5d7c3f2bca';
 
 @ProviderFor(currentUserData)
 const currentUserDataProvider = CurrentUserDataProvider._();
@@ -174,4 +207,4 @@ final class CurrentUserDataProvider
   }
 }
 
-String _$currentUserDataHash() => r'8552a790db460cc35c0dfdf83b0f06790520aa6b';
+String _$currentUserDataHash() => r'666ac6a187e1f15b327980d638f2436abb7c4550';

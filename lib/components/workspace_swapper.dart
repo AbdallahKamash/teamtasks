@@ -20,10 +20,16 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
-  late final AnimationController _controller = AnimationController(
-    duration: const Duration(milliseconds: 100),
-    vsync: this,
-  );
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+  }
 
   void _toggleDropdown(List<WorkspaceModel> workspaces) {
     if (_expanded) {

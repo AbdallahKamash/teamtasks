@@ -13,17 +13,24 @@ WorkspaceRepo workspaceRepo(Ref ref) {
 
 @riverpod
 Stream<List<WorkspaceModel>> workspaces(Ref ref) {
-  final user = ref.watch(authRepoProvider).currentUser;
-  if (user == null) {
-    return Stream.value([]);
-  }
-  return ref.watch(workspaceRepoProvider).getWorkspacesStream(user.uid);
+  final userAsync = ref.watch(authStateProvider);
+  return userAsync.when(
+    data: (user) {
+      if (user == null) return Stream.value([]);
+      return ref.watch(workspaceRepoProvider).getWorkspacesStream(user.uid);
+    },
+    loading: () => const Stream.empty(),
+    error: (e, s) => Stream.error(e, s),
+  );
 }
 
 @riverpod
 class SelectedWorkspaceId extends _$SelectedWorkspaceId {
   @override
-  String? build() => null;
+  String? build() {
+    ref.watch(authStateProvider);
+    return null;
+  }
 
   void select(String id) {
     state = id;
@@ -54,7 +61,8 @@ WorkspaceModel? selectedWorkspace(Ref ref) {
 @riverpod
 bool isCurrentWorkspaceAdmin(Ref ref) {
   final workspace = ref.watch(selectedWorkspaceProvider);
-  final user = ref.watch(authRepoProvider).currentUser;
+  final userAsync = ref.watch(authStateProvider);
+  final user = userAsync.value;
 
   if (workspace == null || user == null) {
     return false;

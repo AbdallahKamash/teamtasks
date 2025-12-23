@@ -19,26 +19,30 @@ import 'package:teamtasks/models/workspace_model.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
 final routerProvider = Provider.autoDispose<GoRouter>((ref) {
-  final authState = ref.read(authRepoProvider).authStateChanges();
-
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: GoRouterRefreshStream(authState),
+    refreshListenable: GoRouterRefreshStream(
+      ref.watch(fbAuthProvider).authStateChanges(),
+    ),
     redirect: (context, state) async {
-      final isLoggedIn = ref.read(authRepoProvider).currentUser != null;
-      final verified =
-          ref.read(authRepoProvider).currentUser?.emailVerified ?? false;
+      final user = ref.read(fbAuthProvider).currentUser;
+      final isLoggedIn = user != null;
+      final verified = user?.emailVerified ?? false;
       final isLoggingIn = state.uri.toString() == '/';
-      if (isLoggedIn && isLoggingIn && verified) {
-        return '/home';
-      } else if (isLoggedIn && isLoggingIn && !verified) {
-        return '/verify';
-      }
+      final isAuth = state.uri.toString() == '/auth';
 
-      if (!isLoggedIn &&
-          !isLoggingIn &&
-          state.uri.toString() != '/forgot-password') {
-        return '/auth';
+      if (isLoggedIn) {
+        if (!verified) {
+          if (state.uri.toString() != '/verify') return '/verify';
+        } else if (isLoggingIn || isAuth) {
+          return '/home';
+        }
+      } else {
+        if (!isLoggingIn &&
+            !isAuth &&
+            state.uri.toString() != '/forgot-password') {
+          return '/auth';
+        }
       }
 
       return null;

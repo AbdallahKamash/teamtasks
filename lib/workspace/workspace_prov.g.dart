@@ -89,7 +89,7 @@ final class WorkspacesProvider
   }
 }
 
-String _$workspacesHash() => r'90c77fbb021e297c5954e609643c1c831da339f4';
+String _$workspacesHash() => r'3d4fb7ae3d56db1d1a1830098011b69ca02f6a6d';
 
 @ProviderFor(SelectedWorkspaceId)
 const selectedWorkspaceIdProvider = SelectedWorkspaceIdProvider._();
@@ -124,7 +124,7 @@ final class SelectedWorkspaceIdProvider
 }
 
 String _$selectedWorkspaceIdHash() =>
-    r'01eabbd0b6379316ad11b54f5e2bdec0ffac622d';
+    r'cd788c319999658955bbf9fa4b401eab4cd1a366';
 
 abstract class _$SelectedWorkspaceId extends $Notifier<String?> {
   String? build();
@@ -227,7 +227,7 @@ final class IsCurrentWorkspaceAdminProvider
 }
 
 String _$isCurrentWorkspaceAdminHash() =>
-    r'9f90cb13d28c12e3aa7f1a9334af603733a81690';
+    r'5e17e7fef5f294c5ec50b3511e0b6d8185cbb179';
 
 @ProviderFor(workspaceMembers)
 const workspaceMembersProvider = WorkspaceMembersFamily._();
