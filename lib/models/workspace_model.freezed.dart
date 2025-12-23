@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WorkspaceModel {
 
- String get id; String get name; String get color; String get creatorId; DateTime get createdAt; String? get description; String? get logoUrl; Map<String, String>? get roles; Map<String, String>? get scheme; List<String> get admins;
+ String get id; String get name; String get color; DateTime get createdAt; String? get description; String? get logoUrl; Map<String, String>? get roles; Map<String, String>? get scheme; List<String> get admins;
 /// Create a copy of WorkspaceModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $WorkspaceModelCopyWith<WorkspaceModel> get copyWith => _$WorkspaceModelCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkspaceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.creatorId, creatorId) || other.creatorId == creatorId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other.roles, roles)&&const DeepCollectionEquality().equals(other.scheme, scheme)&&const DeepCollectionEquality().equals(other.admins, admins));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkspaceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other.roles, roles)&&const DeepCollectionEquality().equals(other.scheme, scheme)&&const DeepCollectionEquality().equals(other.admins, admins));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,color,creatorId,createdAt,description,logoUrl,const DeepCollectionEquality().hash(roles),const DeepCollectionEquality().hash(scheme),const DeepCollectionEquality().hash(admins));
+int get hashCode => Object.hash(runtimeType,id,name,color,createdAt,description,logoUrl,const DeepCollectionEquality().hash(roles),const DeepCollectionEquality().hash(scheme),const DeepCollectionEquality().hash(admins));
 
 @override
 String toString() {
-  return 'WorkspaceModel(id: $id, name: $name, color: $color, creatorId: $creatorId, createdAt: $createdAt, description: $description, logoUrl: $logoUrl, roles: $roles, scheme: $scheme, admins: $admins)';
+  return 'WorkspaceModel(id: $id, name: $name, color: $color, createdAt: $createdAt, description: $description, logoUrl: $logoUrl, roles: $roles, scheme: $scheme, admins: $admins)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $WorkspaceModelCopyWith<$Res>  {
   factory $WorkspaceModelCopyWith(WorkspaceModel value, $Res Function(WorkspaceModel) _then) = _$WorkspaceModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String color, String creatorId, DateTime createdAt, String? description, String? logoUrl, Map<String, String>? roles, Map<String, String>? scheme, List<String> admins
+ String id, String name, String color, DateTime createdAt, String? description, String? logoUrl, Map<String, String>? roles, Map<String, String>? scheme, List<String> admins
 });
 
 
@@ -65,12 +65,11 @@ class _$WorkspaceModelCopyWithImpl<$Res>
 
 /// Create a copy of WorkspaceModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? color = null,Object? creatorId = null,Object? createdAt = null,Object? description = freezed,Object? logoUrl = freezed,Object? roles = freezed,Object? scheme = freezed,Object? admins = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? color = null,Object? createdAt = null,Object? description = freezed,Object? logoUrl = freezed,Object? roles = freezed,Object? scheme = freezed,Object? admins = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,creatorId: null == creatorId ? _self.creatorId : creatorId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable
@@ -162,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String color,  String creatorId,  DateTime createdAt,  String? description,  String? logoUrl,  Map<String, String>? roles,  Map<String, String>? scheme,  List<String> admins)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String color,  DateTime createdAt,  String? description,  String? logoUrl,  Map<String, String>? roles,  Map<String, String>? scheme,  List<String> admins)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WorkspaceModel() when $default != null:
-return $default(_that.id,_that.name,_that.color,_that.creatorId,_that.createdAt,_that.description,_that.logoUrl,_that.roles,_that.scheme,_that.admins);case _:
+return $default(_that.id,_that.name,_that.color,_that.createdAt,_that.description,_that.logoUrl,_that.roles,_that.scheme,_that.admins);case _:
   return orElse();
 
 }
@@ -183,10 +182,10 @@ return $default(_that.id,_that.name,_that.color,_that.creatorId,_that.createdAt,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String color,  String creatorId,  DateTime createdAt,  String? description,  String? logoUrl,  Map<String, String>? roles,  Map<String, String>? scheme,  List<String> admins)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String color,  DateTime createdAt,  String? description,  String? logoUrl,  Map<String, String>? roles,  Map<String, String>? scheme,  List<String> admins)  $default,) {final _that = this;
 switch (_that) {
 case _WorkspaceModel():
-return $default(_that.id,_that.name,_that.color,_that.creatorId,_that.createdAt,_that.description,_that.logoUrl,_that.roles,_that.scheme,_that.admins);case _:
+return $default(_that.id,_that.name,_that.color,_that.createdAt,_that.description,_that.logoUrl,_that.roles,_that.scheme,_that.admins);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +202,10 @@ return $default(_that.id,_that.name,_that.color,_that.creatorId,_that.createdAt,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String color,  String creatorId,  DateTime createdAt,  String? description,  String? logoUrl,  Map<String, String>? roles,  Map<String, String>? scheme,  List<String> admins)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String color,  DateTime createdAt,  String? description,  String? logoUrl,  Map<String, String>? roles,  Map<String, String>? scheme,  List<String> admins)?  $default,) {final _that = this;
 switch (_that) {
 case _WorkspaceModel() when $default != null:
-return $default(_that.id,_that.name,_that.color,_that.creatorId,_that.createdAt,_that.description,_that.logoUrl,_that.roles,_that.scheme,_that.admins);case _:
+return $default(_that.id,_that.name,_that.color,_that.createdAt,_that.description,_that.logoUrl,_that.roles,_that.scheme,_that.admins);case _:
   return null;
 
 }
@@ -218,13 +217,12 @@ return $default(_that.id,_that.name,_that.color,_that.creatorId,_that.createdAt,
 @JsonSerializable()
 
 class _WorkspaceModel implements WorkspaceModel {
-  const _WorkspaceModel({required this.id, required this.name, required this.color, required this.creatorId, required this.createdAt, this.description, this.logoUrl, final  Map<String, String>? roles, final  Map<String, String>? scheme, final  List<String> admins = const []}): _roles = roles,_scheme = scheme,_admins = admins;
+  const _WorkspaceModel({required this.id, required this.name, required this.color, required this.createdAt, this.description, this.logoUrl, final  Map<String, String>? roles, final  Map<String, String>? scheme, final  List<String> admins = const []}): _roles = roles,_scheme = scheme,_admins = admins;
   factory _WorkspaceModel.fromJson(Map<String, dynamic> json) => _$WorkspaceModelFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String color;
-@override final  String creatorId;
 @override final  DateTime createdAt;
 @override final  String? description;
 @override final  String? logoUrl;
@@ -267,16 +265,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkspaceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.creatorId, creatorId) || other.creatorId == creatorId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other._roles, _roles)&&const DeepCollectionEquality().equals(other._scheme, _scheme)&&const DeepCollectionEquality().equals(other._admins, _admins));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkspaceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other._roles, _roles)&&const DeepCollectionEquality().equals(other._scheme, _scheme)&&const DeepCollectionEquality().equals(other._admins, _admins));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,color,creatorId,createdAt,description,logoUrl,const DeepCollectionEquality().hash(_roles),const DeepCollectionEquality().hash(_scheme),const DeepCollectionEquality().hash(_admins));
+int get hashCode => Object.hash(runtimeType,id,name,color,createdAt,description,logoUrl,const DeepCollectionEquality().hash(_roles),const DeepCollectionEquality().hash(_scheme),const DeepCollectionEquality().hash(_admins));
 
 @override
 String toString() {
-  return 'WorkspaceModel(id: $id, name: $name, color: $color, creatorId: $creatorId, createdAt: $createdAt, description: $description, logoUrl: $logoUrl, roles: $roles, scheme: $scheme, admins: $admins)';
+  return 'WorkspaceModel(id: $id, name: $name, color: $color, createdAt: $createdAt, description: $description, logoUrl: $logoUrl, roles: $roles, scheme: $scheme, admins: $admins)';
 }
 
 
@@ -287,7 +285,7 @@ abstract mixin class _$WorkspaceModelCopyWith<$Res> implements $WorkspaceModelCo
   factory _$WorkspaceModelCopyWith(_WorkspaceModel value, $Res Function(_WorkspaceModel) _then) = __$WorkspaceModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String color, String creatorId, DateTime createdAt, String? description, String? logoUrl, Map<String, String>? roles, Map<String, String>? scheme, List<String> admins
+ String id, String name, String color, DateTime createdAt, String? description, String? logoUrl, Map<String, String>? roles, Map<String, String>? scheme, List<String> admins
 });
 
 
@@ -304,12 +302,11 @@ class __$WorkspaceModelCopyWithImpl<$Res>
 
 /// Create a copy of WorkspaceModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? color = null,Object? creatorId = null,Object? createdAt = null,Object? description = freezed,Object? logoUrl = freezed,Object? roles = freezed,Object? scheme = freezed,Object? admins = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? color = null,Object? createdAt = null,Object? description = freezed,Object? logoUrl = freezed,Object? roles = freezed,Object? scheme = freezed,Object? admins = null,}) {
   return _then(_WorkspaceModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,creatorId: null == creatorId ? _self.creatorId : creatorId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,logoUrl: freezed == logoUrl ? _self.logoUrl : logoUrl // ignore: cast_nullable_to_non_nullable

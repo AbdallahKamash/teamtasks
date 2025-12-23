@@ -9,7 +9,6 @@ abstract class WorkspaceModel with _$WorkspaceModel {
     required String id,
     required String name,
     required String color,
-    required String creatorId,
     required DateTime createdAt,
     String? description,
     String? logoUrl,

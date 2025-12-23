@@ -70,7 +70,6 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
         id: '',
         name: name,
         color: _colorToHex(_selectedColor),
-        creatorId: user.uid,
         createdAt: DateTime.now(),
         description: _descriptionController.text.trim().isEmpty
             ? null
@@ -79,7 +78,12 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
 
       final workspaceId = await ref
           .read(workspaceRepoProvider)
-          .createWorkspace(workspace, user.displayName ?? 'مستخدم');
+          .createWorkspace(
+            workspace,
+            user.uid,
+            user.displayName ?? 'مستخدم',
+            user.email ?? '',
+          );
 
       if (!mounted) return;
 

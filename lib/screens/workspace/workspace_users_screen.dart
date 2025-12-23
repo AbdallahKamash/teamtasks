@@ -247,7 +247,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                   id: '',
                   name: '',
                   color: '',
-                  creatorId: '',
                   createdAt: DateTime(1970),
                 ),
         );
@@ -356,7 +355,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final member = filteredMembers[index];
                           final roleName = roles[member.roleId] ?? 'بدون مسمى';
-                          final isCreator = member.uid == workspace.creatorId;
                           final isAdmin = workspace.admins.contains(member.uid);
                           final currentUserId =
                               ref.read(authRepoProvider).currentUser?.uid ?? '';
@@ -415,37 +413,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                                         TextOverflow.ellipsis,
                                                   ),
                                                 ),
-                                                if (isCreator) ...[
-                                                  const SizedBox(width: 6),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 6,
-                                                          vertical: 2,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          Colors.orange.shade50,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            4,
-                                                          ),
-                                                    ),
-                                                    child: Text(
-                                                      'المنشئ',
-                                                      style: TextStyle(
-                                                        color: Colors
-                                                            .orange
-                                                            .shade800,
-                                                        fontSize: 9,
-                                                        fontFamily:
-                                                            'Alexandria',
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
+
                                                 if (isAdmin) ...[
                                                   const SizedBox(width: 6),
                                                   Container(

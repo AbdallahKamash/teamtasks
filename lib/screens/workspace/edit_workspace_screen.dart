@@ -260,7 +260,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
     try {
       await ref
           .read(workspaceRepoProvider)
-          .deleteWorkspace(widget.workspace.id, widget.workspace.creatorId);
+          .deleteWorkspace(widget.workspace.id);
 
       if (!mounted) return;
 
