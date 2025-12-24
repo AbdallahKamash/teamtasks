@@ -20,7 +20,9 @@ class _EditWorkspaceSchemeScreenState
   late Map<String, String> _roles;
   // Scheme: Role ID -> Manager Role ID
   late Map<String, String> _scheme;
-  final TextEditingController _titleController = TextEditingController();
+  // Permissions: Role ID -> Map<permissionKey, bool>
+  late Map<String, Map<String, bool>> _permissions;  // Expanded roles: set of role IDs that are currently expanded
+  final Set<String> _expandedRoles = {};  final TextEditingController _titleController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -29,6 +31,27 @@ class _EditWorkspaceSchemeScreenState
     // Copy to modifiable maps
     _roles = Map.from(widget.workspace.roles ?? {});
     _scheme = Map.from(widget.workspace.scheme ?? {});
+    _permissions = {};
+    // Load role permissions from repo (async)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final perms = await ref
+            .read(workspaceRepoProvider)
+            .getRolePermissions(widget.workspace.id);
+
+        if (!mounted) return;
+        setState(() {
+          // Normalize into Map<String, Map<String,bool>>
+          perms.forEach((roleId, val) {
+            if (val is Map) {
+              _permissions[roleId] = Map<String, bool>.from(val.map((k, v) => MapEntry(k.toString(), v == true)));
+            }
+          });
+        });
+      } catch (e) {
+        // ignore errors for now
+      }
+    });
   }
 
   @override
@@ -54,6 +77,24 @@ class _EditWorkspaceSchemeScreenState
 
     setState(() {
       _roles[id] = title;
+      // default permissions: all false, admin false
+      _permissions[id] = {
+        'admin': false,
+        'tasks_add': false,
+        'tasks_edit': false,
+        'tasks_delete': false,
+        'messages_add': false,
+        'messages_edit': false,
+        'messages_delete': false,
+        'workspace_edit': false,
+        'workspace_delete': false,
+        'roles_add': false,
+        'roles_edit': false,
+        'roles_delete': false,
+        'people_add': false,
+        'people_edit': false,
+        'people_delete': false,
+      };
       _titleController.clear();
     });
   }
@@ -109,6 +150,8 @@ class _EditWorkspaceSchemeScreenState
         // Remove relationships
         _scheme.remove(roleId);
         _scheme.removeWhere((key, value) => value == roleId);
+        // Remove permissions entry
+        _permissions.remove(roleId);
       });
     } catch (e) {
       if (!mounted) return;
@@ -121,6 +164,29 @@ class _EditWorkspaceSchemeScreenState
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Map<String, bool> _ensurePermissionEntry(String roleId) {
+    if (!_permissions.containsKey(roleId)) {
+      _permissions[roleId] = {
+        'admin': false,
+        'tasks_add': false,
+        'tasks_edit': false,
+        'tasks_delete': false,
+        'messages_add': false,
+        'messages_edit': false,
+        'messages_delete': false,
+        'workspace_edit': false,
+        'workspace_delete': false,
+        'roles_add': false,
+        'roles_edit': false,
+        'roles_delete': false,
+        'people_add': false,
+        'people_edit': false,
+        'people_delete': false,
+      };
+    }
+    return _permissions[roleId]!;
   }
 
   void _updateScheme(String roleId, String? managerId) {
@@ -153,6 +219,19 @@ class _EditWorkspaceSchemeScreenState
       );
 
       await ref.read(workspaceRepoProvider).updateWorkspace(updatedWorkspace);
+      // Save role permissions map as well
+      try {
+        await ref
+            .read(workspaceRepoProvider)
+            .updateRolePermissions(widget.workspace.id, _permissions);
+      } catch (e) {
+        // If permissions write fails, show a non-blocking error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('خطأ أثناء حفظ الأذونات: $e')),
+          );
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -311,6 +390,8 @@ class _EditWorkspaceSchemeScreenState
                                 .where((e) => e.key != roleId)
                                 .toList();
 
+                            final isExpanded = _expandedRoles.contains(roleId);
+
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),
                               color: Colors.white,
@@ -319,104 +400,292 @@ class _EditWorkspaceSchemeScreenState
                                 side: BorderSide.none,
                               ),
                               elevation: 0,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          roleName,
-                                          style: const TextStyle(
-                                            fontFamily: 'Alexandria',
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        IconButton(
-                                          onPressed: () => _removeRole(roleId),
-                                          icon: Icon(
-                                            Icons.delete_outline,
-                                            color: Colors.red.shade400,
-                                            size: 20,
-                                          ),
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'يتبع لـ: ',
-                                            style: TextStyle(
-                                              fontFamily: 'Alexandria',
-                                              color: Colors.grey.shade600,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: DropdownButtonHideUnderline(
-                                              child: DropdownButton<String>(
-                                                isExpanded: true,
-                                                value: managerId,
-                                                icon: Icon(
-                                                  Icons.keyboard_arrow_down,
-                                                  color: Colors.grey.shade600,
-                                                  size: 20,
-                                                ),
-                                                hint: Text(
-                                                  '—',
-                                                  style: TextStyle(
-                                                    fontFamily: 'Alexandria',
-                                                    fontSize: 14,
-                                                    color: Colors.grey.shade800,
-                                                  ),
-                                                ),
-                                                style: TextStyle(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Header (always visible)
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          if (_expandedRoles.contains(roleId)) {
+                                            _expandedRoles.remove(roleId);
+                                          } else {
+                                            _expandedRoles.add(roleId);
+                                          }
+                                        });
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                roleName,
+                                                style: const TextStyle(
                                                   fontFamily: 'Alexandria',
-                                                  fontSize: 14,
-                                                  color: Colors.grey.shade800,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
-                                                items: [
-                                                  const DropdownMenuItem<
-                                                    String
-                                                  >(
-                                                    value: null,
-                                                    child: Text('— (لا أحد)'),
-                                                  ),
-                                                  ...possibleManagers.map((m) {
-                                                    return DropdownMenuItem<
-                                                      String
-                                                    >(
-                                                      value: m.key,
-                                                      child: Text(m.value),
-                                                    );
-                                                  }),
-                                                ],
-                                                onChanged: (val) =>
-                                                    _updateScheme(roleId, val),
                                               ),
                                             ),
+                                            IconButton(
+                                              onPressed: () =>
+                                                  _removeRole(roleId),
+                                              icon: Icon(
+                                                Icons.delete_outline,
+                                                color: Colors.red.shade400,
+                                                size: 20,
+                                              ),
+                                              padding: EdgeInsets.zero,
+                                              constraints:
+                                                  const BoxConstraints(),
+                                            ),
+                                            Icon(
+                                              isExpanded
+                                                  ? Icons.expand_less
+                                                  : Icons.expand_more,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Expandable content
+                                  if (isExpanded)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                        vertical: 8.0,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Divider(
+                                            color: Colors.grey.shade300,
+                                            height: 1,
                                           ),
+                                          const SizedBox(height: 12),
+                                          // Manager dropdown
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade50,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  'يتبع لـ: ',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Alexandria',
+                                                    color:
+                                                        Colors.grey.shade600,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child:
+                                                      DropdownButtonHideUnderline(
+                                                    child:
+                                                        DropdownButton<String>(
+                                                          isExpanded: true,
+                                                          value: managerId,
+                                                          icon: Icon(
+                                                            Icons
+                                                                .keyboard_arrow_down,
+                                                            color: Colors.grey
+                                                                .shade600,
+                                                            size: 20,
+                                                          ),
+                                                          hint: Text(
+                                                            '—',
+                                                            style: TextStyle(
+                                                              fontFamily:
+                                                                  'Alexandria',
+                                                              fontSize: 14,
+                                                              color: Colors
+                                                                  .grey
+                                                                  .shade800,
+                                                            ),
+                                                          ),
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Alexandria',
+                                                            fontSize: 14,
+                                                            color: Colors.grey
+                                                                .shade800,
+                                                          ),
+                                                          items: [
+                                                            const DropdownMenuItem<
+                                                              String
+                                                            >(
+                                                              value: null,
+                                                              child: Text(
+                                                                  '— (لا أحد)'),
+                                                            ),
+                                                            ...possibleManagers
+                                                                .map((m) {
+                                                              return DropdownMenuItem<
+                                                                String
+                                                              >(
+                                                                value: m.key,
+                                                                child: Text(
+                                                                    m.value),
+                                                              );
+                                                            }),
+                                                          ],
+                                                          onChanged: (val) =>
+                                                              _updateScheme(
+                                                                  roleId, val),
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          // Permissions grid
+                                          Builder(builder: (context) {
+                                            final entry =
+                                                _ensurePermissionEntry(
+                                                    roleId);
+
+                                            void setPerm(String key, bool val) {
+                                              setState(() {
+                                                entry[key] = val;
+                                              });
+                                            }
+
+                                            Widget permCheckbox(
+                                              String key,
+                                              String label,
+                                            ) {
+                                              return Row(
+                                                mainAxisSize:
+                                                    MainAxisSize.min,
+                                                children: [
+                                                  Checkbox(
+                                                    value:
+                                                        entry[key] ?? false,
+                                                    onChanged: (v) =>
+                                                        setPerm(
+                                                            key, v == true),
+                                                  ),
+                                                  Text(
+                                                    label,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Alexandria',
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            }
+
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                // Tasks
+                                                Text('المهام',
+                                                    style: TextStyle(
+                                                        fontFamily: 'Alexandria',
+                                                        color: Colors.grey
+                                                            .shade700)),
+                                                Row(
+                                                  children: [
+                                                    permCheckbox(
+                                                        'tasks_add', 'إضافة'),
+                                                    permCheckbox(
+                                                        'tasks_edit', 'تعديل'),
+                                                    permCheckbox(
+                                                        'tasks_delete', 'حذف'),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text('الرسائل',
+                                                    style: TextStyle(
+                                                        fontFamily: 'Alexandria',
+                                                        color: Colors.grey
+                                                            .shade700)),
+                                                Row(
+                                                  children: [
+                                                    permCheckbox(
+                                                        'messages_add',
+                                                        'إضافة'),
+                                                    permCheckbox(
+                                                        'messages_edit',
+                                                        'تعديل'),
+                                                    permCheckbox(
+                                                        'messages_delete',
+                                                        'حذف'),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text('مساحة العمل',
+                                                    style: TextStyle(
+                                                        fontFamily: 'Alexandria',
+                                                        color: Colors.grey
+                                                            .shade700)),
+                                                Row(
+                                                  children: [
+                                                    permCheckbox(
+                                                        'workspace_edit',
+                                                        'تعديل'),
+                                                    permCheckbox(
+                                                        'workspace_delete',
+                                                        'حذف'),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text('المسميات',
+                                                    style: TextStyle(
+                                                        fontFamily: 'Alexandria',
+                                                        color: Colors.grey
+                                                            .shade700)),
+                                                Row(
+                                                  children: [
+                                                    permCheckbox(
+                                                        'roles_add', 'إضافة'),
+                                                    permCheckbox(
+                                                        'roles_edit', 'تعديل'),
+                                                    permCheckbox(
+                                                        'roles_delete', 'حذف'),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text('الأشخاص',
+                                                    style: TextStyle(
+                                                        fontFamily: 'Alexandria',
+                                                        color: Colors.grey
+                                                            .shade700)),
+                                                Row(
+                                                  children: [
+                                                    permCheckbox(
+                                                        'people_add', 'إضافة'),
+                                                    permCheckbox(
+                                                        'people_edit', 'تعديل'),
+                                                    permCheckbox(
+                                                        'people_delete', 'حذف'),
+                                                  ],
+                                                ),
+                                              ],
+                                            );
+                                          }),
                                         ],
                                       ),
                                     ),
-                                  ],
-                                ),
+                                ],
                               ),
                             );
                           },

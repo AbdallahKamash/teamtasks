@@ -72,29 +72,57 @@ class WorkspaceRepo {
     String creatorName,
     String creatorEmail,
   ) async {
-    // 1. Create the workspace document with the creator as the first admin
+    // 1. Create a default "admin" role with all permissions
+    final adminRoleId = DateTime.now().microsecondsSinceEpoch.toString();
+    final defaultRoles = {adminRoleId: 'Admin'};
+    final defaultPermissions = {
+      adminRoleId: {
+        'tasks_add': true,
+        'tasks_edit': true,
+        'tasks_delete': true,
+        'messages_add': true,
+        'messages_edit': true,
+        'messages_delete': true,
+        'workspace_edit': true,
+        'workspace_delete': true,
+        'roles_add': true,
+        'roles_edit': true,
+        'roles_delete': true,
+        'people_add': true,
+        'people_edit': true,
+        'people_delete': true,
+      },
+    };
+
+    // 2. Create the workspace document with the creator as the first admin
     final workspaceRef = _firestore.collection('workspaces').doc();
     final workspaceWithId = workspace.copyWith(
       id: workspaceRef.id,
       admins: [creatorId],
+      roles: defaultRoles,
     );
 
     await workspaceRef.set(workspaceWithId.toJson());
 
-    // 2. Save to users_workspaces collection
+    // 3. Save role permissions
+    await workspaceRef.update({
+      'rolePermissions': defaultPermissions,
+    });
+
+    // 4. Save to users_workspaces collection
     await _firestore.collection('users_workspaces').doc(creatorId).set({
       'workspaces': FieldValue.arrayUnion([
         {'workspaceId': workspaceRef.id},
       ]),
     }, SetOptions(merge: true));
 
-    // 3. Add creator to members subcollection
+    // 5. Add creator to members subcollection with the admin role assigned
     final member = WorkspaceMemberModel(
       uid: creatorId,
       email: creatorEmail,
       displayName: creatorName,
       joinedAt: DateTime.now(),
-      roleId: null, // No specific scheme role yet
+      roleId: adminRoleId, // Assign to the admin role
     );
 
     await workspaceRef
@@ -110,6 +138,26 @@ class WorkspaceRepo {
         .collection('workspaces')
         .doc(workspace.id)
         .update(workspace.toJson());
+  }
+
+  /// Read role permissions map stored on the workspace document under
+  /// the `rolePermissions` (or `permissions`) key. Returns empty map if none.
+  Future<Map<String, dynamic>> getRolePermissions(String workspaceId) async {
+    final doc = await _firestore.collection('workspaces').doc(workspaceId).get();
+    if (!doc.exists) return {};
+    final data = doc.data();
+    if (data == null) return {};
+    final perms = data['rolePermissions'] ?? data['permissions'];
+    if (perms is Map<String, dynamic>) return perms;
+    return {};
+  }
+
+  /// Overwrite role permissions map on workspace document. The map shape is
+  /// Map<roleId, Map<permissionKey, bool>>.
+  Future<void> updateRolePermissions(String workspaceId, Map<String, dynamic> perms) async {
+    await _firestore.collection('workspaces').doc(workspaceId).update({
+      'rolePermissions': perms,
+    });
   }
 
   Future<UserModel?> getUserByEmail(String email) async {
@@ -286,6 +334,21 @@ class WorkspaceRepo {
               .map((doc) => WorkspaceMemberModel.fromJson(doc.data()))
               .toList();
         });
+  }
+
+  /// Get all members of a workspace (Future-based)
+  Future<List<WorkspaceMemberModel>> getWorkspaceMembers(
+    String workspaceId,
+  ) async {
+    final snapshot = await _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .collection('members')
+        .get();
+
+    return snapshot.docs
+        .map((doc) => WorkspaceMemberModel.fromJson(doc.data()))
+        .toList();
   }
 
   Future<void> updateMemberRole(

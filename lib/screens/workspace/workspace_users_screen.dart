@@ -140,7 +140,51 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     }
   }
 
-  Future<void> _removeMember(String memberId, String memberName) async {
+  /// Check if a role has all admin permissions
+  bool _roleHasAdminPermissions(
+    String roleId,
+    Map<String, dynamic> allRolePermissions,
+  ) {
+    final rolePerms = allRolePermissions[roleId];
+    if (rolePerms is! Map<String, dynamic>) return false;
+    
+    // Check if all permission keys are true
+    return rolePerms.values.every((v) => v == true);
+  }
+
+  /// Get count of members with roles that have all admin permissions
+  Future<int> _getAdminMemberCount(String workspaceId) async {
+    try {
+      final repo = ref.read(workspaceRepoProvider);
+      final rolePerms = await repo.getRolePermissions(workspaceId);
+      final members = await repo.getWorkspaceMembers(workspaceId);
+      
+      int adminCount = 0;
+      for (final member in members) {
+        if (member.roleId != null && _roleHasAdminPermissions(member.roleId!, rolePerms)) {
+          adminCount++;
+        }
+      }
+      return adminCount;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  Future<void> _removeMember(String memberId, String memberName, String? memberRoleId, Map<String, dynamic> rolePermissions) async {
+    // Check if this member is the last admin
+    final isLastAdmin = memberRoleId != null && 
+        _roleHasAdminPermissions(memberRoleId, rolePermissions) &&
+        (await _getAdminMemberCount(widget.workspaceId)) <= 1;
+    
+    final currentUserId = ref.read(authRepoProvider).currentUser?.uid ?? '';
+    final isDeletingSelf = memberId == currentUserId;
+    
+    if (isDeletingSelf && isLastAdmin) {
+      _showError('لا يمكنك حذف نفسك - أنت الأدمن الوحيد في مساحة العمل');
+      return;
+    }
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => Directionality(
@@ -200,36 +244,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     }
   }
 
-  Future<void> _toggleAdmin(WorkspaceModel workspace, String memberId) async {
-    final List<String> admins = List.from(workspace.admins);
-    final bool isAdmin = admins.contains(memberId);
-    final String currentUserId =
-        ref.read(authRepoProvider).currentUser?.uid ?? "";
-
-    if (isAdmin) {
-      // Trying to remove admin
-      if (memberId == currentUserId && admins.length <= 1) {
-        _showError('لا يمكنك إزالة صلاحية الأدمن عن نفسك كأدمن وحيد');
-        return;
-      }
-      admins.remove(memberId);
-    } else {
-      // Add admin
-      admins.add(memberId);
-    }
-
-    setState(() => _isLoading = true);
-    try {
-      await ref
-          .read(workspaceRepoProvider)
-          .updateWorkspaceAdmins(workspace.id, admins);
-    } catch (e) {
-      _showError('حدث خطأ أثناء تحديث الصلاحيات: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final workspacesAsync = ref.watch(workspacesProvider);
@@ -258,6 +272,11 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
         }
 
         final roles = workspace.roles ?? {};
+
+        // Load role permissions
+        final rolePermissionsFuture = ref
+            .read(workspaceRepoProvider)
+            .getRolePermissions(widget.workspaceId);
 
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
@@ -355,11 +374,15 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final member = filteredMembers[index];
                           final roleName = roles[member.roleId] ?? 'بدون مسمى';
-                          final isAdmin = workspace.admins.contains(member.uid);
                           final currentUserId =
                               ref.read(authRepoProvider).currentUser?.uid ?? '';
 
-                          return Card(
+                          return FutureBuilder<Map<String, dynamic>>(
+                            future: rolePermissionsFuture,
+                            builder: (context, snapshot) {
+                              final rolePermissions = snapshot.data ?? {};
+
+                              return Card(
                             margin: const EdgeInsets.only(bottom: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -413,38 +436,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                                         TextOverflow.ellipsis,
                                                   ),
                                                 ),
-
-                                                if (isAdmin) ...[
-                                                  const SizedBox(width: 6),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 6,
-                                                          vertical: 2,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          Colors.green.shade50,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            4,
-                                                          ),
-                                                    ),
-                                                    child: Text(
-                                                      'أدمن',
-                                                      style: TextStyle(
-                                                        color: Colors
-                                                            .green
-                                                            .shade800,
-                                                        fontSize: 9,
-                                                        fontFamily:
-                                                            'Alexandria',
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
                                               ],
                                             ),
                                             const SizedBox(height: 4),
@@ -537,55 +528,14 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      // Admin toggle button
-                                      Expanded(
-                                        child: OutlinedButton.icon(
-                                          onPressed: () => _toggleAdmin(
-                                            workspace,
-                                            member.uid,
-                                          ),
-                                          icon: Icon(
-                                            isAdmin
-                                                ? Icons.admin_panel_settings
-                                                : Icons
-                                                      .admin_panel_settings_outlined,
-                                            size: 16,
-                                          ),
-                                          label: Text(
-                                            isAdmin
-                                                ? 'إزالة أدمن'
-                                                : 'تعيين أدمن',
-                                            style: const TextStyle(
-                                              fontFamily: 'Alexandria',
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: isAdmin
-                                                ? Colors.orange
-                                                : Colors.green,
-                                            side: BorderSide(
-                                              color: isAdmin
-                                                  ? Colors.orange.shade200
-                                                  : Colors.green.shade200,
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 8,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      // Delete button (only if not creator or if current user is admin)
+                                      // Delete button (only if not current user)
                                       if (member.uid != currentUserId)
                                         IconButton(
                                           onPressed: () => _removeMember(
                                             member.uid,
                                             member.displayName,
+                                            member.roleId,
+                                            rolePermissions,
                                           ),
                                           icon: const Icon(
                                             Icons.delete_outline,
@@ -602,6 +552,8 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                 ],
                               ),
                             ),
+                          );
+                            },
                           );
                         }, childCount: filteredMembers.length),
                       ),
