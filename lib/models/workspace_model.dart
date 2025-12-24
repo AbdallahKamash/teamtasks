@@ -14,7 +14,6 @@ abstract class WorkspaceModel with _$WorkspaceModel {
     String? logoUrl,
     Map<String, String>? roles,
     Map<String, String>? scheme,
-    @Default([]) List<String> admins,
   }) = _WorkspaceModel;
 
   factory WorkspaceModel.fromJson(Map<String, dynamic> json) =>

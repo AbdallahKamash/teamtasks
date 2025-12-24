@@ -72,14 +72,13 @@ class _EditWorkspaceSchemeScreenState
       return;
     }
 
-    // Generate ID (simple usage of timestamp + randomish suffix not strictly needed if low volume)
+    // Generate ID
     final id = DateTime.now().microsecondsSinceEpoch.toString();
 
     setState(() {
       _roles[id] = title;
-      // default permissions: all false, admin false
+      // Default permissions: all false (no permissions)
       _permissions[id] = {
-        'admin': false,
         'tasks_add': false,
         'tasks_edit': false,
         'tasks_delete': false,
@@ -169,7 +168,6 @@ class _EditWorkspaceSchemeScreenState
   Map<String, bool> _ensurePermissionEntry(String roleId) {
     if (!_permissions.containsKey(roleId)) {
       _permissions[roleId] = {
-        'admin': false,
         'tasks_add': false,
         'tasks_edit': false,
         'tasks_delete': false,
@@ -336,7 +334,7 @@ class _EditWorkspaceSchemeScreenState
                       ),
                       child: IconButton(
                         onPressed: _addRole,
-                        icon: const Icon(Icons.add, color: Colors.purple),
+                        icon: const Icon(Icons.add_rounded, color: Colors.purple),
                         tooltip: 'إضافة',
                       ),
                     ),

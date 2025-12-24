@@ -140,16 +140,42 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     }
   }
 
-  /// Check if a role has all admin permissions
-  bool _roleHasAdminPermissions(
+  /// Helper function to check if a role has all admin permissions
+  /// Admin = all of these permissions are true:
+  /// people_delete, people_add, roles_add, messages_edit, tasks_add,
+  /// workspace_edit, tasks_delete, workspace_delete, messages_delete,
+  /// roles_delete, tasks_edit, roles_edit, people_edit, messages_add
+  bool _roleHasAllAdminPermissions(
     String roleId,
     Map<String, dynamic> allRolePermissions,
   ) {
     final rolePerms = allRolePermissions[roleId];
     if (rolePerms is! Map<String, dynamic>) return false;
-    
-    // Check if all permission keys are true
-    return rolePerms.values.every((v) => v == true);
+
+    const adminPermissions = {
+      'people_delete',
+      'people_add',
+      'roles_add',
+      'messages_edit',
+      'tasks_add',
+      'workspace_edit',
+      'tasks_delete',
+      'workspace_delete',
+      'messages_delete',
+      'roles_delete',
+      'tasks_edit',
+      'roles_edit',
+      'people_edit',
+      'messages_add',
+    };
+
+    // Check if all required admin permissions exist and are true
+    for (final perm in adminPermissions) {
+      if (rolePerms[perm] != true) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Get count of members with roles that have all admin permissions
@@ -158,10 +184,11 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       final repo = ref.read(workspaceRepoProvider);
       final rolePerms = await repo.getRolePermissions(workspaceId);
       final members = await repo.getWorkspaceMembers(workspaceId);
-      
+
       int adminCount = 0;
       for (final member in members) {
-        if (member.roleId != null && _roleHasAdminPermissions(member.roleId!, rolePerms)) {
+        if (member.roleId != null &&
+            _roleHasAllAdminPermissions(member.roleId!, rolePerms)) {
           adminCount++;
         }
       }
@@ -171,15 +198,16 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     }
   }
 
-  Future<void> _removeMember(String memberId, String memberName, String? memberRoleId, Map<String, dynamic> rolePermissions) async {
+  Future<void> _removeMember(String memberId, String memberName,
+      String? memberRoleId, Map<String, dynamic> rolePermissions) async {
     // Check if this member is the last admin
-    final isLastAdmin = memberRoleId != null && 
-        _roleHasAdminPermissions(memberRoleId, rolePermissions) &&
+    final isLastAdmin = memberRoleId != null &&
+        _roleHasAllAdminPermissions(memberRoleId, rolePermissions) &&
         (await _getAdminMemberCount(widget.workspaceId)) <= 1;
-    
+
     final currentUserId = ref.read(authRepoProvider).currentUser?.uid ?? '';
     final isDeletingSelf = memberId == currentUserId;
-    
+
     if (isDeletingSelf && isLastAdmin) {
       _showError('لا يمكنك حذف نفسك - أنت الأدمن الوحيد في مساحة العمل');
       return;
@@ -228,6 +256,9 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
           .removeMemberFromWorkspace(widget.workspaceId, memberId);
 
       if (!mounted) return;
+      if (isDeletingSelf) {
+        ref.read(routerProvider).pop();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -374,8 +405,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final member = filteredMembers[index];
                           final roleName = roles[member.roleId] ?? 'بدون مسمى';
-                          final currentUserId =
-                              ref.read(authRepoProvider).currentUser?.uid ?? '';
 
                           return FutureBuilder<Map<String, dynamic>>(
                             future: rolePermissionsFuture,
@@ -453,7 +482,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 12),
-                                  // Role badge
+                                  // Role and Admin badges
                                   Row(
                                     children: [
                                       Container(
@@ -487,6 +516,42 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                           ],
                                         ),
                                       ),
+                                      const SizedBox(width: 8),
+                                      if (member.roleId != null &&
+                                          _roleHasAllAdminPermissions(
+                                            member.roleId!,
+                                            rolePermissions,
+                                          ))
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.shade50,
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.admin_panel_settings,
+                                                size: 14,
+                                                color: Colors.orange.shade700,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'أدمن',
+                                                style: TextStyle(
+                                                  color: Colors.orange.shade800,
+                                                  fontSize: 12,
+                                                  fontFamily: 'Alexandria',
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                     ],
                                   ),
                                   const SizedBox(height: 12),
@@ -528,25 +593,24 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      // Delete button (only if not current user)
-                                      if (member.uid != currentUserId)
-                                        IconButton(
-                                          onPressed: () => _removeMember(
-                                            member.uid,
-                                            member.displayName,
-                                            member.roleId,
-                                            rolePermissions,
-                                          ),
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                            size: 20,
-                                          ),
-                                          style: IconButton.styleFrom(
-                                            foregroundColor: Colors.red,
-                                            backgroundColor: Colors.red.shade50,
-                                          ),
-                                          tooltip: 'حذف العضو',
+                                      // Delete button
+                                      IconButton(
+                                        onPressed: () => _removeMember(
+                                          member.uid,
+                                          member.displayName,
+                                          member.roleId,
+                                          rolePermissions,
                                         ),
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          size: 20,
+                                        ),
+                                        style: IconButton.styleFrom(
+                                          foregroundColor: Colors.red,
+                                          backgroundColor: Colors.red.shade50,
+                                        ),
+                                        tooltip: 'حذف العضو',
+                                      ),
                                     ],
                                   ),
                                 ],

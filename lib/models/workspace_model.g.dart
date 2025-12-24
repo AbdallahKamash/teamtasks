@@ -20,11 +20,6 @@ _WorkspaceModel _$WorkspaceModelFromJson(Map<String, dynamic> json) =>
       scheme: (json['scheme'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
-      admins:
-          (json['admins'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
     );
 
 Map<String, dynamic> _$WorkspaceModelToJson(_WorkspaceModel instance) =>
@@ -37,5 +32,4 @@ Map<String, dynamic> _$WorkspaceModelToJson(_WorkspaceModel instance) =>
       'logoUrl': instance.logoUrl,
       'roles': instance.roles,
       'scheme': instance.scheme,
-      'admins': instance.admins,
     };

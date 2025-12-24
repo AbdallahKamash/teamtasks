@@ -187,12 +187,20 @@ final class SelectedWorkspaceProvider
 
 String _$selectedWorkspaceHash() => r'007eed17738e8dff7a07b45404435cd6d84815c0';
 
+/// Locally calculated admin status based on role permissions
+/// A user is admin if their role has ALL the required permissions
+
 @ProviderFor(isCurrentWorkspaceAdmin)
 const isCurrentWorkspaceAdminProvider = IsCurrentWorkspaceAdminProvider._();
+
+/// Locally calculated admin status based on role permissions
+/// A user is admin if their role has ALL the required permissions
 
 final class IsCurrentWorkspaceAdminProvider
     extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
+  /// Locally calculated admin status based on role permissions
+  /// A user is admin if their role has ALL the required permissions
   const IsCurrentWorkspaceAdminProvider._()
     : super(
         from: null,
@@ -227,7 +235,7 @@ final class IsCurrentWorkspaceAdminProvider
 }
 
 String _$isCurrentWorkspaceAdminHash() =>
-    r'512115eebec539e181f007120544230ea91e8090';
+    r'0a1227e2a124f41748429c76ca2b5f758c8c3130';
 
 @ProviderFor(workspaceMembers)
 const workspaceMembersProvider = WorkspaceMembersFamily._();
@@ -304,6 +312,83 @@ final class WorkspaceMembersFamily extends $Family
 
   @override
   String toString() => r'workspaceMembersProvider';
+}
+
+@ProviderFor(rolePermissions)
+const rolePermissionsProvider = RolePermissionsFamily._();
+
+final class RolePermissionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, dynamic>>,
+          Map<String, dynamic>,
+          FutureOr<Map<String, dynamic>>
+        >
+    with
+        $FutureModifier<Map<String, dynamic>>,
+        $FutureProvider<Map<String, dynamic>> {
+  const RolePermissionsProvider._({
+    required RolePermissionsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'rolePermissionsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$rolePermissionsHash();
+
+  @override
+  String toString() {
+    return r'rolePermissionsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, dynamic>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, dynamic>> create(Ref ref) {
+    final argument = this.argument as String;
+    return rolePermissions(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RolePermissionsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$rolePermissionsHash() => r'f8a3e63237374e0fb9dbf7ebe7b6b7361ce5026c';
+
+final class RolePermissionsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Map<String, dynamic>>, String> {
+  const RolePermissionsFamily._()
+    : super(
+        retry: null,
+        name: r'rolePermissionsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RolePermissionsProvider call(String workspaceId) =>
+      RolePermissionsProvider._(argument: workspaceId, from: this);
+
+  @override
+  String toString() => r'rolePermissionsProvider';
 }
 
 @ProviderFor(pendingAssignments)

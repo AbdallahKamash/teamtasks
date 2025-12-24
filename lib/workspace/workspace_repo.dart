@@ -77,34 +77,33 @@ class WorkspaceRepo {
     final defaultRoles = {adminRoleId: 'Admin'};
     final defaultPermissions = {
       adminRoleId: {
-        'tasks_add': true,
-        'tasks_edit': true,
-        'tasks_delete': true,
-        'messages_add': true,
-        'messages_edit': true,
-        'messages_delete': true,
-        'workspace_edit': true,
-        'workspace_delete': true,
-        'roles_add': true,
-        'roles_edit': true,
-        'roles_delete': true,
-        'people_add': true,
-        'people_edit': true,
         'people_delete': true,
+        'people_add': true,
+        'roles_add': true,
+        'messages_edit': true,
+        'tasks_add': true,
+        'workspace_edit': true,
+        'tasks_delete': true,
+        'workspace_delete': true,
+        'messages_delete': true,
+        'roles_delete': true,
+        'tasks_edit': true,
+        'roles_edit': true,
+        'people_edit': true,
+        'messages_add': true,
       },
     };
 
-    // 2. Create the workspace document with the creator as the first admin
+    // 2. Create the workspace document
     final workspaceRef = _firestore.collection('workspaces').doc();
     final workspaceWithId = workspace.copyWith(
       id: workspaceRef.id,
-      admins: [creatorId],
       roles: defaultRoles,
     );
 
     await workspaceRef.set(workspaceWithId.toJson());
 
-    // 3. Save role permissions
+    // 3. Save role permissions (admin is calculated locally, not stored)
     await workspaceRef.update({
       'rolePermissions': defaultPermissions,
     });
@@ -122,7 +121,7 @@ class WorkspaceRepo {
       email: creatorEmail,
       displayName: creatorName,
       joinedAt: DateTime.now(),
-      roleId: adminRoleId, // Assign to the admin role
+      roleId: adminRoleId,
     );
 
     await workspaceRef
@@ -389,15 +388,6 @@ class WorkspaceRepo {
         await userWorkspacesRef.update({'workspaces': workspaces});
       }
     }
-  }
-
-  Future<void> updateWorkspaceAdmins(
-    String workspaceId,
-    List<String> adminIds,
-  ) async {
-    await _firestore.collection('workspaces').doc(workspaceId).update({
-      'admins': adminIds,
-    });
   }
 
   Future<void> addMemberToWorkspace(
