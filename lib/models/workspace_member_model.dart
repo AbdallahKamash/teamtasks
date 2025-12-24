@@ -9,7 +9,7 @@ abstract class WorkspaceMemberModel with _$WorkspaceMemberModel {
     required String uid,
     required String email,
     required String displayName,
-    String? roleId, // Link to WorkspaceModel.roles keys
+    String? roleId,
     String? pfp,
     required DateTime joinedAt,
   }) = _WorkspaceMemberModel;

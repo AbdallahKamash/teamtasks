@@ -13,10 +13,9 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  // Force dark status bar icons/text
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarIconBrightness: Brightness.dark, // Android
-    statusBarBrightness: Brightness.dark,   // iOS
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.dark,
   ));
 
   runApp(ProviderScope(child: MyApp()));

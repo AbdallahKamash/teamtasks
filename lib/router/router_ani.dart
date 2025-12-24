@@ -10,7 +10,6 @@ CustomTransitionPage buildPageWithTransition<T>({
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,
-    // Control the speed here (e.g., 300ms is standard)
     transitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       return Directionality(
@@ -20,13 +19,13 @@ CustomTransitionPage buildPageWithTransition<T>({
               Tween<Offset>(
                 begin: dir == .ltr
                     ? Offset(1.0, 0.0)
-                    : Offset(-1.0, 0.0), // Starts off-screen to the right
-                end: Offset.zero, // Ends at the center
+                    : Offset(-1.0, 0.0),
+                end: Offset.zero,
               ).animate(
                 CurvedAnimation(
                   parent: animation,
                   curve:
-                      Curves.easeInOutCirc, // Smooth acceleration/deceleration
+                      Curves.easeInOutCirc,
                 ),
               ),
           child: child,

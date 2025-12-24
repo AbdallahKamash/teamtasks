@@ -16,23 +16,23 @@ class EditWorkspaceSchemeScreen extends ConsumerStatefulWidget {
 
 class _EditWorkspaceSchemeScreenState
     extends ConsumerState<EditWorkspaceSchemeScreen> {
-  // Roles: Map<ID, Name>
+  
   late Map<String, String> _roles;
-  // Scheme: Role ID -> Manager Role ID
+  
   late Map<String, String> _scheme;
-  // Permissions: Role ID -> Map<permissionKey, bool>
-  late Map<String, Map<String, bool>> _permissions;  // Expanded roles: set of role IDs that are currently expanded
+  
+  late Map<String, Map<String, bool>> _permissions;  
   final Set<String> _expandedRoles = {};  final TextEditingController _titleController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Copy to modifiable maps
+    
     _roles = Map.from(widget.workspace.roles ?? {});
     _scheme = Map.from(widget.workspace.scheme ?? {});
     _permissions = {};
-    // Load role permissions from repo (async)
+    
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final perms = await ref
@@ -41,7 +41,7 @@ class _EditWorkspaceSchemeScreenState
 
         if (!mounted) return;
         setState(() {
-          // Normalize into Map<String, Map<String,bool>>
+          
           perms.forEach((roleId, val) {
             if (val is Map) {
               _permissions[roleId] = Map<String, bool>.from(val.map((k, v) => MapEntry(k.toString(), v == true)));
@@ -49,7 +49,7 @@ class _EditWorkspaceSchemeScreenState
           });
         });
       } catch (e) {
-        // ignore errors for now
+        
       }
     });
   }
@@ -64,7 +64,7 @@ class _EditWorkspaceSchemeScreenState
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
 
-    // Check if name already exists
+    
     if (_roles.containsValue(title)) {
       ScaffoldMessenger.of(
         context,
@@ -72,12 +72,12 @@ class _EditWorkspaceSchemeScreenState
       return;
     }
 
-    // Generate ID
+    
     final id = DateTime.now().microsecondsSinceEpoch.toString();
 
     setState(() {
       _roles[id] = title;
-      // Default permissions: all false (no permissions)
+      
       _permissions[id] = {
         'tasks_add': false,
         'tasks_edit': false,
@@ -104,7 +104,7 @@ class _EditWorkspaceSchemeScreenState
     try {
       final repo = ref.read(workspaceRepoProvider);
 
-      // 1. Check pending assignments
+      
       final pendingCount = await repo.getPendingAssignmentsCountForRole(
         widget.workspace.id,
         roleId,
@@ -124,7 +124,7 @@ class _EditWorkspaceSchemeScreenState
         return;
       }
 
-      // 2. Check active members
+      
       final activeCount = await repo.getActiveMembersCountForRole(
         widget.workspace.id,
         roleId,
@@ -146,10 +146,10 @@ class _EditWorkspaceSchemeScreenState
 
       setState(() {
         _roles.remove(roleId);
-        // Remove relationships
+        
         _scheme.remove(roleId);
         _scheme.removeWhere((key, value) => value == roleId);
-        // Remove permissions entry
+        
         _permissions.remove(roleId);
       });
     } catch (e) {
@@ -193,7 +193,7 @@ class _EditWorkspaceSchemeScreenState
         _scheme.remove(roleId);
       } else {
         if (roleId == managerId) return;
-        // Check immediate cycle
+        
         if (_scheme[managerId] == roleId) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('لا يمكن إنشاء حلقة دائرية')),
@@ -217,13 +217,13 @@ class _EditWorkspaceSchemeScreenState
       );
 
       await ref.read(workspaceRepoProvider).updateWorkspace(updatedWorkspace);
-      // Save role permissions map as well
+      
       try {
         await ref
             .read(workspaceRepoProvider)
             .updateRolePermissions(widget.workspace.id, _permissions);
       } catch (e) {
-        // If permissions write fails, show a non-blocking error
+        
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('خطأ أثناء حفظ الأذونات: $e')),
@@ -254,8 +254,8 @@ class _EditWorkspaceSchemeScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Sort roles by name for display? Or insertion order? Map keys are somewhat arbitrary.
-    // Let's convert to list of MapEntries for display
+    
+    
     final roleEntries = _roles.entries.toList();
 
     return Scaffold(
@@ -286,7 +286,7 @@ class _EditWorkspaceSchemeScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Add Title Section
+                
                 const Text(
                   'إضافة مسمى وظيفي جديد',
                   style: TextStyle(
@@ -383,7 +383,7 @@ class _EditWorkspaceSchemeScreenState
                             final roleName = entry.value;
                             final managerId = _scheme[roleId];
 
-                            // Available managers: All roles except self
+                            
                             final possibleManagers = roleEntries
                                 .where((e) => e.key != roleId)
                                 .toList();
@@ -401,7 +401,7 @@ class _EditWorkspaceSchemeScreenState
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Header (always visible)
+                                  
                                   Material(
                                     color: Colors.transparent,
                                     child: InkWell(
@@ -453,7 +453,7 @@ class _EditWorkspaceSchemeScreenState
                                       ),
                                     ),
                                   ),
-                                  // Expandable content
+                                  
                                   if (isExpanded)
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -469,7 +469,7 @@ class _EditWorkspaceSchemeScreenState
                                             height: 1,
                                           ),
                                           const SizedBox(height: 12),
-                                          // Manager dropdown
+                                          
                                           Container(
                                             decoration: BoxDecoration(
                                               color: Colors.grey.shade50,
@@ -552,7 +552,7 @@ class _EditWorkspaceSchemeScreenState
                                             ),
                                           ),
                                           const SizedBox(height: 12),
-                                          // Permissions grid
+                                          
                                           Builder(builder: (context) {
                                             final entry =
                                                 _ensurePermissionEntry(
@@ -594,7 +594,7 @@ class _EditWorkspaceSchemeScreenState
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                // Tasks
+                                                
                                                 Text('المهام',
                                                     style: TextStyle(
                                                         fontFamily: 'Alexandria',

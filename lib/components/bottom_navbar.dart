@@ -9,11 +9,17 @@ class BottomNavbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(navIndexProvider);
-    final isAdmin = ref.watch(isCurrentWorkspaceAdminProvider);
+    final perm = ref.watch(currentUserPermissionsProvider);
     final workspacesAsync = ref.watch(workspacesProvider);
 
     final bool hasWorkspaces = workspacesAsync.when(
       data: (workspaces) => workspaces.isNotEmpty,
+      loading: () => false,
+      error: (_, _) => false,
+    );
+
+    final bool editWorkspace = perm.when(
+      data: (perms) => perms['workspace_edit'] ?? false,
       loading: () => false,
       error: (_, _) => false,
     );
@@ -31,7 +37,7 @@ class BottomNavbar extends ConsumerWidget {
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.grey.shade200,
-        currentIndex: currentIndex >= (isAdmin ? 4 : 3) ? 0 : currentIndex,
+        currentIndex: currentIndex >= (editWorkspace ? 4 : 3) ? 0 : currentIndex,
         onTap: (index) {
           if (index != 0 && !hasWorkspaces) {
             return;
@@ -66,7 +72,7 @@ class BottomNavbar extends ConsumerWidget {
             ),
             label: '',
           ),
-          if (isAdmin)
+          if (editWorkspace)
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.settings_rounded,

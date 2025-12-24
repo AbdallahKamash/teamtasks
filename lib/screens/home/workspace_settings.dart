@@ -9,7 +9,7 @@ class WorkspaceSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the currently selected workspace
+    
     final selectedWorkspace = ref.watch(selectedWorkspaceProvider);
 
     return SafeArea(
@@ -30,7 +30,7 @@ class WorkspaceSettings extends ConsumerWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 24),
-                    // Logo or Initial
+                    
                     Container(
                       width: 100,
                       height: 100,
@@ -41,7 +41,7 @@ class WorkspaceSettings extends ConsumerWidget {
                             ? DecorationImage(
                                 image: NetworkImage(selectedWorkspace.logoUrl!),
                                 fit: BoxFit.cover,
-                                onError: (_, _) {}, // Handle error silently
+                                onError: (_, _) {}, 
                               )
                             : null,
                       ),
@@ -62,7 +62,7 @@ class WorkspaceSettings extends ConsumerWidget {
                           : null,
                     ),
                     const SizedBox(height: 24),
-                    // Name
+                    
                     Text(
                       selectedWorkspace.name,
                       style: const TextStyle(
@@ -73,7 +73,7 @@ class WorkspaceSettings extends ConsumerWidget {
                     ),
                     if (selectedWorkspace.description != null) ...[
                       const SizedBox(height: 12),
-                      // Description
+                      
                       Text(
                         selectedWorkspace.description!,
                         textAlign: TextAlign.center,
@@ -85,12 +85,12 @@ class WorkspaceSettings extends ConsumerWidget {
                       ),
                     ],
                     const SizedBox(height: 48),
-                    // Edit Button
+                    
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // Navigate to Edit Screen
+                          
                           context.push(
                             '/edit-workspace',
                             extra: selectedWorkspace,

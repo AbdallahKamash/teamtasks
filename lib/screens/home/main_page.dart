@@ -33,12 +33,17 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = ref.watch(isCurrentWorkspaceAdminProvider);
+    final perm = ref.watch(currentUserPermissionsProvider);
+
+        final bool editWorkspace = perm.when(
+      data: (perms) => perms['workspace_edit'] ?? false,
+      loading: () => false,
+      error: (_, _) => false,
+    );
 
     ref.listen(navIndexProvider, (previous, next) {
       if (_pageController.hasClients) {
-        // If not admin and trying to go to settings tab (index 3), prevent it
-        if (!isAdmin && next >= 3) {
+        if (!editWorkspace && next >= 3) {
           ref.read(navIndexProvider.notifier).setIndex(0);
           return;
         }
@@ -51,12 +56,12 @@ class _MainPageState extends ConsumerState<MainPage> {
       }
     });
 
-    // If suddenly not admin but on settings tab, move to home
-    ref.listen(isCurrentWorkspaceAdminProvider, (previous, next) {
-      if (!next && ref.read(navIndexProvider) >= 3) {
+    final currentIndex = ref.watch(navIndexProvider);
+    if (!editWorkspace && currentIndex >= 3) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(navIndexProvider.notifier).setIndex(0);
-      }
-    });
+      });
+    }
 
     return Scaffold(
       drawerEnableOpenDragGesture: false,
@@ -82,16 +87,15 @@ class _MainPageState extends ConsumerState<MainPage> {
         title: const WorkspaceSwapper(),
       ),
       drawer: const AppDrawer(),
-      // PageView allows for the smooth sliding transition between bodies
       body: PageView(
         controller: _pageController,
         physics:
-            const NeverScrollableScrollPhysics(), // Prevents accidental swiping
+            const NeverScrollableScrollPhysics(),
         children: [
           const HomeScreen(),
           const HomeScreen(),
           const HomeScreen(),
-          if (isAdmin) const WorkspaceSettings(),
+          if (editWorkspace) const WorkspaceSettings(),
         ],
       ),
     );
@@ -158,8 +162,6 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget? _buildFloatingActionButton() {
     final currentIndex = ref.watch(navIndexProvider);
     final selectedWorkspace = ref.watch(selectedWorkspaceProvider);
-
-    // Only show FAB on home (0) and assignment (1) tabs, and when workspace is selected
     if ((currentIndex == 0 || currentIndex == 1) && selectedWorkspace != null) {
       return Directionality(
         textDirection: .rtl,

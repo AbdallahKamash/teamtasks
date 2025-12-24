@@ -23,7 +23,7 @@ class WorkspaceRepo {
 
           final List<String> workspaceIds = [];
 
-          // Handle new structure: 'workspaces' list of maps
+          
           if (data['workspaces'] != null) {
             final List<dynamic> workspacesList = data['workspaces'];
             for (final w in workspacesList) {
@@ -32,7 +32,7 @@ class WorkspaceRepo {
               }
             }
           }
-          // Fallback/Legacy: 'workspaceIds' list of strings
+          
           else if (data['workspaceIds'] != null) {
             workspaceIds.addAll(List<String>.from(data['workspaceIds']));
           }
@@ -41,9 +41,9 @@ class WorkspaceRepo {
             return Stream.value([]);
           }
 
-          // Query workspaces where the document ID is in the list of IDs
-          // Note: 'whereIn' supports up to 10 values. If users can have more,
-          // we'd need to chunk this. Assuming < 10 for now as per plan.
+          
+          
+          
           return _firestore
               .collection('workspaces')
               .where(FieldPath.documentId, whereIn: workspaceIds)
@@ -58,7 +58,7 @@ class WorkspaceRepo {
                     )
                     .toList();
 
-                // Sort by creation time (newest first)
+                
                 workspaces.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
                 return workspaces;
@@ -72,7 +72,7 @@ class WorkspaceRepo {
     String creatorName,
     String creatorEmail,
   ) async {
-    // 1. Create a default "admin" role with all permissions
+    
     final adminRoleId = DateTime.now().microsecondsSinceEpoch.toString();
     final defaultRoles = {adminRoleId: 'Admin'};
     final defaultPermissions = {
@@ -94,7 +94,7 @@ class WorkspaceRepo {
       },
     };
 
-    // 2. Create the workspace document
+    
     final workspaceRef = _firestore.collection('workspaces').doc();
     final workspaceWithId = workspace.copyWith(
       id: workspaceRef.id,
@@ -103,19 +103,19 @@ class WorkspaceRepo {
 
     await workspaceRef.set(workspaceWithId.toJson());
 
-    // 3. Save role permissions (admin is calculated locally, not stored)
+    
     await workspaceRef.update({
       'rolePermissions': defaultPermissions,
     });
 
-    // 4. Save to users_workspaces collection
+    
     await _firestore.collection('users_workspaces').doc(creatorId).set({
       'workspaces': FieldValue.arrayUnion([
         {'workspaceId': workspaceRef.id},
       ]),
     }, SetOptions(merge: true));
 
-    // 5. Add creator to members subcollection with the admin role assigned
+    
     final member = WorkspaceMemberModel(
       uid: creatorId,
       email: creatorEmail,
@@ -139,8 +139,8 @@ class WorkspaceRepo {
         .update(workspace.toJson());
   }
 
-  /// Read role permissions map stored on the workspace document under
-  /// the `rolePermissions` (or `permissions`) key. Returns empty map if none.
+  
+  
   Future<Map<String, dynamic>> getRolePermissions(String workspaceId) async {
     final doc = await _firestore.collection('workspaces').doc(workspaceId).get();
     if (!doc.exists) return {};
@@ -151,8 +151,8 @@ class WorkspaceRepo {
     return {};
   }
 
-  /// Overwrite role permissions map on workspace document. The map shape is
-  /// Map<roleId, Map<permissionKey, bool>>.
+  
+  
   Future<void> updateRolePermissions(String workspaceId, Map<String, dynamic> perms) async {
     await _firestore.collection('workspaces').doc(workspaceId).update({
       'rolePermissions': perms,
@@ -169,7 +169,7 @@ class WorkspaceRepo {
     if (querySnapshot.docs.isEmpty) return null;
 
     final doc = querySnapshot.docs.first;
-    // Ensure uid is included if it's not in the data map
+    
     final data = doc.data();
     return UserModel.fromJson({...data, 'uid': doc.id});
   }
@@ -218,14 +218,14 @@ class WorkspaceRepo {
   }
 
   Future<void> deleteWorkspace(String workspaceId) async {
-    // 1. Get all members of this workspace to clean up their users_workspaces
+    
     final membersSnapshot = await _firestore
         .collection('workspaces')
         .doc(workspaceId)
         .collection('members')
         .get();
 
-    // 2. Remove workspace from each member's users_workspaces
+    
     for (final memberDoc in membersSnapshot.docs) {
       final memberId = memberDoc.id;
       final userWorkspacesRef = _firestore
@@ -242,11 +242,11 @@ class WorkspaceRepo {
         }
       }
 
-      // Delete the member document
+      
       await memberDoc.reference.delete();
     }
 
-    // 3. Delete pending assignments
+    
     final pendingQuery = await _firestore
         .collection('pending_assignments')
         .where('workspaceId', isEqualTo: workspaceId)
@@ -256,7 +256,7 @@ class WorkspaceRepo {
       await doc.reference.delete();
     }
 
-    // 4. Delete workspace document
+    
     await _firestore.collection('workspaces').doc(workspaceId).delete();
   }
 
@@ -293,7 +293,7 @@ class WorkspaceRepo {
     String? displayName,
     String? email,
   ) async {
-    // 1. Add to members subcollection
+    
     final member = WorkspaceMemberModel(
       uid: userId,
       email: email ?? assignment.email,
@@ -309,14 +309,14 @@ class WorkspaceRepo {
         .doc(userId)
         .set(member.toJson());
 
-    // 2. Add to users_workspaces
+    
     await _firestore.collection('users_workspaces').doc(userId).set({
       'workspaces': FieldValue.arrayUnion([
         {'workspaceId': assignment.workspaceId},
       ]),
     }, SetOptions(merge: true));
 
-    // 3. Delete pending assignment
+    
     await rejectAssignment(assignment.id);
   }
 
@@ -335,7 +335,7 @@ class WorkspaceRepo {
         });
   }
 
-  /// Get all members of a workspace (Future-based)
+  
   Future<List<WorkspaceMemberModel>> getWorkspaceMembers(
     String workspaceId,
   ) async {
@@ -367,7 +367,7 @@ class WorkspaceRepo {
     String workspaceId,
     String memberId,
   ) async {
-    // 1. Remove from members subcollection
+    
     await _firestore
         .collection('workspaces')
         .doc(workspaceId)
@@ -375,7 +375,7 @@ class WorkspaceRepo {
         .doc(memberId)
         .delete();
 
-    // 2. Remove from users_workspaces
+    
     final userWorkspacesRef = _firestore
         .collection('users_workspaces')
         .doc(memberId);
@@ -401,7 +401,7 @@ class WorkspaceRepo {
         .doc(member.uid)
         .set(member.toJson());
 
-    // Also link in users_workspaces
+    
     await _firestore.collection('users_workspaces').doc(member.uid).set({
       'workspaces': FieldValue.arrayUnion([
         {'workspaceId': workspaceId},

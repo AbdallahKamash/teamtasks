@@ -264,7 +264,6 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
 
       if (!mounted) return;
 
-      // Navigate to home and clear stack to avoid back navigation to deleted workspace
       context.go('/home');
 
       ScaffoldMessenger.of(context).showSnackBar(

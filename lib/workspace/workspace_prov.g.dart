@@ -187,56 +187,6 @@ final class SelectedWorkspaceProvider
 
 String _$selectedWorkspaceHash() => r'007eed17738e8dff7a07b45404435cd6d84815c0';
 
-/// Locally calculated admin status based on role permissions
-/// A user is admin if their role has ALL the required permissions
-
-@ProviderFor(isCurrentWorkspaceAdmin)
-const isCurrentWorkspaceAdminProvider = IsCurrentWorkspaceAdminProvider._();
-
-/// Locally calculated admin status based on role permissions
-/// A user is admin if their role has ALL the required permissions
-
-final class IsCurrentWorkspaceAdminProvider
-    extends $FunctionalProvider<bool, bool, bool>
-    with $Provider<bool> {
-  /// Locally calculated admin status based on role permissions
-  /// A user is admin if their role has ALL the required permissions
-  const IsCurrentWorkspaceAdminProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'isCurrentWorkspaceAdminProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$isCurrentWorkspaceAdminHash();
-
-  @$internal
-  @override
-  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  bool create(Ref ref) {
-    return isCurrentWorkspaceAdmin(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
-    );
-  }
-}
-
-String _$isCurrentWorkspaceAdminHash() =>
-    r'0a1227e2a124f41748429c76ca2b5f758c8c3130';
-
 @ProviderFor(workspaceMembers)
 const workspaceMembersProvider = WorkspaceMembersFamily._();
 
@@ -507,3 +457,45 @@ final class WorkspaceByIdFamily extends $Family
   @override
   String toString() => r'workspaceByIdProvider';
 }
+
+@ProviderFor(currentUserPermissions)
+const currentUserPermissionsProvider = CurrentUserPermissionsProvider._();
+
+final class CurrentUserPermissionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, bool>>,
+          Map<String, bool>,
+          FutureOr<Map<String, bool>>
+        >
+    with
+        $FutureModifier<Map<String, bool>>,
+        $FutureProvider<Map<String, bool>> {
+  const CurrentUserPermissionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentUserPermissionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentUserPermissionsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, bool>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, bool>> create(Ref ref) {
+    return currentUserPermissions(ref);
+  }
+}
+
+String _$currentUserPermissionsHash() =>
+    r'491877130aad66d6c4ab3da27929d0e5e12343f4';

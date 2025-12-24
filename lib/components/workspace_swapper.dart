@@ -115,7 +115,6 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
 
   @override
   Widget build(BuildContext context) {
-    // 🔥 THIS IS THE IMPORTANT PART
     ref.listen<AsyncValue<List<WorkspaceModel>>>(workspacesProvider, (
       previous,
       next,

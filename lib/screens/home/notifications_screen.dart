@@ -10,7 +10,6 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch this to keep it alive for the accept button
     ref.watch(currentUserDataProvider);
     final pendingAssignmentsAsync = ref.watch(pendingAssignmentsProvider);
 
@@ -229,7 +228,6 @@ class _NotificationCard extends ConsumerWidget {
     final user = ref.read(fbAuthProvider).currentUser;
     if (user == null) return;
 
-    // Get user data from our provider (already watched in build so it's likely ready)
     final userData = ref.read(currentUserDataProvider).value;
 
     await ref

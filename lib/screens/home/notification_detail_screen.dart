@@ -11,7 +11,7 @@ class NotificationDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(currentUserDataProvider); // Keep it alive
+    ref.watch(currentUserDataProvider);
     final workspaceAsync = ref.watch(
       workspaceByIdProvider(assignment.workspaceId),
     );
@@ -40,7 +40,6 @@ class NotificationDetailScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  // Workspace Logo/Color
                   Container(
                     width: 120,
                     height: 120,
@@ -234,8 +233,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         );
 
     if (context.mounted) {
-      Navigator.pop(context); // Close detail
-      Navigator.pop(context); // Close notifications list
+      Navigator.pop(context);
+      Navigator.pop(context);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم قبول الدعوة بنجاح')));
@@ -245,7 +244,7 @@ class NotificationDetailScreen extends ConsumerWidget {
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
     await ref.read(workspaceRepoProvider).rejectAssignment(assignment.id);
     if (context.mounted) {
-      Navigator.pop(context); // Close detail
+      Navigator.pop(context);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم رفض الدعوة')));

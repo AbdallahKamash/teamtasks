@@ -15,8 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WorkspaceMemberModel {
 
- String get uid; String get email; String get displayName; String? get roleId;// Link to WorkspaceModel.roles keys
- String? get pfp; DateTime get joinedAt;
+ String get uid; String get email; String get displayName; String? get roleId; String? get pfp; DateTime get joinedAt;
 /// Create a copy of WorkspaceMemberModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -222,7 +221,6 @@ class _WorkspaceMemberModel implements WorkspaceMemberModel {
 @override final  String email;
 @override final  String displayName;
 @override final  String? roleId;
-// Link to WorkspaceModel.roles keys
 @override final  String? pfp;
 @override final  DateTime joinedAt;
 

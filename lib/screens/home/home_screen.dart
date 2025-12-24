@@ -7,7 +7,6 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the currently selected workspace
     final selectedWorkspace = ref.watch(selectedWorkspaceProvider);
 
     return SafeArea(

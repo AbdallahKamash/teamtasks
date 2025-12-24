@@ -50,7 +50,7 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Title field
+                
                 TextFormField(
                   controller: _titleController,
                   textDirection: TextDirection.rtl,
@@ -88,7 +88,7 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Description field
+                
                 TextFormField(
                   controller: _descriptionController,
                   textDirection: TextDirection.rtl,
@@ -122,11 +122,11 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Save button
+                
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // TODO: Implement task creation logic
+                      
                       Navigator.of(context).pop();
                     }
                   },

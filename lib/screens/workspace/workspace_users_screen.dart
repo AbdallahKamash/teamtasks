@@ -53,7 +53,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     try {
       final repo = ref.read(workspaceRepoProvider);
 
-      // Check if user is already pending
+      
       final isPending = await repo.isUserPending(workspace.id, email);
       if (isPending) {
         _showError('المستخدم لديه دعوة معلقة بالفعل');
@@ -71,7 +71,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       final inviterId = currentUser?.uid ?? '';
 
       final assignment = PendingAssignmentModel(
-        id: '', // Repo will gen
+        id: '', 
         workspaceId: workspace.id,
         inviterName: inviterName,
         inviterId: inviterId,
@@ -140,11 +140,11 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     }
   }
 
-  /// Helper function to check if a role has all admin permissions
-  /// Admin = all of these permissions are true:
-  /// people_delete, people_add, roles_add, messages_edit, tasks_add,
-  /// workspace_edit, tasks_delete, workspace_delete, messages_delete,
-  /// roles_delete, tasks_edit, roles_edit, people_edit, messages_add
+  
+  
+  
+  
+  
   bool _roleHasAllAdminPermissions(
     String roleId,
     Map<String, dynamic> allRolePermissions,
@@ -169,7 +169,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       'messages_add',
     };
 
-    // Check if all required admin permissions exist and are true
+    
     for (final perm in adminPermissions) {
       if (rolePerms[perm] != true) {
         return false;
@@ -178,7 +178,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     return true;
   }
 
-  /// Get count of members with roles that have all admin permissions
+  
   Future<int> _getAdminMemberCount(String workspaceId) async {
     try {
       final repo = ref.read(workspaceRepoProvider);
@@ -200,7 +200,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
 
   Future<void> _removeMember(String memberId, String memberName,
       String? memberRoleId, Map<String, dynamic> rolePermissions) async {
-    // Check if this member is the last admin
+    
     final isLastAdmin = memberRoleId != null &&
         _roleHasAllAdminPermissions(memberRoleId, rolePermissions) &&
         (await _getAdminMemberCount(widget.workspaceId)) <= 1;
@@ -304,7 +304,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
 
         final roles = workspace.roles ?? {};
 
-        // Load role permissions
+        
         final rolePermissionsFuture = ref
             .read(workspaceRepoProvider)
             .getRolePermissions(widget.workspaceId);
@@ -358,7 +358,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                         ),
                         TextButton.icon(
                           onPressed: () {
-                            // TODO: Implement global search or filter toggle
+                            
                           },
                           icon: const Icon(Icons.filter_list, size: 20),
                           label: const Text(
@@ -423,7 +423,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Header row with avatar and name
+                                  
                                   Row(
                                     children: [
                                       CircleAvatar(
@@ -482,7 +482,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 12),
-                                  // Role and Admin badges
+                                  
                                   Row(
                                     children: [
                                       Container(
@@ -555,10 +555,10 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 12),
-                                  // Action buttons
+                                  
                                   Row(
                                     children: [
-                                      // Edit role button
+                                      
                                       Expanded(
                                         child: OutlinedButton.icon(
                                           onPressed: () => _updateRole(
@@ -593,7 +593,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      // Delete button
+                                      
                                       IconButton(
                                         onPressed: () => _removeMember(
                                           member.uid,
