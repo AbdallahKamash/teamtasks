@@ -129,6 +129,14 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final perm = ref.watch(currentUserPermissionsProvider);
+
+    final bool deleteWorkspace = perm.when(
+      data: (perms) => perms.workspace.delete,
+      loading: () => false,
+      error: (_, _) => false,
+    );
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -218,6 +226,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              if (deleteWorkspace)
               SizedBox(
                 width: double.infinity,
                 child: TextButton(

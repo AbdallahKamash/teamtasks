@@ -187,6 +187,14 @@ class _EditWorkspaceSchemeScreenState
     return _permissions[roleId]!;
   }
 
+  bool _hasAllPermissions(Map<String, bool> perms) {
+    return perms.values.every((v) => v == true);
+  }
+
+  bool _hasRoleWithAllPermissions() {
+    return _permissions.values.any((perms) => _hasAllPermissions(perms));
+  }
+
   void _updateScheme(String roleId, String? managerId) {
     setState(() {
       if (managerId == null) {
@@ -564,6 +572,41 @@ class _EditWorkspaceSchemeScreenState
                                                     roleId);
 
                                             void setPerm(String key, bool val) {
+                                              // If unchecking a permission
+                                              if (!val) {
+                                                // Check if this role currently has all permissions
+                                                if (_hasAllPermissions(entry)) {
+                                                  // Check if there's another role with all permissions
+                                                  final otherRolesWithAll = _permissions.entries
+                                                      .where((e) =>
+                                                          e.key != roleId &&
+                                                          _hasAllPermissions(
+                                                              e.value))
+                                                      .length;
+
+                                                  if (otherRolesWithAll == 0) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                          'يجب أن يكون لديك على الأقل مسمى واحد بجميع الأذونات',
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Alexandria',
+                                                          ),
+                                                        ),
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                        duration: Duration(
+                                                            seconds: 2),
+                                                      ),
+                                                    );
+                                                    return;
+                                                  }
+                                                }
+                                              }
+
                                               setState(() {
                                                 entry[key] = val;
                                               });
