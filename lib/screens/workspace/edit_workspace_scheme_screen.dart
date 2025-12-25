@@ -49,7 +49,7 @@ class _EditWorkspaceSchemeScreenState
           });
         });
       } catch (e) {
-        
+        // Handle error silently
       }
     });
   }
@@ -189,10 +189,6 @@ class _EditWorkspaceSchemeScreenState
 
   bool _hasAllPermissions(Map<String, bool> perms) {
     return perms.values.every((v) => v == true);
-  }
-
-  bool _hasRoleWithAllPermissions() {
-    return _permissions.values.any((perms) => _hasAllPermissions(perms));
   }
 
   void _updateScheme(String roleId, String? managerId) {

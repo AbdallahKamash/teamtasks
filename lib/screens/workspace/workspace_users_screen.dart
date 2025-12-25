@@ -213,6 +213,8 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       return;
     }
 
+    if (!mounted) return;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => Directionality(
@@ -877,38 +879,38 @@ class _RoleSelectionDialog extends StatelessWidget {
         ),
         content: SizedBox(
           width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: roles.length + 1,
-            itemBuilder: (context, index) {
-              if (index == 0) {
+          child: RadioGroup<String?>(
+            groupValue: currentRoleId,
+            onChanged: (val) => Navigator.of(context).pop(val),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: roles.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return ListTile(
+                    title: const Text(
+                      'بدون مسمى',
+                      style: TextStyle(fontFamily: 'Alexandria'),
+                    ),
+                    leading: Radio<String?>(
+                      value: null,
+                    ),
+                    onTap: () => Navigator.of(context).pop(null),
+                  );
+                }
+                final entry = roles.entries.elementAt(index - 1);
                 return ListTile(
-                  title: const Text(
-                    'بدون مسمى',
-                    style: TextStyle(fontFamily: 'Alexandria'),
+                  title: Text(
+                    entry.value,
+                    style: const TextStyle(fontFamily: 'Alexandria'),
                   ),
                   leading: Radio<String?>(
-                    value: null,
-                    groupValue: currentRoleId,
-                    onChanged: (val) => Navigator.of(context).pop(val),
+                    value: entry.key,
                   ),
-                  onTap: () => Navigator.of(context).pop(null),
+                  onTap: () => Navigator.of(context).pop(entry.key),
                 );
-              }
-              final entry = roles.entries.elementAt(index - 1);
-              return ListTile(
-                title: Text(
-                  entry.value,
-                  style: const TextStyle(fontFamily: 'Alexandria'),
-                ),
-                leading: Radio<String?>(
-                  value: entry.key,
-                  groupValue: currentRoleId,
-                  onChanged: (val) => Navigator.of(context).pop(val),
-                ),
-                onTap: () => Navigator.of(context).pop(entry.key),
-              );
-            },
+              },
+            ),
           ),
         ),
         actions: [
