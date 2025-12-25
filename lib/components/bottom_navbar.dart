@@ -19,7 +19,7 @@ class BottomNavbar extends ConsumerWidget {
     );
 
     final bool editWorkspace = perm.when(
-      data: (perms) => perms['workspace_edit'] ?? false,
+      data: (perms) => perms.workspace.edit,
       loading: () => false,
       error: (_, _) => false,
     );
@@ -40,6 +40,9 @@ class BottomNavbar extends ConsumerWidget {
         currentIndex: currentIndex >= (editWorkspace ? 4 : 3) ? 0 : currentIndex,
         onTap: (index) {
           if (index != 0 && !hasWorkspaces) {
+            return;
+          }
+          if (index == 3 && !editWorkspace) {
             return;
           }
           ref.read(navIndexProvider.notifier).setIndex(index);
@@ -72,14 +75,15 @@ class BottomNavbar extends ConsumerWidget {
             ),
             label: '',
           ),
-          if (editWorkspace)
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.settings_rounded,
-                color: !hasWorkspaces ? Colors.grey.shade300 : null,
-              ),
-              label: '',
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.settings_rounded,
+              color: !hasWorkspaces || !editWorkspace
+                  ? Colors.grey.shade300
+                  : null,
             ),
+            label: '',
+          ),
         ],
       ),
     );

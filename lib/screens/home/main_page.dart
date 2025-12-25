@@ -36,7 +36,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     final perm = ref.watch(currentUserPermissionsProvider);
 
         final bool editWorkspace = perm.when(
-      data: (perms) => perms['workspace_edit'] ?? false,
+      data: (perms) => perms.workspace.edit,
       loading: () => false,
       error: (_, _) => false,
     );
@@ -149,7 +149,7 @@ class _MainPageState extends ConsumerState<MainPage> {
         ),
         onPressed: null,
       ),
-      error: (_, __) => IconButton(
+      error: (_, _) => IconButton(
         icon: Icon(
           Icons.notifications_none_rounded,
           color: Colors.grey.shade600,

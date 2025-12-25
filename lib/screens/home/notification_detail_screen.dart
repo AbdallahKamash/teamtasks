@@ -48,7 +48,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: _hexToColor(workspace.color).withOpacity(0.3),
+                          color: _hexToColor(workspace.color).withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),

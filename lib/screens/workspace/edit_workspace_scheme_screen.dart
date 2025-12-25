@@ -231,6 +231,11 @@ class _EditWorkspaceSchemeScreenState
         }
       }
 
+      // Invalidate cached providers to force refresh
+      ref.invalidate(rolePermissionsProvider(widget.workspace.id));
+      ref.invalidate(currentUserPermissionsProvider);
+      ref.invalidate(workspacesProvider);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('تم حفظ الهيكل التنظيمي بنجاح')),

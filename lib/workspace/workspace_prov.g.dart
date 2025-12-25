@@ -272,11 +272,11 @@ final class RolePermissionsProvider
         $FunctionalProvider<
           AsyncValue<Map<String, dynamic>>,
           Map<String, dynamic>,
-          FutureOr<Map<String, dynamic>>
+          Stream<Map<String, dynamic>>
         >
     with
         $FutureModifier<Map<String, dynamic>>,
-        $FutureProvider<Map<String, dynamic>> {
+        $StreamProvider<Map<String, dynamic>> {
   const RolePermissionsProvider._({
     required RolePermissionsFamily super.from,
     required String super.argument,
@@ -300,12 +300,12 @@ final class RolePermissionsProvider
 
   @$internal
   @override
-  $FutureProviderElement<Map<String, dynamic>> $createElement(
+  $StreamProviderElement<Map<String, dynamic>> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<Map<String, dynamic>> create(Ref ref) {
+  Stream<Map<String, dynamic>> create(Ref ref) {
     final argument = this.argument as String;
     return rolePermissions(ref, argument);
   }
@@ -321,10 +321,10 @@ final class RolePermissionsProvider
   }
 }
 
-String _$rolePermissionsHash() => r'f8a3e63237374e0fb9dbf7ebe7b6b7361ce5026c';
+String _$rolePermissionsHash() => r'9f82787739796859f9fa9e57b83cb115929fe5f8';
 
 final class RolePermissionsFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<Map<String, dynamic>>, String> {
+    with $FunctionalFamilyOverride<Stream<Map<String, dynamic>>, String> {
   const RolePermissionsFamily._()
     : super(
         retry: null,
@@ -464,13 +464,11 @@ const currentUserPermissionsProvider = CurrentUserPermissionsProvider._();
 final class CurrentUserPermissionsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<Map<String, bool>>,
-          Map<String, bool>,
-          FutureOr<Map<String, bool>>
+          AsyncValue<Permissions>,
+          Permissions,
+          Stream<Permissions>
         >
-    with
-        $FutureModifier<Map<String, bool>>,
-        $FutureProvider<Map<String, bool>> {
+    with $FutureModifier<Permissions>, $StreamProvider<Permissions> {
   const CurrentUserPermissionsProvider._()
     : super(
         from: null,
@@ -487,15 +485,15 @@ final class CurrentUserPermissionsProvider
 
   @$internal
   @override
-  $FutureProviderElement<Map<String, bool>> $createElement(
+  $StreamProviderElement<Permissions> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<Map<String, bool>> create(Ref ref) {
+  Stream<Permissions> create(Ref ref) {
     return currentUserPermissions(ref);
   }
 }
 
 String _$currentUserPermissionsHash() =>
-    r'491877130aad66d6c4ab3da27929d0e5e12343f4';
+    r'be23fcac3e05f2daa8907ef86946cbc2e94c4f31';

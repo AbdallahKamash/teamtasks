@@ -151,6 +151,21 @@ class WorkspaceRepo {
     return {};
   }
 
+  /// Stream version of getRolePermissions for real-time updates
+  Stream<Map<String, dynamic>> getRolePermissionsStream(String workspaceId) {
+    return _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .snapshots()
+        .map((doc) {
+          if (!doc.exists) return {};
+          final data = doc.data();
+          if (data == null) return {};
+          final perms = data['rolePermissions'] ?? data['permissions'];
+          if (perms is Map<String, dynamic>) return perms;
+          return {};
+        });
+  }
   
   
   Future<void> updateRolePermissions(String workspaceId, Map<String, dynamic> perms) async {

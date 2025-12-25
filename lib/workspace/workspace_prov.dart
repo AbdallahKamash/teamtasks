@@ -3,6 +3,7 @@ import '../auth/auth_prov.dart';
 import '../models/workspace_model.dart';
 import '../models/workspace_member_model.dart';
 import '../models/pending_assignment_model.dart';
+import '../models/permissions_model.dart';
 import 'workspace_repo.dart';
 
 part 'workspace_prov.g.dart';
@@ -59,34 +60,6 @@ WorkspaceModel? selectedWorkspace(Ref ref) {
   );
 }
 
-bool _roleHasAllAdminPermissions(Map<String, dynamic>? rolePerms) {
-  if (rolePerms is! Map<String, dynamic>) return false;
-
-  const adminPermissions = {
-    'people_delete',
-    'people_add',
-    'roles_add',
-    'messages_edit',
-    'tasks_add',
-    'workspace_edit',
-    'tasks_delete',
-    'workspace_delete',
-    'messages_delete',
-    'roles_delete',
-    'tasks_edit',
-    'roles_edit',
-    'people_edit',
-    'messages_add',
-  };
-
-  for (final perm in adminPermissions) {
-    if (rolePerms[perm] != true) {
-      return false;
-    }
-  }
-  return true;
-}
-
 @riverpod
 Stream<List<WorkspaceMemberModel>> workspaceMembers(
   Ref ref,
@@ -98,10 +71,10 @@ Stream<List<WorkspaceMemberModel>> workspaceMembers(
 }
 
 @riverpod
-Future<Map<String, dynamic>> rolePermissions(Ref ref, String workspaceId) {
+Stream<Map<String, dynamic>> rolePermissions(Ref ref, String workspaceId) {
   return ref
       .watch(workspaceRepoProvider)
-      .getRolePermissions(workspaceId);
+      .getRolePermissionsStream(workspaceId);
 }
 
 @riverpod
@@ -125,41 +98,73 @@ Future<WorkspaceModel?> workspaceById(Ref ref, String workspaceId) {
 }
 
 @riverpod
-Future<Map<String, bool>> currentUserPermissions(Ref ref) async {
+Stream<Permissions> currentUserPermissions(Ref ref) {
   final workspace = ref.watch(selectedWorkspaceProvider);
   final userAsync = ref.watch(authStateProvider);
   final user = userAsync.value;
 
   if (workspace == null || user == null) {
-    return {};
+    return Stream.value(Permissions(
+      workspace: WorkspacePermissions(edit: false, delete: false),
+      tasks: TasksPermissions(add: false, edit: false, delete: false),
+      messages: MessagesPermissions(add: false, edit: false, delete: false),
+      roles: RolesPermissions(add: false, edit: false, delete: false),
+      people: PeoplePermissions(add: false, edit: false, delete: false),
+    ));
   }
 
   final membersAsync = ref.watch(workspaceMembersProvider(workspace.id));
 
   return membersAsync.maybeWhen(
-    data: (members) async {
+    data: (members) {
       final currentMember = members.cast<WorkspaceMemberModel?>().firstWhere(
         (m) => m?.uid == user.uid,
         orElse: () => null,
       );
 
       if (currentMember?.roleId == null) {
-        return {};
+        return Stream.value(Permissions(
+          workspace: WorkspacePermissions(edit: false, delete: false),
+          tasks: TasksPermissions(add: false, edit: false, delete: false),
+          messages: MessagesPermissions(add: false, edit: false, delete: false),
+          roles: RolesPermissions(add: false, edit: false, delete: false),
+          people: PeoplePermissions(add: false, edit: false, delete: false),
+        ));
       }
 
       final rolesAsync = ref.watch(rolePermissionsProvider(workspace.id));
 
-      return rolesAsync.maybeWhen(
+      final perms = rolesAsync.maybeWhen(
         data: (permissions) {
           final rolePerms = permissions[currentMember!.roleId];
           if (rolePerms is Map<String, dynamic>) {
-            return Map<String, bool>.from(rolePerms);
+            return Permissions.fromMap(rolePerms);
           }
-          return {};
+          return Permissions(
+            workspace: WorkspacePermissions(edit: false, delete: false),
+            tasks: TasksPermissions(add: false, edit: false, delete: false),
+            messages: MessagesPermissions(add: false, edit: false, delete: false),
+            roles: RolesPermissions(add: false, edit: false, delete: false),
+            people: PeoplePermissions(add: false, edit: false, delete: false),
+          );
         },
-        orElse: () => {},
+        orElse: () => Permissions(
+          workspace: WorkspacePermissions(edit: false, delete: false),
+          tasks: TasksPermissions(add: false, edit: false, delete: false),
+          messages: MessagesPermissions(add: false, edit: false, delete: false),
+          roles: RolesPermissions(add: false, edit: false, delete: false),
+          people: PeoplePermissions(add: false, edit: false, delete: false),
+        ),
       );
+
+      return Stream.value(perms);
     },
-    orElse: () async => {},
+    orElse: () => Stream.value(Permissions(
+      workspace: WorkspacePermissions(edit: false, delete: false),
+      tasks: TasksPermissions(add: false, edit: false, delete: false),
+      messages: MessagesPermissions(add: false, edit: false, delete: false),
+      roles: RolesPermissions(add: false, edit: false, delete: false),
+      people: PeoplePermissions(add: false, edit: false, delete: false),
+    )),
   );
 }

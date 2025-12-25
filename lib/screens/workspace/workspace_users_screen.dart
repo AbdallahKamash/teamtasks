@@ -784,7 +784,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _selectedRoleId,
+            initialValue: _selectedRoleId,
             items: roles.entries.map((entry) {
               return DropdownMenuItem(
                 value: entry.key,
