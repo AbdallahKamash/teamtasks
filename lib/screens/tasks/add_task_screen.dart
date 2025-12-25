@@ -26,7 +26,7 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
       backgroundColor: Colors.grey.shade200,
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
-        backgroundColor: Colors.grey.shade200,
+        backgroundColor: Colors.grey.shade100,
         shadowColor: Colors.grey.shade50,
         elevation: 1,
         title: const Text(

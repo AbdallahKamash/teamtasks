@@ -19,8 +19,9 @@ class NotificationDetailScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.grey.shade100,
+        shadowColor: Colors.grey.shade50,
         elevation: 0,
       ),
       body: workspaceAsync.when(

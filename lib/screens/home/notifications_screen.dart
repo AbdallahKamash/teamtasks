@@ -16,6 +16,9 @@ class NotificationsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.grey.shade100,
+        shadowColor: Colors.grey.shade50,
         title: const Text(
           'التنبيهات',
           style: TextStyle(
@@ -23,8 +26,6 @@ class NotificationsScreen extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.grey.shade100,
-        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: pendingAssignmentsAsync.when(

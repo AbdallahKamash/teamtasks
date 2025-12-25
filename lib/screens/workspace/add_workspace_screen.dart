@@ -126,7 +126,9 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.grey.shade100,
+        shadowColor: Colors.grey.shade50,
         elevation: 0,
         centerTitle: true,
         title: const Text(

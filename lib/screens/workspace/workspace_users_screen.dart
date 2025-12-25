@@ -314,6 +314,9 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
           appBar: AppBar(
+            surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.grey.shade100,
+        shadowColor: Colors.grey.shade50,
             title: const Text(
               'أعضاء مساحة العمل',
               style: TextStyle(
@@ -324,7 +327,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
               ),
             ),
             centerTitle: true,
-            backgroundColor: Colors.grey.shade200,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios, color: Colors.black),

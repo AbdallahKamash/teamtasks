@@ -270,7 +270,9 @@ class _EditWorkspaceSchemeScreenState
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: Colors.grey.shade200,
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.grey.shade100,
+        shadowColor: Colors.grey.shade50,
         elevation: 0,
         centerTitle: true,
         title: const Text(
