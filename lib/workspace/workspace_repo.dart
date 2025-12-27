@@ -4,6 +4,7 @@ import '../models/workspace_model.dart';
 import '../models/user_model.dart';
 import '../models/pending_assignment_model.dart';
 import '../models/workspace_member_model.dart';
+import '../models/task_model.dart';
 
 class WorkspaceRepo {
   final FirebaseFirestore _firestore;
@@ -422,5 +423,71 @@ class WorkspaceRepo {
         {'workspaceId': workspaceId},
       ]),
     }, SetOptions(merge: true));
+  }
+
+  // Tasks
+  Future<String> createTask(Map<String, dynamic> data) async {
+    final docRef = _firestore.collection('tasks').doc();
+    final taskWithId = {...data, 'id': docRef.id, 'createdAt': DateTime.now().toIso8601String()};
+    await docRef.set(taskWithId);
+    return docRef.id;
+  }
+
+  Stream<List<TaskModel>> getAssignedTasksStream(String workspaceId, String userId) {
+    return _firestore
+        .collection('tasks')
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('assigneeId', isEqualTo: userId)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => TaskModel.fromJson({...d.data(), 'id': d.id})).toList());
+  }
+
+  Future<TaskModel?> getTaskById(String taskId) async {
+    final doc = await _firestore.collection('tasks').doc(taskId).get();
+    if (!doc.exists) return null;
+    return TaskModel.fromJson({...doc.data()!, 'id': doc.id});
+  }
+
+  Future<void> updateTask(String taskId, Map<String, dynamic> updates) async {
+    await _firestore.collection('tasks').doc(taskId).update(updates);
+  }
+
+  Future<void> submitTaskForReview({
+    required TaskModel task,
+    required String reviewerId,
+    String reviewerRoleId = '',
+  }) async {
+    final updates = {
+      'status': 'submitted_for_review',
+      'assigneeId': reviewerId,
+      'meta': {
+        ...?task.meta,
+        'lastSubmittedAt': DateTime.now().toIso8601String(),
+        'reviewerRoleId': reviewerRoleId,
+      }
+    };
+    await updateTask(task.id, updates);
+  }
+
+  Future<void> approveTask({required TaskModel task}) async {
+    await updateTask(task.id, {
+      'status': 'completed',
+      'meta': {
+        ...?task.meta,
+        'completedAt': DateTime.now().toIso8601String(),
+      }
+    });
+  }
+
+  Future<void> rejectTask({required TaskModel task, required String reason, required String returnAssigneeId}) async {
+    await updateTask(task.id, {
+      'status': 'rejected',
+      'assigneeId': returnAssigneeId,
+      'meta': {
+        ...?task.meta,
+        'rejectedAt': DateTime.now().toIso8601String(),
+        'rejectionReason': reason,
+      }
+    });
   }
 }

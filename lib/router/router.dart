@@ -18,6 +18,7 @@ import 'package:teamtasks/screens/workspace/workspace_users_screen.dart';
 import 'package:teamtasks/screens/home/notifications_screen.dart';
 import 'package:teamtasks/screens/home/notification_detail_screen.dart';
 import 'package:teamtasks/screens/tasks/add_task_screen.dart';
+import 'package:teamtasks/screens/tasks/task_detail_screen.dart';
 import 'package:teamtasks/models/workspace_model.dart';
 import 'package:teamtasks/models/pending_assignment_model.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
@@ -189,6 +190,18 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
           child: const AddTaskScreen(),
           dir: TextDirection.rtl,
         ),
+      ),
+      GoRoute(
+        path: '/task-detail',
+        pageBuilder: (context, state) {
+          final task = state.extra as dynamic;
+          return buildPageWithTransition(
+            context: context,
+            state: state,
+            child: TaskDetailScreen(task: task),
+            dir: TextDirection.rtl,
+          );
+        },
       ),
     ],
   );

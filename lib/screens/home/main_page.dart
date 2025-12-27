@@ -35,8 +35,14 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget build(BuildContext context) {
     final perm = ref.watch(currentUserPermissionsProvider);
 
-        final bool editWorkspace = perm.when(
+    final bool editWorkspace = perm.when(
       data: (perms) => perms.workspace.edit,
+      loading: () => false,
+      error: (_, _) => false,
+    );
+
+    final bool addTasks = perm.when(
+      data: (perms) => perms.tasks.add,
       loading: () => false,
       error: (_, _) => false,
     );
@@ -67,7 +73,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       drawerEnableOpenDragGesture: false,
       backgroundColor: Colors.grey.shade200,
       bottomNavigationBar: const BottomNavbar(),
-      floatingActionButton: _buildFloatingActionButton(),
+      floatingActionButton: addTasks ? _buildFloatingActionButton() : null,
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
         actions: [_buildNotificationStack()],
