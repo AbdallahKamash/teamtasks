@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 import 'package:teamtasks/models/pending_assignment_model.dart';
 import 'package:teamtasks/workspace/workspace_prov.dart';
+import 'package:teamtasks/router/router.dart';
 
 class NotificationDetailScreen extends ConsumerWidget {
   final PendingAssignmentModel assignment;
@@ -23,6 +24,10 @@ class NotificationDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.grey.shade100,
         shadowColor: Colors.grey.shade50,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => ref.read(routerProvider).pop(),
+        ),
       ),
       body: workspaceAsync.when(
         data: (workspace) {
@@ -49,7 +54,9 @@ class NotificationDetailScreen extends ConsumerWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: _hexToColor(workspace.color).withValues(alpha: 0.3),
+                          color: _hexToColor(
+                            workspace.color,
+                          ).withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -234,8 +241,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         );
 
     if (context.mounted) {
-      Navigator.pop(context);
-      Navigator.pop(context);
+      ref.read(routerProvider).pop();
+      ref.read(routerProvider).pop();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم قبول الدعوة بنجاح')));
@@ -245,7 +252,7 @@ class NotificationDetailScreen extends ConsumerWidget {
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
     await ref.read(workspaceRepoProvider).rejectAssignment(assignment.id);
     if (context.mounted) {
-      Navigator.pop(context);
+      ref.read(routerProvider).pop();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم رفض الدعوة')));

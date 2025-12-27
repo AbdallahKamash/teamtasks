@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../models/workspace_model.dart';
 import '../workspace/workspace_prov.dart';
 import '../screens/auth/marquee_text.dart';
+import '../router/router.dart';
 
 class WorkspaceSwapper extends ConsumerStatefulWidget {
   const WorkspaceSwapper({super.key});
@@ -234,7 +234,7 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
     return InkWell(
       onTap: () {
         _closeDropdown();
-        context.push('/add-workspace');
+        ref.read(routerProvider).push('/add-workspace');
       },
       child: Directionality(
         textDirection: TextDirection.rtl,

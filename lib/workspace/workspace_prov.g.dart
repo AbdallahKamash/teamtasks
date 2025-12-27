@@ -496,4 +496,270 @@ final class CurrentUserPermissionsProvider
 }
 
 String _$currentUserPermissionsHash() =>
-    r'be23fcac3e05f2daa8907ef86946cbc2e94c4f31';
+    r'70a62e730d22787d02a808ac3ee92313c3e60f9c';
+
+@ProviderFor(appNotifications)
+const appNotificationsProvider = AppNotificationsProvider._();
+
+final class AppNotificationsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AppNotificationModel>>,
+          List<AppNotificationModel>,
+          Stream<List<AppNotificationModel>>
+        >
+    with
+        $FutureModifier<List<AppNotificationModel>>,
+        $StreamProvider<List<AppNotificationModel>> {
+  const AppNotificationsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appNotificationsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$appNotificationsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<AppNotificationModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<AppNotificationModel>> create(Ref ref) {
+    return appNotifications(ref);
+  }
+}
+
+String _$appNotificationsHash() => r'100c97321eb260f2cd419beaa4fa95b6fc31c14e';
+
+@ProviderFor(assignedTasks)
+const assignedTasksProvider = AssignedTasksFamily._();
+
+final class AssignedTasksProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskModel>>,
+          List<TaskModel>,
+          Stream<List<TaskModel>>
+        >
+    with $FutureModifier<List<TaskModel>>, $StreamProvider<List<TaskModel>> {
+  const AssignedTasksProvider._({
+    required AssignedTasksFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'assignedTasksProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$assignedTasksHash();
+
+  @override
+  String toString() {
+    return r'assignedTasksProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<TaskModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<TaskModel>> create(Ref ref) {
+    final argument = this.argument as String;
+    return assignedTasks(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AssignedTasksProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$assignedTasksHash() => r'3ec6f996cdcef4c059e511f7c4415ece25f3a8d7';
+
+final class AssignedTasksFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<TaskModel>>, String> {
+  const AssignedTasksFamily._()
+    : super(
+        retry: null,
+        name: r'assignedTasksProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AssignedTasksProvider call(String workspaceId) =>
+      AssignedTasksProvider._(argument: workspaceId, from: this);
+
+  @override
+  String toString() => r'assignedTasksProvider';
+}
+
+@ProviderFor(createdTasks)
+const createdTasksProvider = CreatedTasksFamily._();
+
+final class CreatedTasksProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskModel>>,
+          List<TaskModel>,
+          Stream<List<TaskModel>>
+        >
+    with $FutureModifier<List<TaskModel>>, $StreamProvider<List<TaskModel>> {
+  const CreatedTasksProvider._({
+    required CreatedTasksFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'createdTasksProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$createdTasksHash();
+
+  @override
+  String toString() {
+    return r'createdTasksProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<TaskModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<TaskModel>> create(Ref ref) {
+    final argument = this.argument as String;
+    return createdTasks(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CreatedTasksProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$createdTasksHash() => r'9790012c7b62945344e7b8d8f56ea8aaaa6d7dac';
+
+final class CreatedTasksFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<TaskModel>>, String> {
+  const CreatedTasksFamily._()
+    : super(
+        retry: null,
+        name: r'createdTasksProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  CreatedTasksProvider call(String workspaceId) =>
+      CreatedTasksProvider._(argument: workspaceId, from: this);
+
+  @override
+  String toString() => r'createdTasksProvider';
+}
+
+@ProviderFor(taskHistory)
+const taskHistoryProvider = TaskHistoryFamily._();
+
+final class TaskHistoryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskModel>>,
+          List<TaskModel>,
+          Stream<List<TaskModel>>
+        >
+    with $FutureModifier<List<TaskModel>>, $StreamProvider<List<TaskModel>> {
+  const TaskHistoryProvider._({
+    required TaskHistoryFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'taskHistoryProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$taskHistoryHash();
+
+  @override
+  String toString() {
+    return r'taskHistoryProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<TaskModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<TaskModel>> create(Ref ref) {
+    final argument = this.argument as String;
+    return taskHistory(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TaskHistoryProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$taskHistoryHash() => r'166cbd18da1cb5f03958fa9cd8fbd8ddd09651be';
+
+final class TaskHistoryFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<TaskModel>>, String> {
+  const TaskHistoryFamily._()
+    : super(
+        retry: null,
+        name: r'taskHistoryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  TaskHistoryProvider call(String workspaceId) =>
+      TaskHistoryProvider._(argument: workspaceId, from: this);
+
+  @override
+  String toString() => r'taskHistoryProvider';
+}

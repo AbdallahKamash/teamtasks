@@ -9,9 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   runApp(ProviderScope(child: MyApp()));
 }
@@ -27,7 +25,9 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       title: 'Animated Riverpod Routing',
-      theme: ThemeData(useMaterial3: true,
+      theme: ThemeData(
+        fontFamily: 'Alexandria',
+        useMaterial3: true,
         splashFactory: NoSplash.splashFactory,
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:teamtasks/router/router.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 import 'package:teamtasks/models/pending_assignment_model.dart';
+import 'package:teamtasks/models/notification_model.dart';
 import 'package:teamtasks/workspace/workspace_prov.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -12,6 +13,7 @@ class NotificationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(currentUserDataProvider);
     final pendingAssignmentsAsync = ref.watch(pendingAssignmentsProvider);
+    final appNotificationsAsync = ref.watch(appNotificationsProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -27,46 +29,168 @@ class NotificationsScreen extends ConsumerWidget {
           ),
         ),
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => ref.read(routerProvider).pop(),
+        ),
       ),
-      body: pendingAssignmentsAsync.when(
-        data: (assignments) {
-          if (assignments.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.notifications_off_outlined,
-                    size: 64,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'لا يوجد تنبيهات حالياً',
-                    style: TextStyle(
-                      fontFamily: 'Alexandria',
-                      color: Colors.grey.shade500,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+      body: _buildList(pendingAssignmentsAsync, appNotificationsAsync),
+    );
+  }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: assignments.length,
-            itemBuilder: (context, index) {
-              final assignment = assignments[index];
-              return _NotificationCard(assignment: assignment);
-            },
+  Widget _buildList(
+    AsyncValue<List<PendingAssignmentModel>> pending,
+    AsyncValue<List<AppNotificationModel>> app,
+  ) {
+    if (pending.isLoading || app.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final List<dynamic> all = [];
+    all.addAll(pending.value ?? []);
+    all.addAll(app.value ?? []);
+
+    // sort by date
+    all.sort((a, b) {
+      final da = a is PendingAssignmentModel
+          ? a.createdAt
+          : (a as AppNotificationModel).createdAt;
+      final db = b is PendingAssignmentModel
+          ? b.createdAt
+          : (b as AppNotificationModel).createdAt;
+      return db.compareTo(da);
+    });
+
+    if (all.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.notifications_off_outlined,
+              size: 64,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'لا يوجد تنبيهات حالياً',
+              style: TextStyle(
+                fontFamily: 'Alexandria',
+                color: Colors.grey.shade500,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: all.length,
+      itemBuilder: (context, index) {
+        final item = all[index];
+        if (item is PendingAssignmentModel) {
+          return _NotificationCard(assignment: item);
+        } else {
+          return _AppNotificationCard(
+            notification: item as AppNotificationModel,
           );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error: $e')),
+        }
+      },
+    );
+  }
+}
+
+class _AppNotificationCard extends ConsumerWidget {
+  final AppNotificationModel notification;
+  const _AppNotificationCard({required this.notification});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    IconData icon;
+    Color color;
+    switch (notification.type) {
+      case 'task_assigned':
+        icon = Icons.assignment_rounded;
+        color = Colors.blue;
+        break;
+      case 'task_submitted':
+        icon = Icons.rate_review_rounded;
+        color = Colors.orange;
+        break;
+      case 'task_approved':
+        icon = Icons.check_circle_rounded;
+        color = Colors.green;
+        break;
+      case 'task_rejected':
+        icon = Icons.cancel_rounded;
+        color = Colors.red;
+        break;
+      default:
+        icon = Icons.notifications_rounded;
+        color = Colors.purple;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color),
+        ),
+        title: Text(
+          notification.title,
+          style: const TextStyle(
+            fontFamily: 'Alexandria',
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              notification.body,
+              style: TextStyle(
+                fontFamily: 'Alexandria',
+                color: Colors.grey.shade600,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _timeAgo(notification.createdAt),
+              style: TextStyle(
+                fontFamily: 'Alexandria',
+                color: Colors.grey.shade400,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  String _timeAgo(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inDays > 0) return 'منذ ${diff.inDays} يوم';
+    if (diff.inHours > 0) return 'منذ ${diff.inHours} ساعة';
+    if (diff.inMinutes > 0) return 'منذ ${diff.inMinutes} دقيقة';
+    return 'الآن';
   }
 }
 
@@ -99,7 +223,9 @@ class _NotificationCard extends ConsumerWidget {
             onHover: (value) {},
             borderRadius: BorderRadius.circular(16),
             onTap: () {
-              context.push('/notification-detail', extra: assignment);
+              ref
+                  .read(routerProvider)
+                  .push('/notification-detail', extra: assignment);
             },
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -112,7 +238,9 @@ class _NotificationCard extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: _hexToColor(workspace.color).withValues(alpha: 0.1),
+                          color: _hexToColor(
+                            workspace.color,
+                          ).withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(

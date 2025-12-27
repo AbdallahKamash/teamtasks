@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../router/router.dart';
 
-class DeleteConfirmationDialog extends StatefulWidget {
+class DeleteConfirmationDialog extends ConsumerStatefulWidget {
   final String workspaceName;
 
   const DeleteConfirmationDialog({super.key, required this.workspaceName});
 
   @override
-  State<DeleteConfirmationDialog> createState() =>
+  ConsumerState<DeleteConfirmationDialog> createState() =>
       _DeleteConfirmationDialogState();
 }
 
-class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
+class _DeleteConfirmationDialogState
+    extends ConsumerState<DeleteConfirmationDialog> {
   late TextEditingController _controller;
   bool _isMatch = false;
 
@@ -77,14 +80,14 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => ref.read(routerProvider).pop(false),
           child: const Text(
             'إلغاء',
             style: TextStyle(fontFamily: 'Alexandria', color: Colors.grey),
           ),
         ),
         ElevatedButton(
-          onPressed: _isMatch ? () => Navigator.of(context).pop(true) : null,
+          onPressed: _isMatch ? () => ref.read(routerProvider).pop(true) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red,
             disabledBackgroundColor: Colors.red.withValues(alpha: 0.3),

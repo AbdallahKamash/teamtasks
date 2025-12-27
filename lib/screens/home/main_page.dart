@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/components/bottom_navbar.dart';
 import 'package:teamtasks/components/workspace_swapper.dart';
-import 'package:teamtasks/screens/home/home_screen.dart';
+import 'package:teamtasks/screens/home/my_tasks_screen.dart';
+import 'package:teamtasks/screens/home/assigned_tasks_screen.dart';
+import 'package:teamtasks/screens/home/task_history_screen.dart';
 import 'package:teamtasks/screens/home/workspace_settings.dart';
 import 'package:teamtasks/workspace/workspace_prov.dart';
-import 'package:go_router/go_router.dart';
+import 'package:teamtasks/router/router.dart';
 import '../../components/app_drawer.dart';
 import '../../nav_prov.dart';
 
@@ -95,12 +97,11 @@ class _MainPageState extends ConsumerState<MainPage> {
       drawer: const AppDrawer(),
       body: PageView(
         controller: _pageController,
-        physics:
-            const NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: [
-          const HomeScreen(),
-          const HomeScreen(),
-          const HomeScreen(),
+          const MyTasksScreen(),
+          const AssignedTasksScreen(),
+          const TaskHistoryScreen(),
           if (editWorkspace) const WorkspaceSettings(),
         ],
       ),
@@ -125,7 +126,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                 color: hasNotifications ? Colors.purple : Colors.grey.shade600,
               ),
               onPressed: () {
-                context.push('/notifications');
+                ref.read(routerProvider).push('/notifications');
               },
             ),
             if (hasNotifications)
@@ -170,10 +171,10 @@ class _MainPageState extends ConsumerState<MainPage> {
     final selectedWorkspace = ref.watch(selectedWorkspaceProvider);
     if ((currentIndex == 0 || currentIndex == 1) && selectedWorkspace != null) {
       return Directionality(
-        textDirection: .rtl,
+        textDirection: TextDirection.rtl,
         child: FloatingActionButton(
           onPressed: () {
-            context.push('/add-task');
+            ref.read(routerProvider).push('/add-task');
           },
           backgroundColor: Colors.grey.shade200,
           elevation: 1,

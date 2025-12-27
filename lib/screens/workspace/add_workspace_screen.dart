@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../../router/router.dart';
 
 import '../../auth/auth_prov.dart';
 import '../../models/workspace_model.dart';
@@ -101,7 +101,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
         ),
       );
 
-      context.pop();
+      ref.read(routerProvider).pop();
     } catch (e) {
       if (!mounted) return;
 
@@ -142,7 +142,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => context.pop(),
+          onPressed: () => ref.read(routerProvider).pop(),
         ),
       ),
       body: Directionality(
@@ -386,9 +386,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
                 'إلغاء',
                 style: TextStyle(fontFamily: 'Alexandria'),
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => ref.read(routerProvider).pop(),
             ),
             TextButton(
               child: const Text(
@@ -400,7 +398,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
               ),
               onPressed: () {
                 setState(() => _selectedColor = pickedColor);
-                Navigator.of(context).pop();
+                ref.read(routerProvider).pop();
               },
             ),
           ],

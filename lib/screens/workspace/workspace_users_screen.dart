@@ -4,7 +4,6 @@ import '../../models/workspace_model.dart';
 import '../../models/pending_assignment_model.dart';
 import '../../workspace/workspace_prov.dart';
 import '../../auth/auth_prov.dart';
-
 import '../../router/router.dart';
 
 class WorkspaceUsersScreen extends ConsumerStatefulWidget {
@@ -53,7 +52,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     try {
       final repo = ref.read(workspaceRepoProvider);
 
-      
       final isPending = await repo.isUserPending(workspace.id, email);
       if (isPending) {
         _showError('المستخدم لديه دعوة معلقة بالفعل');
@@ -71,7 +69,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       final inviterId = currentUser?.uid ?? '';
 
       final assignment = PendingAssignmentModel(
-        id: '', 
+        id: '',
         workspaceId: workspace.id,
         inviterName: inviterName,
         inviterId: inviterId,
@@ -140,11 +138,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     }
   }
 
-  
-  
-  
-  
-  
   bool _roleHasAllAdminPermissions(
     String roleId,
     Map<String, dynamic> allRolePermissions,
@@ -169,7 +162,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       'messages_add',
     };
 
-    
     for (final perm in adminPermissions) {
       if (rolePerms[perm] != true) {
         return false;
@@ -178,7 +170,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     return true;
   }
 
-  
   Future<int> _getAdminMemberCount(String workspaceId) async {
     try {
       final repo = ref.read(workspaceRepoProvider);
@@ -198,10 +189,14 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     }
   }
 
-  Future<void> _removeMember(String memberId, String memberName,
-      String? memberRoleId, Map<String, dynamic> rolePermissions) async {
-    
-    final isLastAdmin = memberRoleId != null &&
+  Future<void> _removeMember(
+    String memberId,
+    String memberName,
+    String? memberRoleId,
+    Map<String, dynamic> rolePermissions,
+  ) async {
+    final isLastAdmin =
+        memberRoleId != null &&
         _roleHasAllAdminPermissions(memberRoleId, rolePermissions) &&
         (await _getAdminMemberCount(widget.workspaceId)) <= 1;
 
@@ -230,14 +225,14 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => ref.read(routerProvider).pop(false),
               child: const Text(
                 'إلغاء',
                 style: TextStyle(fontFamily: 'Alexandria'),
               ),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => ref.read(routerProvider).pop(true),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text(
                 'حذف',
@@ -306,7 +301,6 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
 
         final roles = workspace.roles ?? {};
 
-        
         final rolePermissionsFuture = ref
             .read(workspaceRepoProvider)
             .getRolePermissions(widget.workspaceId);
@@ -315,8 +309,8 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
           backgroundColor: Colors.grey.shade100,
           appBar: AppBar(
             surfaceTintColor: Colors.transparent,
-        backgroundColor: Colors.grey.shade100,
-        shadowColor: Colors.grey.shade50,
+            backgroundColor: Colors.grey.shade100,
+            shadowColor: Colors.grey.shade50,
             title: const Text(
               'أعضاء مساحة العمل',
               style: TextStyle(
@@ -330,7 +324,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => ref.read(routerProvider).pop(),
             ),
           ),
           body: Directionality(
@@ -361,9 +355,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                           ),
                         ),
                         TextButton.icon(
-                          onPressed: () {
-                            
-                          },
+                          onPressed: () {},
                           icon: const Icon(Icons.filter_list, size: 20),
                           label: const Text(
                             'تصفية',
@@ -416,211 +408,220 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
                               final rolePermissions = snapshot.data ?? {};
 
                               return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 0,
-                            color: Colors.white,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  
-                                  Row(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      CircleAvatar(
-                                        backgroundColor: Colors.purple.shade50,
-                                        backgroundImage: member.pfp != null
-                                            ? NetworkImage(member.pfp!)
-                                            : null,
-                                        child: member.pfp == null
-                                            ? Text(
-                                                member.displayName.isNotEmpty
-                                                    ? member.displayName[0]
-                                                          .toUpperCase()
-                                                    : '?',
-                                                style: const TextStyle(
-                                                  color: Colors.purple,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              )
-                                            : null,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Flexible(
-                                                  child: Text(
-                                                    member.displayName,
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor:
+                                                Colors.purple.shade50,
+                                            backgroundImage: member.pfp != null
+                                                ? NetworkImage(member.pfp!)
+                                                : null,
+                                            child: member.pfp == null
+                                                ? Text(
+                                                    member
+                                                            .displayName
+                                                            .isNotEmpty
+                                                        ? member.displayName[0]
+                                                              .toUpperCase()
+                                                        : '?',
                                                     style: const TextStyle(
-                                                      fontFamily: 'Alexandria',
+                                                      color: Colors.purple,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      fontSize: 14,
                                                     ),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                  )
+                                                : null,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Flexible(
+                                                      child: Text(
+                                                        member.displayName,
+                                                        style: const TextStyle(
+                                                          fontFamily:
+                                                              'Alexandria',
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 14,
+                                                        ),
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  member.email,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Alexandria',
+                                                    color: Colors.grey.shade600,
+                                                    fontSize: 12,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              member.email,
-                                              style: TextStyle(
-                                                fontFamily: 'Alexandria',
-                                                color: Colors.grey.shade600,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.shade50,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.work_outline,
-                                              size: 14,
-                                              color: Colors.blue.shade700,
+                                      const SizedBox(height: 12),
+
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
                                             ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              roleName,
-                                              style: TextStyle(
-                                                color: Colors.blue.shade800,
-                                                fontSize: 12,
-                                                fontFamily: 'Alexandria',
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue.shade50,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.work_outline,
+                                                  size: 14,
+                                                  color: Colors.blue.shade700,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  roleName,
+                                                  style: TextStyle(
+                                                    color: Colors.blue.shade800,
+                                                    fontSize: 12,
+                                                    fontFamily: 'Alexandria',
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          if (member.roleId != null &&
+                                              _roleHasAllAdminPermissions(
+                                                member.roleId!,
+                                                rolePermissions,
+                                              ))
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange.shade50,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.admin_panel_settings,
+                                                    size: 14,
+                                                    color:
+                                                        Colors.orange.shade700,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    'أدمن',
+                                                    style: TextStyle(
+                                                      color: Colors
+                                                          .orange
+                                                          .shade800,
+                                                      fontSize: 12,
+                                                      fontFamily: 'Alexandria',
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
-                                      const SizedBox(width: 8),
-                                      if (member.roleId != null &&
-                                          _roleHasAllAdminPermissions(
-                                            member.roleId!,
-                                            rolePermissions,
-                                          ))
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.shade50,
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.admin_panel_settings,
-                                                size: 14,
-                                                color: Colors.orange.shade700,
+                                      const SizedBox(height: 12),
+
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: OutlinedButton.icon(
+                                              onPressed: () => _updateRole(
+                                                member.uid,
+                                                member.roleId,
+                                                roles,
                                               ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                'أدمن',
+                                              icon: const Icon(
+                                                Icons.edit_outlined,
+                                                size: 16,
+                                              ),
+                                              label: const Text(
+                                                'تعديل الدور',
                                                 style: TextStyle(
-                                                  color: Colors.orange.shade800,
-                                                  fontSize: 12,
                                                   fontFamily: 'Alexandria',
+                                                  fontSize: 11,
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  
-                                  Row(
-                                    children: [
-                                      
-                                      Expanded(
-                                        child: OutlinedButton.icon(
-                                          onPressed: () => _updateRole(
-                                            member.uid,
-                                            member.roleId,
-                                            roles,
-                                          ),
-                                          icon: const Icon(
-                                            Icons.edit_outlined,
-                                            size: 16,
-                                          ),
-                                          label: const Text(
-                                            'تعديل الدور',
-                                            style: TextStyle(
-                                              fontFamily: 'Alexandria',
-                                              fontSize: 11,
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor: Colors.purple,
+                                                side: BorderSide(
+                                                  color: Colors.purple.shade200,
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: Colors.purple,
-                                            side: BorderSide(
-                                              color: Colors.purple.shade200,
+                                          const SizedBox(width: 8),
+
+                                          IconButton(
+                                            onPressed: () => _removeMember(
+                                              member.uid,
+                                              member.displayName,
+                                              member.roleId,
+                                              rolePermissions,
                                             ),
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 8,
+                                            icon: const Icon(
+                                              Icons.delete_outline,
+                                              size: 20,
                                             ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                            style: IconButton.styleFrom(
+                                              foregroundColor: Colors.red,
+                                              backgroundColor:
+                                                  Colors.red.shade50,
                                             ),
+                                            tooltip: 'حذف العضو',
                                           ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      
-                                      IconButton(
-                                        onPressed: () => _removeMember(
-                                          member.uid,
-                                          member.displayName,
-                                          member.roleId,
-                                          rolePermissions,
-                                        ),
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          size: 20,
-                                        ),
-                                        style: IconButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                          backgroundColor: Colors.red.shade50,
-                                        ),
-                                        tooltip: 'حذف العضو',
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
+                                ),
+                              );
                             },
                           );
                         }, childCount: filteredMembers.length),
@@ -861,14 +862,14 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
   }
 }
 
-class _RoleSelectionDialog extends StatelessWidget {
+class _RoleSelectionDialog extends ConsumerWidget {
   final String? currentRoleId;
   final Map<String, String> roles;
 
   const _RoleSelectionDialog({this.currentRoleId, required this.roles});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
@@ -883,7 +884,7 @@ class _RoleSelectionDialog extends StatelessWidget {
           width: double.maxFinite,
           child: RadioGroup<String?>(
             groupValue: currentRoleId,
-            onChanged: (val) => Navigator.of(context).pop(val),
+            onChanged: (val) => ref.read(routerProvider).pop(val),
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: roles.length + 1,
@@ -894,10 +895,8 @@ class _RoleSelectionDialog extends StatelessWidget {
                       'بدون مسمى',
                       style: TextStyle(fontFamily: 'Alexandria'),
                     ),
-                    leading: Radio<String?>(
-                      value: null,
-                    ),
-                    onTap: () => Navigator.of(context).pop(null),
+                    leading: Radio<String?>(value: null),
+                    onTap: () => ref.read(routerProvider).pop(null),
                   );
                 }
                 final entry = roles.entries.elementAt(index - 1);
@@ -906,10 +905,8 @@ class _RoleSelectionDialog extends StatelessWidget {
                     entry.value,
                     style: const TextStyle(fontFamily: 'Alexandria'),
                   ),
-                  leading: Radio<String?>(
-                    value: entry.key,
-                  ),
-                  onTap: () => Navigator.of(context).pop(entry.key),
+                  leading: Radio<String?>(value: entry.key),
+                  onTap: () => ref.read(routerProvider).pop(entry.key),
                 );
               },
             ),
@@ -917,7 +914,7 @@ class _RoleSelectionDialog extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(currentRoleId),
+            onPressed: () => ref.read(routerProvider).pop(currentRoleId),
             child: const Text(
               'إلغاء',
               style: TextStyle(fontFamily: 'Alexandria'),

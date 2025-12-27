@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/workspace/workspace_prov.dart';
-import 'package:go_router/go_router.dart';
 import 'package:teamtasks/router/router.dart';
 
 class WorkspaceSettings extends ConsumerWidget {
@@ -9,7 +8,6 @@ class WorkspaceSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
     final selectedWorkspace = ref.watch(selectedWorkspaceProvider);
 
     return SafeArea(
@@ -30,7 +28,7 @@ class WorkspaceSettings extends ConsumerWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 24),
-                    
+
                     Container(
                       width: 100,
                       height: 100,
@@ -41,7 +39,7 @@ class WorkspaceSettings extends ConsumerWidget {
                             ? DecorationImage(
                                 image: NetworkImage(selectedWorkspace.logoUrl!),
                                 fit: BoxFit.cover,
-                                onError: (_, _) {}, 
+                                onError: (_, _) {},
                               )
                             : null,
                       ),
@@ -62,7 +60,7 @@ class WorkspaceSettings extends ConsumerWidget {
                           : null,
                     ),
                     const SizedBox(height: 24),
-                    
+
                     Text(
                       selectedWorkspace.name,
                       style: const TextStyle(
@@ -73,7 +71,7 @@ class WorkspaceSettings extends ConsumerWidget {
                     ),
                     if (selectedWorkspace.description != null) ...[
                       const SizedBox(height: 12),
-                      
+
                       Text(
                         selectedWorkspace.description!,
                         textAlign: TextAlign.center,
@@ -85,16 +83,17 @@ class WorkspaceSettings extends ConsumerWidget {
                       ),
                     ],
                     const SizedBox(height: 48),
-                    
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          
-                          context.push(
-                            '/edit-workspace',
-                            extra: selectedWorkspace,
-                          );
+                          ref
+                              .read(routerProvider)
+                              .push(
+                                '/edit-workspace',
+                                extra: selectedWorkspace,
+                              );
                         },
                         icon: const Icon(Icons.edit),
                         label: const Text(
@@ -119,10 +118,12 @@ class WorkspaceSettings extends ConsumerWidget {
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          context.push(
-                            '/edit-workspace-scheme',
-                            extra: selectedWorkspace,
-                          );
+                          ref
+                              .read(routerProvider)
+                              .push(
+                                '/edit-workspace-scheme',
+                                extra: selectedWorkspace,
+                              );
                         },
                         icon: const Icon(Icons.account_tree),
                         label: const Text(

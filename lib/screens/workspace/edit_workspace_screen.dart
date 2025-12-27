@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:teamtasks/router/router.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../models/workspace_model.dart';
 import '../../workspace/workspace_prov.dart';
@@ -108,7 +108,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      context.pop();
+      ref.read(routerProvider).pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +156,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => context.pop(),
+          onPressed: () => ref.read(routerProvider).pop(),
         ),
       ),
       body: Directionality(
@@ -229,24 +229,24 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
               ),
               const SizedBox(height: 24),
               if (deleteWorkspace)
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: _isLoading ? null : _confirmDeleteWorkspace,
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    foregroundColor: Colors.red,
-                  ),
-                  child: const Text(
-                    'حذف مساحة العمل',
-                    style: TextStyle(
-                      fontFamily: 'Alexandria',
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _confirmDeleteWorkspace,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      foregroundColor: Colors.red,
+                    ),
+                    child: const Text(
+                      'حذف مساحة العمل',
+                      style: TextStyle(
+                        fontFamily: 'Alexandria',
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -275,7 +275,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
 
       if (!mounted) return;
 
-      context.go('/home');
+      ref.read(routerProvider).go('/home');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -444,7 +444,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
                 'إلغاء',
                 style: TextStyle(fontFamily: 'Alexandria'),
               ),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => ref.read(routerProvider).pop(),
             ),
             TextButton(
               child: const Text(
@@ -456,7 +456,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
               ),
               onPressed: () {
                 setState(() => _selectedColor = pickedColor);
-                Navigator.of(context).pop();
+                ref.read(routerProvider).pop();
               },
             ),
           ],

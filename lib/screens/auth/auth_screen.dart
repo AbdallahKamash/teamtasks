@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:teamtasks/auth/auth_prov.dart';
 import 'package:teamtasks/router/router.dart';
+import 'package:teamtasks/auth/auth_prov.dart';
 import '../../components/my_textfield.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
@@ -91,8 +91,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final router = ref.read(routerProvider);
-
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -102,7 +100,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => ref.read(routerProvider).pop(),
         ),
       ),
       body: Container(
@@ -202,7 +200,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       fieldType: .password,
                                       controller: confirmPasswordController,
                                       focusNode: confirmPasswordFocus,
-                                      autofillHints: const [AutofillHints.password],
+                                      autofillHints: const [
+                                        AutofillHints.password,
+                                      ],
                                     )
                                   : const SizedBox.shrink(),
                             ),
@@ -217,7 +217,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       Spacer(),
                       GestureDetector(
                         onTap: () {
-                          router.push('/forgot-password');
+                          ref.read(routerProvider).push('/forgot-password');
                         },
                         child: Text(
                           'نسيت كلمة السر؟',
@@ -276,7 +276,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     children: [
                       Text(
                         'لديك ${_isSignup ? '' : 'ليس '}حساب؟  ',
-                        style: TextStyle(fontFamily: 'Alexandria', fontSize: 12),
+                        style: TextStyle(
+                          fontFamily: 'Alexandria',
+                          fontSize: 12,
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {

@@ -37,7 +37,9 @@ class BottomNavbar extends ConsumerWidget {
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.grey.shade200,
-        currentIndex: currentIndex >= (editWorkspace ? 4 : 3) ? 0 : currentIndex,
+        currentIndex: currentIndex >= (editWorkspace ? 4 : 3)
+            ? 0
+            : currentIndex,
         onTap: (index) {
           if (index != 0 && !hasWorkspaces) {
             return;
@@ -58,19 +60,19 @@ class BottomNavbar extends ConsumerWidget {
         iconSize: 32,
         items: [
           const BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
+            icon: Icon(Icons.task_alt_rounded),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.assignment_rounded,
+              Icons.assignment_ind_rounded,
               color: !hasWorkspaces ? Colors.grey.shade300 : null,
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.group_rounded,
+              Icons.history_rounded,
               color: !hasWorkspaces ? Colors.grey.shade300 : null,
             ),
             label: '',

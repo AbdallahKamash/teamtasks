@@ -7,7 +7,6 @@ class LaunchScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.read(routerProvider);
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       body: SafeArea(
@@ -47,7 +46,7 @@ class LaunchScreen extends ConsumerWidget {
               const Spacer(),
               GestureDetector(
                 onTap: () {
-                  router.push('/auth');
+                  ref.read(routerProvider).push('/auth');
                 },
                 child: Container(
                   height: 54,

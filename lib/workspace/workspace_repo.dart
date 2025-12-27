@@ -5,6 +5,7 @@ import '../models/user_model.dart';
 import '../models/pending_assignment_model.dart';
 import '../models/workspace_member_model.dart';
 import '../models/task_model.dart';
+import '../models/notification_model.dart';
 
 class WorkspaceRepo {
   final FirebaseFirestore _firestore;
@@ -24,7 +25,6 @@ class WorkspaceRepo {
 
           final List<String> workspaceIds = [];
 
-          
           if (data['workspaces'] != null) {
             final List<dynamic> workspacesList = data['workspaces'];
             for (final w in workspacesList) {
@@ -32,9 +32,7 @@ class WorkspaceRepo {
                 workspaceIds.add(w['workspaceId'] as String);
               }
             }
-          }
-          
-          else if (data['workspaceIds'] != null) {
+          } else if (data['workspaceIds'] != null) {
             workspaceIds.addAll(List<String>.from(data['workspaceIds']));
           }
 
@@ -42,9 +40,6 @@ class WorkspaceRepo {
             return Stream.value([]);
           }
 
-          
-          
-          
           return _firestore
               .collection('workspaces')
               .where(FieldPath.documentId, whereIn: workspaceIds)
@@ -59,7 +54,6 @@ class WorkspaceRepo {
                     )
                     .toList();
 
-                
                 workspaces.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
                 return workspaces;
@@ -73,7 +67,6 @@ class WorkspaceRepo {
     String creatorName,
     String creatorEmail,
   ) async {
-    
     final adminRoleId = DateTime.now().microsecondsSinceEpoch.toString();
     final defaultRoles = {adminRoleId: 'Admin'};
     final defaultPermissions = {
@@ -95,7 +88,6 @@ class WorkspaceRepo {
       },
     };
 
-    
     final workspaceRef = _firestore.collection('workspaces').doc();
     final workspaceWithId = workspace.copyWith(
       id: workspaceRef.id,
@@ -104,19 +96,14 @@ class WorkspaceRepo {
 
     await workspaceRef.set(workspaceWithId.toJson());
 
-    
-    await workspaceRef.update({
-      'rolePermissions': defaultPermissions,
-    });
+    await workspaceRef.update({'rolePermissions': defaultPermissions});
 
-    
     await _firestore.collection('users_workspaces').doc(creatorId).set({
       'workspaces': FieldValue.arrayUnion([
         {'workspaceId': workspaceRef.id},
       ]),
     }, SetOptions(merge: true));
 
-    
     final member = WorkspaceMemberModel(
       uid: creatorId,
       email: creatorEmail,
@@ -140,10 +127,11 @@ class WorkspaceRepo {
         .update(workspace.toJson());
   }
 
-  
-  
   Future<Map<String, dynamic>> getRolePermissions(String workspaceId) async {
-    final doc = await _firestore.collection('workspaces').doc(workspaceId).get();
+    final doc = await _firestore
+        .collection('workspaces')
+        .doc(workspaceId)
+        .get();
     if (!doc.exists) return {};
     final data = doc.data();
     if (data == null) return {};
@@ -154,22 +142,22 @@ class WorkspaceRepo {
 
   /// Stream version of getRolePermissions for real-time updates
   Stream<Map<String, dynamic>> getRolePermissionsStream(String workspaceId) {
-    return _firestore
-        .collection('workspaces')
-        .doc(workspaceId)
-        .snapshots()
-        .map((doc) {
-          if (!doc.exists) return {};
-          final data = doc.data();
-          if (data == null) return {};
-          final perms = data['rolePermissions'] ?? data['permissions'];
-          if (perms is Map<String, dynamic>) return perms;
-          return {};
-        });
+    return _firestore.collection('workspaces').doc(workspaceId).snapshots().map(
+      (doc) {
+        if (!doc.exists) return {};
+        final data = doc.data();
+        if (data == null) return {};
+        final perms = data['rolePermissions'] ?? data['permissions'];
+        if (perms is Map<String, dynamic>) return perms;
+        return {};
+      },
+    );
   }
-  
-  
-  Future<void> updateRolePermissions(String workspaceId, Map<String, dynamic> perms) async {
+
+  Future<void> updateRolePermissions(
+    String workspaceId,
+    Map<String, dynamic> perms,
+  ) async {
     await _firestore.collection('workspaces').doc(workspaceId).update({
       'rolePermissions': perms,
     });
@@ -185,7 +173,7 @@ class WorkspaceRepo {
     if (querySnapshot.docs.isEmpty) return null;
 
     final doc = querySnapshot.docs.first;
-    
+
     final data = doc.data();
     return UserModel.fromJson({...data, 'uid': doc.id});
   }
@@ -234,14 +222,12 @@ class WorkspaceRepo {
   }
 
   Future<void> deleteWorkspace(String workspaceId) async {
-    
     final membersSnapshot = await _firestore
         .collection('workspaces')
         .doc(workspaceId)
         .collection('members')
         .get();
 
-    
     for (final memberDoc in membersSnapshot.docs) {
       final memberId = memberDoc.id;
       final userWorkspacesRef = _firestore
@@ -258,11 +244,9 @@ class WorkspaceRepo {
         }
       }
 
-      
       await memberDoc.reference.delete();
     }
 
-    
     final pendingQuery = await _firestore
         .collection('pending_assignments')
         .where('workspaceId', isEqualTo: workspaceId)
@@ -272,7 +256,6 @@ class WorkspaceRepo {
       await doc.reference.delete();
     }
 
-    
     await _firestore.collection('workspaces').doc(workspaceId).delete();
   }
 
@@ -309,7 +292,6 @@ class WorkspaceRepo {
     String? displayName,
     String? email,
   ) async {
-    
     final member = WorkspaceMemberModel(
       uid: userId,
       email: email ?? assignment.email,
@@ -325,14 +307,12 @@ class WorkspaceRepo {
         .doc(userId)
         .set(member.toJson());
 
-    
     await _firestore.collection('users_workspaces').doc(userId).set({
       'workspaces': FieldValue.arrayUnion([
         {'workspaceId': assignment.workspaceId},
       ]),
     }, SetOptions(merge: true));
 
-    
     await rejectAssignment(assignment.id);
   }
 
@@ -351,7 +331,6 @@ class WorkspaceRepo {
         });
   }
 
-  
   Future<List<WorkspaceMemberModel>> getWorkspaceMembers(
     String workspaceId,
   ) async {
@@ -383,7 +362,6 @@ class WorkspaceRepo {
     String workspaceId,
     String memberId,
   ) async {
-    
     await _firestore
         .collection('workspaces')
         .doc(workspaceId)
@@ -391,7 +369,6 @@ class WorkspaceRepo {
         .doc(memberId)
         .delete();
 
-    
     final userWorkspacesRef = _firestore
         .collection('users_workspaces')
         .doc(memberId);
@@ -417,7 +394,6 @@ class WorkspaceRepo {
         .doc(member.uid)
         .set(member.toJson());
 
-    
     await _firestore.collection('users_workspaces').doc(member.uid).set({
       'workspaces': FieldValue.arrayUnion([
         {'workspaceId': workspaceId},
@@ -428,18 +404,129 @@ class WorkspaceRepo {
   // Tasks
   Future<String> createTask(Map<String, dynamic> data) async {
     final docRef = _firestore.collection('tasks').doc();
-    final taskWithId = {...data, 'id': docRef.id, 'createdAt': DateTime.now().toIso8601String()};
+    final taskWithId = {
+      ...data,
+      'id': docRef.id,
+      'workerId': data['assigneeId'],
+      'createdAt': DateTime.now().toIso8601String(),
+    };
     await docRef.set(taskWithId);
+
+    // Trigger notification to assignee
+    if (data['assigneeId'] != null) {
+      await sendNotification(
+        AppNotificationModel(
+          id: '',
+          userId: data['assigneeId'],
+          workspaceId: data['workspaceId'],
+          title: 'مهمة جديدة',
+          body: 'تم إسناد مهمة جديدة لك: ${data['title']}',
+          type: 'task_assigned',
+          relatedId: docRef.id,
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+
     return docRef.id;
   }
 
-  Stream<List<TaskModel>> getAssignedTasksStream(String workspaceId, String userId) {
+  Future<void> sendNotification(AppNotificationModel notification) async {
+    final docRef = _firestore.collection('notifications').doc();
+    await docRef.set({...notification.toJson(), 'id': docRef.id});
+  }
+
+  Stream<List<AppNotificationModel>> getNotificationsStream(String userId) {
+    return _firestore
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map(
+                (d) => AppNotificationModel.fromJson({...d.data(), 'id': d.id}),
+              )
+              .toList(),
+        );
+  }
+
+  Stream<List<TaskModel>> getAssignedTasksStream(
+    String workspaceId,
+    String userId,
+  ) {
     return _firestore
         .collection('tasks')
         .where('workspaceId', isEqualTo: workspaceId)
         .where('assigneeId', isEqualTo: userId)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => TaskModel.fromJson({...d.data(), 'id': d.id})).toList());
+        .map(
+          (snap) => snap.docs
+              .map((d) => TaskModel.fromJson({...d.data(), 'id': d.id}))
+              .toList(),
+        );
+  }
+
+  Stream<List<TaskModel>> getCreatedTasksStream(
+    String workspaceId,
+    String creatorId,
+  ) {
+    return _firestore
+        .collection('tasks')
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('creatorId', isEqualTo: creatorId)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map((d) => TaskModel.fromJson({...d.data(), 'id': d.id}))
+              .toList(),
+        );
+  }
+
+  Stream<List<TaskModel>> getTaskHistoryStream(
+    String workspaceId,
+    String userId,
+  ) {
+    // History includes tasks where user is assignee OR creator AND status is 'completed'
+    // Actually, for history we can just fetch all tasks where user was involved.
+    // Since Firestore doesn't support easy OR across fields without a composite index or dual queries,
+    // we can use combineLatest or just fetch all for workspace if small, but let's try to be efficient.
+
+    final assigned = _firestore
+        .collection('tasks')
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('assigneeId', isEqualTo: userId)
+        .where('status', isEqualTo: 'completed')
+        .snapshots();
+
+    final created = _firestore
+        .collection('tasks')
+        .where('workspaceId', isEqualTo: workspaceId)
+        .where('creatorId', isEqualTo: userId)
+        .where('status', isEqualTo: 'completed')
+        .snapshots();
+
+    return Rx.combineLatest2(assigned, created, (
+      QuerySnapshot a,
+      QuerySnapshot b,
+    ) {
+      final docs = [...a.docs, ...b.docs];
+      // remove duplicates by ID
+      final seen = <String>{};
+      final unique = <TaskModel>[];
+      for (final d in docs) {
+        if (!seen.contains(d.id)) {
+          seen.add(d.id);
+          unique.add(
+            TaskModel.fromJson({
+              ...d.data() as Map<String, dynamic>,
+              'id': d.id,
+            }),
+          );
+        }
+      }
+      unique.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return unique;
+    });
   }
 
   Future<TaskModel?> getTaskById(String taskId) async {
@@ -464,22 +551,51 @@ class WorkspaceRepo {
         ...?task.meta,
         'lastSubmittedAt': DateTime.now().toIso8601String(),
         'reviewerRoleId': reviewerRoleId,
-      }
+      },
     };
     await updateTask(task.id, updates);
+
+    await sendNotification(
+      AppNotificationModel(
+        id: '',
+        userId: reviewerId,
+        workspaceId: task.workspaceId,
+        title: 'مراجعة مهمة',
+        body: 'قام أحدهم بتسليم مهمة للمراجعة: ${task.title}',
+        type: 'task_submitted',
+        relatedId: task.id,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   Future<void> approveTask({required TaskModel task}) async {
     await updateTask(task.id, {
       'status': 'completed',
-      'meta': {
-        ...?task.meta,
-        'completedAt': DateTime.now().toIso8601String(),
-      }
+      'meta': {...?task.meta, 'completedAt': DateTime.now().toIso8601String()},
     });
+
+    await sendNotification(
+      AppNotificationModel(
+        id: '',
+        userId:
+            task.creatorId, // Notify creator? Actually assignee already knows.
+        // Wait, if I created it, I want to know it's done.
+        workspaceId: task.workspaceId,
+        title: 'اكتمال مهمة',
+        body: 'تم الانتهاء من المهمة: ${task.title}',
+        type: 'task_approved',
+        relatedId: task.id,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
-  Future<void> rejectTask({required TaskModel task, required String reason, required String returnAssigneeId}) async {
+  Future<void> rejectTask({
+    required TaskModel task,
+    required String reason,
+    required String returnAssigneeId,
+  }) async {
     await updateTask(task.id, {
       'status': 'rejected',
       'assigneeId': returnAssigneeId,
@@ -487,7 +603,24 @@ class WorkspaceRepo {
         ...?task.meta,
         'rejectedAt': DateTime.now().toIso8601String(),
         'rejectionReason': reason,
-      }
+      },
     });
+
+    await sendNotification(
+      AppNotificationModel(
+        id: '',
+        userId: returnAssigneeId,
+        workspaceId: task.workspaceId,
+        title: 'مهمة مرفوضة',
+        body: 'تم رفض تسليم المهمة: ${task.title}. السبب: $reason',
+        type: 'task_rejected',
+        relatedId: task.id,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  Future<void> deleteTask(String taskId) async {
+    await _firestore.collection('tasks').doc(taskId).delete();
   }
 }

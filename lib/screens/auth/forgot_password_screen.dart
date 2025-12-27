@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
+import 'package:teamtasks/router/router.dart';
 
 import '../../components/my_textfield.dart';
 
@@ -36,7 +37,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     try {
       await ref.read(authRepoProvider).sendPasswordResetEmail(email);
       if (!mounted) return;
-      Navigator.of(context).pop();
+      ref.read(routerProvider).pop();
     } catch (e) {
       if (!mounted) return;
     } finally {
@@ -57,7 +58,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => ref.read(routerProvider).pop(),
         ),
       ),
       body: Container(
@@ -110,7 +111,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         child: _isLoading
                             ? const CircularProgressIndicator(
                                 strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation(Colors.white),
+                                valueColor: AlwaysStoppedAnimation(
+                                  Colors.white,
+                                ),
                               )
                             : const Text(
                                 'إرسال الرابط',
@@ -127,7 +130,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   const SizedBox(height: 24),
                   Center(
                     child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () => ref.read(routerProvider).pop(),
                       child: Text(
                         'العودة لتسجيل الدخول',
                         style: TextStyle(

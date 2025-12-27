@@ -13,8 +13,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _showLogoutConfirmation() async {
-    final router = ref.read(routerProvider);
-
     return showDialog(
       context: context,
       builder: (context) => Directionality(
@@ -33,7 +31,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => router.pop(),
+              onPressed: () => ref.read(routerProvider).pop(),
               child: const Text(
                 'إلغاء',
                 style: TextStyle(fontFamily: 'Alexandria', color: Colors.grey),
@@ -41,11 +39,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                router.pop();
+                ref.read(routerProvider).pop();
                 final authRepo = ref.read(authRepoProvider);
                 await authRepo.signOut();
-                if (mounted) {
-                  router.go('/');
+                if (context.mounted) {
+                  ref.read(routerProvider).go('/');
                 }
               },
               child: const Text(
@@ -62,7 +60,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserDataProvider);
-    final router = ref.read(routerProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -84,7 +81,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () {
-            router.pop();
+            ref.read(routerProvider).pop();
           },
         ),
       ),
@@ -147,7 +144,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => router.push('/edit-profile'),
+                      onPressed: () =>
+                          ref.read(routerProvider).push('/edit-profile'),
                       icon: const Icon(Icons.edit_outlined, size: 20),
                       label: const Text(
                         'تعديل بيانات الحساب',

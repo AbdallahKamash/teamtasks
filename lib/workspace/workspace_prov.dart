@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../auth/auth_prov.dart';
 import '../models/workspace_model.dart';
 import '../models/workspace_member_model.dart';
 import '../models/pending_assignment_model.dart';
 import '../models/permissions_model.dart';
+import '../models/task_model.dart';
+import '../models/notification_model.dart';
 import 'workspace_repo.dart';
 
 part 'workspace_prov.g.dart';
@@ -72,9 +75,7 @@ Stream<List<WorkspaceMemberModel>> workspaceMembers(
 
 @riverpod
 Stream<Map<String, dynamic>> rolePermissions(Ref ref, String workspaceId) {
-  return ref
-      .watch(workspaceRepoProvider)
-      .getRolePermissionsStream(workspaceId);
+  return ref.watch(workspaceRepoProvider).getRolePermissionsStream(workspaceId);
 }
 
 @riverpod
@@ -100,71 +101,83 @@ Future<WorkspaceModel?> workspaceById(Ref ref, String workspaceId) {
 @riverpod
 Stream<Permissions> currentUserPermissions(Ref ref) {
   final workspace = ref.watch(selectedWorkspaceProvider);
-  final userAsync = ref.watch(authStateProvider);
-  final user = userAsync.value;
+  final user = ref.watch(authStateProvider).value;
 
   if (workspace == null || user == null) {
-    return Stream.value(Permissions(
-      workspace: WorkspacePermissions(edit: false, delete: false),
-      tasks: TasksPermissions(add: false, edit: false, delete: false),
-      messages: MessagesPermissions(add: false, edit: false, delete: false),
-      roles: RolesPermissions(add: false, edit: false, delete: false),
-      people: PeoplePermissions(add: false, edit: false, delete: false),
-    ));
+    return Stream.value(_emptyPermissions());
   }
 
-  final membersAsync = ref.watch(workspaceMembersProvider(workspace.id));
+  return ref
+      .watch(workspaceMembersProvider(workspace.id))
+      .when(
+        data: (members) {
+          final currentMember = members
+              .where((m) => m.uid == user.uid)
+              .firstOrNull;
 
-  return membersAsync.maybeWhen(
-    data: (members) {
-      final currentMember = members.cast<WorkspaceMemberModel?>().firstWhere(
-        (m) => m?.uid == user.uid,
-        orElse: () => null,
-      );
-
-      if (currentMember?.roleId == null) {
-        return Stream.value(Permissions(
-          workspace: WorkspacePermissions(edit: false, delete: false),
-          tasks: TasksPermissions(add: false, edit: false, delete: false),
-          messages: MessagesPermissions(add: false, edit: false, delete: false),
-          roles: RolesPermissions(add: false, edit: false, delete: false),
-          people: PeoplePermissions(add: false, edit: false, delete: false),
-        ));
-      }
-
-      final rolesAsync = ref.watch(rolePermissionsProvider(workspace.id));
-
-      final perms = rolesAsync.maybeWhen(
-        data: (permissions) {
-          final rolePerms = permissions[currentMember!.roleId];
-          if (rolePerms is Map<String, dynamic>) {
-            return Permissions.fromMap(rolePerms);
+          if (currentMember?.roleId == null) {
+            return Stream.value(_emptyPermissions());
           }
-          return Permissions(
-            workspace: WorkspacePermissions(edit: false, delete: false),
-            tasks: TasksPermissions(add: false, edit: false, delete: false),
-            messages: MessagesPermissions(add: false, edit: false, delete: false),
-            roles: RolesPermissions(add: false, edit: false, delete: false),
-            people: PeoplePermissions(add: false, edit: false, delete: false),
-          );
-        },
-        orElse: () => Permissions(
-          workspace: WorkspacePermissions(edit: false, delete: false),
-          tasks: TasksPermissions(add: false, edit: false, delete: false),
-          messages: MessagesPermissions(add: false, edit: false, delete: false),
-          roles: RolesPermissions(add: false, edit: false, delete: false),
-          people: PeoplePermissions(add: false, edit: false, delete: false),
-        ),
-      );
 
-      return Stream.value(perms);
-    },
-    orElse: () => Stream.value(Permissions(
-      workspace: WorkspacePermissions(edit: false, delete: false),
-      tasks: TasksPermissions(add: false, edit: false, delete: false),
-      messages: MessagesPermissions(add: false, edit: false, delete: false),
-      roles: RolesPermissions(add: false, edit: false, delete: false),
-      people: PeoplePermissions(add: false, edit: false, delete: false),
-    )),
+          return ref
+              .watch(rolePermissionsProvider(workspace.id))
+              .when(
+                data: (permissions) {
+                  final rolePerms = permissions[currentMember!.roleId];
+                  if (rolePerms is Map<String, dynamic>) {
+                    return Stream.value(Permissions.fromMap(rolePerms));
+                  }
+                  return Stream.value(_emptyPermissions());
+                },
+                loading: () => const Stream.empty(),
+                error: (e, s) => Stream.error(e, s),
+              );
+        },
+        loading: () => const Stream.empty(),
+        error: (e, s) => Stream.error(e, s),
+      );
+}
+
+Permissions _emptyPermissions() {
+  return Permissions(
+    workspace: WorkspacePermissions(edit: false, delete: false),
+    tasks: TasksPermissions(add: false, edit: false, delete: false),
+    messages: MessagesPermissions(add: false, edit: false, delete: false),
+    roles: RolesPermissions(add: false, edit: false, delete: false),
+    people: PeoplePermissions(add: false, edit: false, delete: false),
   );
+}
+
+@riverpod
+Stream<List<AppNotificationModel>> appNotifications(Ref ref) {
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value([]);
+  return ref.watch(workspaceRepoProvider).getNotificationsStream(user.uid);
+}
+
+@riverpod
+Stream<List<TaskModel>> assignedTasks(Ref ref, String workspaceId) {
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value([]);
+  return ref
+      .watch(workspaceRepoProvider)
+      .getAssignedTasksStream(workspaceId, user.uid);
+}
+
+@riverpod
+Stream<List<TaskModel>> createdTasks(Ref ref, String workspaceId) {
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value([]);
+  return ref
+      .watch(workspaceRepoProvider)
+      .getCreatedTasksStream(workspaceId, user.uid);
+}
+
+@riverpod
+Stream<List<TaskModel>> taskHistory(Ref ref, String workspaceId) {
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value([]);
+  return ref
+      .watch(workspaceRepoProvider)
+      .getTaskHistoryStream(workspaceId, user.uid);
 }

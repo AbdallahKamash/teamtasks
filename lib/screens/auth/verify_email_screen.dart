@@ -214,7 +214,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 GestureDetector(
                   onTap: () async {
                     await ref.read(authRepoProvider).signOut();
-                    if (!mounted) return;
+                    if (!context.mounted) return;
                     ref.read(routerProvider).go('/');
                   },
                   child: Text(

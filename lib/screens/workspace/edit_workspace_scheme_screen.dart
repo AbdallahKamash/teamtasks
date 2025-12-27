@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:teamtasks/router/router.dart';
 import 'package:teamtasks/models/workspace_model.dart';
 import 'package:teamtasks/workspace/workspace_prov.dart';
 
@@ -16,23 +16,23 @@ class EditWorkspaceSchemeScreen extends ConsumerStatefulWidget {
 
 class _EditWorkspaceSchemeScreenState
     extends ConsumerState<EditWorkspaceSchemeScreen> {
-  
   late Map<String, String> _roles;
-  
+
   late Map<String, String> _scheme;
-  
-  late Map<String, Map<String, bool>> _permissions;  
-  final Set<String> _expandedRoles = {};  final TextEditingController _titleController = TextEditingController();
+
+  late Map<String, Map<String, bool>> _permissions;
+  final Set<String> _expandedRoles = {};
+  final TextEditingController _titleController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    
+
     _roles = Map.from(widget.workspace.roles ?? {});
     _scheme = Map.from(widget.workspace.scheme ?? {});
     _permissions = {};
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final perms = await ref
@@ -41,10 +41,11 @@ class _EditWorkspaceSchemeScreenState
 
         if (!mounted) return;
         setState(() {
-          
           perms.forEach((roleId, val) {
             if (val is Map) {
-              _permissions[roleId] = Map<String, bool>.from(val.map((k, v) => MapEntry(k.toString(), v == true)));
+              _permissions[roleId] = Map<String, bool>.from(
+                val.map((k, v) => MapEntry(k.toString(), v == true)),
+              );
             }
           });
         });
@@ -64,7 +65,6 @@ class _EditWorkspaceSchemeScreenState
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
 
-    
     if (_roles.containsValue(title)) {
       ScaffoldMessenger.of(
         context,
@@ -72,12 +72,11 @@ class _EditWorkspaceSchemeScreenState
       return;
     }
 
-    
     final id = DateTime.now().microsecondsSinceEpoch.toString();
 
     setState(() {
       _roles[id] = title;
-      
+
       _permissions[id] = {
         'tasks_add': false,
         'tasks_edit': false,
@@ -104,7 +103,6 @@ class _EditWorkspaceSchemeScreenState
     try {
       final repo = ref.read(workspaceRepoProvider);
 
-      
       final pendingCount = await repo.getPendingAssignmentsCountForRole(
         widget.workspace.id,
         roleId,
@@ -124,7 +122,6 @@ class _EditWorkspaceSchemeScreenState
         return;
       }
 
-      
       final activeCount = await repo.getActiveMembersCountForRole(
         widget.workspace.id,
         roleId,
@@ -146,10 +143,10 @@ class _EditWorkspaceSchemeScreenState
 
       setState(() {
         _roles.remove(roleId);
-        
+
         _scheme.remove(roleId);
         _scheme.removeWhere((key, value) => value == roleId);
-        
+
         _permissions.remove(roleId);
       });
     } catch (e) {
@@ -197,7 +194,7 @@ class _EditWorkspaceSchemeScreenState
         _scheme.remove(roleId);
       } else {
         if (roleId == managerId) return;
-        
+
         if (_scheme[managerId] == roleId) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('لا يمكن إنشاء حلقة دائرية')),
@@ -221,17 +218,16 @@ class _EditWorkspaceSchemeScreenState
       );
 
       await ref.read(workspaceRepoProvider).updateWorkspace(updatedWorkspace);
-      
+
       try {
         await ref
             .read(workspaceRepoProvider)
             .updateRolePermissions(widget.workspace.id, _permissions);
       } catch (e) {
-        
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('خطأ أثناء حفظ الأذونات: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('خطأ أثناء حفظ الأذونات: $e')));
         }
       }
 
@@ -244,7 +240,7 @@ class _EditWorkspaceSchemeScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('تم حفظ الهيكل التنظيمي بنجاح')),
         );
-        context.pop();
+        ref.read(routerProvider).pop();
       }
     } catch (e) {
       if (mounted) {
@@ -263,8 +259,6 @@ class _EditWorkspaceSchemeScreenState
 
   @override
   Widget build(BuildContext context) {
-    
-    
     final roleEntries = _roles.entries.toList();
 
     return Scaffold(
@@ -286,7 +280,7 @@ class _EditWorkspaceSchemeScreenState
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => context.pop(),
+          onPressed: () => ref.read(routerProvider).pop(),
         ),
       ),
       body: SafeArea(
@@ -297,7 +291,6 @@ class _EditWorkspaceSchemeScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                
                 const Text(
                   'إضافة مسمى وظيفي جديد',
                   style: TextStyle(
@@ -345,7 +338,10 @@ class _EditWorkspaceSchemeScreenState
                       ),
                       child: IconButton(
                         onPressed: _addRole,
-                        icon: const Icon(Icons.add_rounded, color: Colors.purple),
+                        icon: const Icon(
+                          Icons.add_rounded,
+                          color: Colors.purple,
+                        ),
                         tooltip: 'إضافة',
                       ),
                     ),
@@ -394,7 +390,6 @@ class _EditWorkspaceSchemeScreenState
                             final roleName = entry.value;
                             final managerId = _scheme[roleId];
 
-                            
                             final possibleManagers = roleEntries
                                 .where((e) => e.key != roleId)
                                 .toList();
@@ -412,7 +407,6 @@ class _EditWorkspaceSchemeScreenState
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  
                                   Material(
                                     color: Colors.transparent,
                                     child: InkWell(
@@ -464,7 +458,7 @@ class _EditWorkspaceSchemeScreenState
                                       ),
                                     ),
                                   ),
-                                  
+
                                   if (isExpanded)
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -480,7 +474,7 @@ class _EditWorkspaceSchemeScreenState
                                             height: 1,
                                           ),
                                           const SizedBox(height: 12),
-                                          
+
                                           Container(
                                             decoration: BoxDecoration(
                                               color: Colors.grey.shade50,
@@ -496,236 +490,294 @@ class _EditWorkspaceSchemeScreenState
                                                   'يتبع لـ: ',
                                                   style: TextStyle(
                                                     fontFamily: 'Alexandria',
-                                                    color:
-                                                        Colors.grey.shade600,
+                                                    color: Colors.grey.shade600,
                                                     fontSize: 13,
                                                   ),
                                                 ),
                                                 const SizedBox(width: 8),
                                                 Expanded(
-                                                  child:
-                                                      DropdownButtonHideUnderline(
-                                                    child:
-                                                        DropdownButton<String>(
-                                                          isExpanded: true,
-                                                          value: managerId,
-                                                          icon: Icon(
-                                                            Icons
-                                                                .keyboard_arrow_down,
-                                                            color: Colors.grey
-                                                                .shade600,
-                                                            size: 20,
-                                                          ),
-                                                          hint: Text(
-                                                            '—',
-                                                            style: TextStyle(
-                                                              fontFamily:
-                                                                  'Alexandria',
-                                                              fontSize: 14,
-                                                              color: Colors
-                                                                  .grey
-                                                                  .shade800,
-                                                            ),
-                                                          ),
-                                                          style: TextStyle(
-                                                            fontFamily:
-                                                                'Alexandria',
-                                                            fontSize: 14,
-                                                            color: Colors.grey
-                                                                .shade800,
-                                                          ),
-                                                          items: [
-                                                            const DropdownMenuItem<
-                                                              String
-                                                            >(
-                                                              value: null,
-                                                              child: Text(
-                                                                  '— (لا أحد)'),
-                                                            ),
-                                                            ...possibleManagers
-                                                                .map((m) {
-                                                              return DropdownMenuItem<
-                                                                String
-                                                              >(
-                                                                value: m.key,
-                                                                child: Text(
-                                                                    m.value),
-                                                              );
-                                                            }),
-                                                          ],
-                                                          onChanged: (val) =>
-                                                              _updateScheme(
-                                                                  roleId, val),
+                                                  child: DropdownButtonHideUnderline(
+                                                    child: DropdownButton<String>(
+                                                      isExpanded: true,
+                                                      value: managerId,
+                                                      icon: Icon(
+                                                        Icons
+                                                            .keyboard_arrow_down,
+                                                        color: Colors
+                                                            .grey
+                                                            .shade600,
+                                                        size: 20,
+                                                      ),
+                                                      hint: Text(
+                                                        '—',
+                                                        style: TextStyle(
+                                                          fontFamily:
+                                                              'Alexandria',
+                                                          fontSize: 14,
+                                                          color: Colors
+                                                              .grey
+                                                              .shade800,
                                                         ),
+                                                      ),
+                                                      style: TextStyle(
+                                                        fontFamily:
+                                                            'Alexandria',
+                                                        fontSize: 14,
+                                                        color: Colors
+                                                            .grey
+                                                            .shade800,
+                                                      ),
+                                                      items: [
+                                                        const DropdownMenuItem<
+                                                          String
+                                                        >(
+                                                          value: null,
+                                                          child: Text(
+                                                            '— (لا أحد)',
+                                                          ),
+                                                        ),
+                                                        ...possibleManagers.map((
+                                                          m,
+                                                        ) {
+                                                          return DropdownMenuItem<
+                                                            String
+                                                          >(
+                                                            value: m.key,
+                                                            child: Text(
+                                                              m.value,
+                                                            ),
+                                                          );
+                                                        }),
+                                                      ],
+                                                      onChanged: (val) =>
+                                                          _updateScheme(
+                                                            roleId,
+                                                            val,
+                                                          ),
+                                                    ),
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ),
                                           const SizedBox(height: 12),
-                                          
-                                          Builder(builder: (context) {
-                                            final entry =
-                                                _ensurePermissionEntry(
-                                                    roleId);
 
-                                            void setPerm(String key, bool val) {
-                                              // If unchecking a permission
-                                              if (!val) {
-                                                // Check if this role currently has all permissions
-                                                if (_hasAllPermissions(entry)) {
-                                                  // Check if there's another role with all permissions
-                                                  final otherRolesWithAll = _permissions.entries
-                                                      .where((e) =>
-                                                          e.key != roleId &&
-                                                          _hasAllPermissions(
-                                                              e.value))
-                                                      .length;
+                                          Builder(
+                                            builder: (context) {
+                                              final entry =
+                                                  _ensurePermissionEntry(
+                                                    roleId,
+                                                  );
 
-                                                  if (otherRolesWithAll == 0) {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'يجب أن يكون لديك على الأقل مسمى واحد بجميع الأذونات',
-                                                          style: TextStyle(
-                                                            fontFamily:
-                                                                'Alexandria',
+                                              void setPerm(
+                                                String key,
+                                                bool val,
+                                              ) {
+                                                // If unchecking a permission
+                                                if (!val) {
+                                                  // Check if this role currently has all permissions
+                                                  if (_hasAllPermissions(
+                                                    entry,
+                                                  )) {
+                                                    // Check if there's another role with all permissions
+                                                    final otherRolesWithAll =
+                                                        _permissions.entries
+                                                            .where(
+                                                              (e) =>
+                                                                  e.key !=
+                                                                      roleId &&
+                                                                  _hasAllPermissions(
+                                                                    e.value,
+                                                                  ),
+                                                            )
+                                                            .length;
+
+                                                    if (otherRolesWithAll ==
+                                                        0) {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                            'يجب أن يكون لديك على الأقل مسمى واحد بجميع الأذونات',
+                                                            style: TextStyle(
+                                                              fontFamily:
+                                                                  'Alexandria',
+                                                            ),
+                                                          ),
+                                                          backgroundColor:
+                                                              Colors.red,
+                                                          duration: Duration(
+                                                            seconds: 2,
                                                           ),
                                                         ),
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                        duration: Duration(
-                                                            seconds: 2),
-                                                      ),
-                                                    );
-                                                    return;
+                                                      );
+                                                      return;
+                                                    }
                                                   }
                                                 }
+
+                                                setState(() {
+                                                  entry[key] = val;
+                                                });
                                               }
 
-                                              setState(() {
-                                                entry[key] = val;
-                                              });
-                                            }
-
-                                            Widget permCheckbox(
-                                              String key,
-                                              String label,
-                                            ) {
-                                              return Row(
-                                                mainAxisSize:
-                                                    MainAxisSize.min,
-                                                children: [
-                                                  Checkbox(
-                                                    value:
-                                                        entry[key] ?? false,
-                                                    onChanged: (v) =>
-                                                        setPerm(
-                                                            key, v == true),
-                                                  ),
-                                                  Text(
-                                                    label,
-                                                    style: const TextStyle(
-                                                      fontFamily: 'Alexandria',
-                                                      fontSize: 13,
+                                              Widget permCheckbox(
+                                                String key,
+                                                String label,
+                                              ) {
+                                                return Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Checkbox(
+                                                      value:
+                                                          entry[key] ?? false,
+                                                      onChanged: (v) => setPerm(
+                                                        key,
+                                                        v == true,
+                                                      ),
                                                     ),
+                                                    Text(
+                                                      label,
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            'Alexandria',
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              }
+
+                                              return Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'المهام',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Alexandria',
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      permCheckbox(
+                                                        'tasks_add',
+                                                        'إضافة',
+                                                      ),
+                                                      permCheckbox(
+                                                        'tasks_edit',
+                                                        'تعديل',
+                                                      ),
+                                                      permCheckbox(
+                                                        'tasks_delete',
+                                                        'حذف',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Text(
+                                                    'الرسائل',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Alexandria',
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      permCheckbox(
+                                                        'messages_add',
+                                                        'إضافة',
+                                                      ),
+                                                      permCheckbox(
+                                                        'messages_edit',
+                                                        'تعديل',
+                                                      ),
+                                                      permCheckbox(
+                                                        'messages_delete',
+                                                        'حذف',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Text(
+                                                    'مساحة العمل',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Alexandria',
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      permCheckbox(
+                                                        'workspace_edit',
+                                                        'تعديل',
+                                                      ),
+                                                      permCheckbox(
+                                                        'workspace_delete',
+                                                        'حذف',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Text(
+                                                    'المسميات',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Alexandria',
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      permCheckbox(
+                                                        'roles_add',
+                                                        'إضافة',
+                                                      ),
+                                                      permCheckbox(
+                                                        'roles_edit',
+                                                        'تعديل',
+                                                      ),
+                                                      permCheckbox(
+                                                        'roles_delete',
+                                                        'حذف',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Text(
+                                                    'الأشخاص',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Alexandria',
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      permCheckbox(
+                                                        'people_add',
+                                                        'إضافة',
+                                                      ),
+                                                      permCheckbox(
+                                                        'people_edit',
+                                                        'تعديل',
+                                                      ),
+                                                      permCheckbox(
+                                                        'people_delete',
+                                                        'حذف',
+                                                      ),
+                                                    ],
                                                   ),
                                                 ],
                                               );
-                                            }
-
-                                            return Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                
-                                                Text('المهام',
-                                                    style: TextStyle(
-                                                        fontFamily: 'Alexandria',
-                                                        color: Colors.grey
-                                                            .shade700)),
-                                                Row(
-                                                  children: [
-                                                    permCheckbox(
-                                                        'tasks_add', 'إضافة'),
-                                                    permCheckbox(
-                                                        'tasks_edit', 'تعديل'),
-                                                    permCheckbox(
-                                                        'tasks_delete', 'حذف'),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Text('الرسائل',
-                                                    style: TextStyle(
-                                                        fontFamily: 'Alexandria',
-                                                        color: Colors.grey
-                                                            .shade700)),
-                                                Row(
-                                                  children: [
-                                                    permCheckbox(
-                                                        'messages_add',
-                                                        'إضافة'),
-                                                    permCheckbox(
-                                                        'messages_edit',
-                                                        'تعديل'),
-                                                    permCheckbox(
-                                                        'messages_delete',
-                                                        'حذف'),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Text('مساحة العمل',
-                                                    style: TextStyle(
-                                                        fontFamily: 'Alexandria',
-                                                        color: Colors.grey
-                                                            .shade700)),
-                                                Row(
-                                                  children: [
-                                                    permCheckbox(
-                                                        'workspace_edit',
-                                                        'تعديل'),
-                                                    permCheckbox(
-                                                        'workspace_delete',
-                                                        'حذف'),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Text('المسميات',
-                                                    style: TextStyle(
-                                                        fontFamily: 'Alexandria',
-                                                        color: Colors.grey
-                                                            .shade700)),
-                                                Row(
-                                                  children: [
-                                                    permCheckbox(
-                                                        'roles_add', 'إضافة'),
-                                                    permCheckbox(
-                                                        'roles_edit', 'تعديل'),
-                                                    permCheckbox(
-                                                        'roles_delete', 'حذف'),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Text('الأشخاص',
-                                                    style: TextStyle(
-                                                        fontFamily: 'Alexandria',
-                                                        color: Colors.grey
-                                                            .shade700)),
-                                                Row(
-                                                  children: [
-                                                    permCheckbox(
-                                                        'people_add', 'إضافة'),
-                                                    permCheckbox(
-                                                        'people_edit', 'تعديل'),
-                                                    permCheckbox(
-                                                        'people_delete', 'حذف'),
-                                                  ],
-                                                ),
-                                              ],
-                                            );
-                                          }),
+                                            },
+                                          ),
                                         ],
                                       ),
                                     ),

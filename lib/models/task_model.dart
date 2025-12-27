@@ -5,8 +5,10 @@ class TaskModel {
   final String description;
   final String type; // normal, suggestion, urgent, very_urgent
   final String? assigneeId;
+  final String? workerId;
   final String creatorId;
-  final String status; // assigned, submitted_for_review, under_review, completed, rejected
+  final String
+  status; // assigned, submitted_for_review, under_review, completed, rejected
   final Map<String, dynamic>? meta; // for comments, reasons, history
   final DateTime createdAt;
 
@@ -17,6 +19,7 @@ class TaskModel {
     required this.description,
     required this.type,
     required this.assigneeId,
+    required this.workerId,
     required this.creatorId,
     required this.status,
     required this.createdAt,
@@ -31,12 +34,16 @@ class TaskModel {
       description: json['description'] as String? ?? '',
       type: json['type'] as String? ?? 'normal',
       assigneeId: json['assigneeId'] as String?,
+      workerId: json['workerId'] as String?,
       creatorId: json['creatorId'] as String? ?? '',
       status: json['status'] as String? ?? 'assigned',
       createdAt: (json['createdAt'] is DateTime)
           ? json['createdAt'] as DateTime
-          : DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
-      meta: json['meta'] is Map ? Map<String, dynamic>.from(json['meta']) : null,
+          : DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+                DateTime.now(),
+      meta: json['meta'] is Map
+          ? Map<String, dynamic>.from(json['meta'])
+          : null,
     );
   }
 
@@ -48,6 +55,7 @@ class TaskModel {
       'description': description,
       'type': type,
       'assigneeId': assigneeId,
+      'workerId': workerId,
       'creatorId': creatorId,
       'status': status,
       'createdAt': createdAt.toIso8601String(),
@@ -62,6 +70,7 @@ class TaskModel {
     String? description,
     String? type,
     String? assigneeId,
+    String? workerId,
     String? creatorId,
     String? status,
     Map<String, dynamic>? meta,
@@ -74,6 +83,7 @@ class TaskModel {
       description: description ?? this.description,
       type: type ?? this.type,
       assigneeId: assigneeId ?? this.assigneeId,
+      workerId: workerId ?? this.workerId,
       creatorId: creatorId ?? this.creatorId,
       status: status ?? this.status,
       meta: meta ?? this.meta,

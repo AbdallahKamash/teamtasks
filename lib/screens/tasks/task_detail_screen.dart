@@ -4,6 +4,7 @@ import '../../models/task_model.dart';
 import '../../workspace/workspace_prov.dart';
 import '../../models/workspace_member_model.dart';
 import '../../auth/auth_prov.dart';
+import '../../router/router.dart';
 
 class TaskDetailScreen extends ConsumerStatefulWidget {
   final TaskModel task;
@@ -85,8 +86,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
         foregroundColor: Colors.grey.shade800,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_rounded, color: Colors.grey.shade600),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => ref.read(routerProvider).pop(),
         ),
+        actions: [_buildActions(task)],
       ),
       body: SafeArea(
         child: Padding(
@@ -101,10 +103,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
-                      )
+                      ),
                     ],
                   ),
                   padding: const EdgeInsets.all(16.0),
@@ -156,8 +158,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _getPriorityColor(task.type)
-                                      .withOpacity(0.15),
+                                  color: _getPriorityColor(
+                                    task.type,
+                                  ).withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -217,11 +220,15 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                   onPressed: () async {
                     // mark as finished -> submit to next reviewer
                     if (workspace == null) return;
-                    final members = await ref.read(workspaceRepoProvider).getWorkspaceMembers(workspace.id);
+                    final members = await ref
+                        .read(workspaceRepoProvider)
+                        .getWorkspaceMembers(workspace.id);
 
                     WorkspaceMemberModel? currentMember;
                     try {
-                      currentMember = members.firstWhere((m) => m.uid == currentUser?.uid);
+                      currentMember = members.firstWhere(
+                        (m) => m.uid == currentUser?.uid,
+                      );
                     } catch (_) {
                       currentMember = null;
                     }
@@ -235,40 +242,52 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
                     if (parentRole == null) {
                       // no parent role -> complete
-                      await ref.read(workspaceRepoProvider).approveTask(task: task);
-                      if (!mounted) return;
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إنهاء المهمة')));
-                        Navigator.of(context).pop();
-                      }
+                      await ref
+                          .read(workspaceRepoProvider)
+                          .approveTask(task: task);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('تم إنهاء المهمة')),
+                      );
+                      ref.read(routerProvider).pop();
                       return;
                     }
 
                     // find any member with parentRole
                     WorkspaceMemberModel? reviewer;
                     try {
-                      reviewer = members.firstWhere((m) => m.roleId == parentRole);
+                      reviewer = members.firstWhere(
+                        (m) => m.roleId == parentRole,
+                      );
                     } catch (_) {
                       reviewer = null;
                     }
 
                     if (reviewer == null) {
                       // no reviewer found, mark completed
-                      await ref.read(workspaceRepoProvider).approveTask(task: task);
-                      if (!mounted) return;
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إنهاء المهمة')));
-                        Navigator.of(context).pop();
-                      }
+                      await ref
+                          .read(workspaceRepoProvider)
+                          .approveTask(task: task);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('تم إنهاء المهمة')),
+                      );
+                      ref.read(routerProvider).pop();
                       return;
                     }
 
-                    await ref.read(workspaceRepoProvider).submitTaskForReview(task: task, reviewerId: reviewer.uid, reviewerRoleId: parentRole);
-                    if (!mounted) return;
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال المهمة للمراجعة')));
-                      Navigator.of(context).pop();
-                    }
+                    await ref
+                        .read(workspaceRepoProvider)
+                        .submitTaskForReview(
+                          task: task,
+                          reviewerId: reviewer.uid,
+                          reviewerRoleId: parentRole,
+                        );
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تم إرسال المهمة للمراجعة')),
+                    );
+                    ref.read(routerProvider).pop();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple.shade400,
@@ -289,17 +308,19 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (currentUser != null && task.status == 'submitted_for_review' && currentUser.uid == task.assigneeId) ...[
+                if (currentUser != null &&
+                    task.status == 'submitted_for_review' &&
+                    currentUser.uid == task.assigneeId) ...[
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
-                        )
+                        ),
                       ],
                     ),
                     padding: const EdgeInsets.all(16.0),
@@ -331,15 +352,22 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                             fillColor: Colors.grey.shade50,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.purple.shade400, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.purple.shade400,
+                                width: 2,
+                              ),
                             ),
                           ),
                           style: const TextStyle(fontFamily: 'Alexandria'),
@@ -351,17 +379,23 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                               child: ElevatedButton(
                                 onPressed: () async {
                                   // Approve
-                                  await ref.read(workspaceRepoProvider).approveTask(task: task);
-                                  if (!mounted) return;
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الموافقة')));
-                                    Navigator.of(context).pop();
-                                  }
+                                  await ref
+                                      .read(workspaceRepoProvider)
+                                      .approveTask(task: task);
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم الموافقة'),
+                                    ),
+                                  );
+                                  ref.read(routerProvider).pop();
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green.shade500,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -383,17 +417,25 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                                 onPressed: () async {
                                   final reason = _reasonCtrl.text.trim();
                                   final returnAssignee = task.creatorId;
-                                  await ref.read(workspaceRepoProvider).rejectTask(task: task, reason: reason, returnAssigneeId: returnAssignee);
-                                  if (!mounted) return;
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الرفض')));
-                                    Navigator.of(context).pop();
-                                  }
+                                  await ref
+                                      .read(workspaceRepoProvider)
+                                      .rejectTask(
+                                        task: task,
+                                        reason: reason,
+                                        returnAssigneeId: returnAssignee,
+                                      );
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('تم الرفض')),
+                                  );
+                                  ref.read(routerProvider).pop();
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red.shade500,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -419,6 +461,69 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActions(TaskModel task) {
+    final permsAsync = ref.watch(currentUserPermissionsProvider);
+
+    return permsAsync.when(
+      data: (perms) {
+        return Row(
+          children: [
+            if (perms.tasks.edit)
+              IconButton(
+                icon: const Icon(Icons.edit_rounded, color: Colors.blue),
+                onPressed: () =>
+                    ref.read(routerProvider).push('/add-task', extra: task),
+              ),
+            if (perms.tasks.delete)
+              IconButton(
+                icon: const Icon(Icons.delete_rounded, color: Colors.red),
+                onPressed: () => _confirmDelete(task),
+              ),
+          ],
+        );
+      },
+      loading: () => const SizedBox(),
+      error: (_, _) => const SizedBox(),
+    );
+  }
+
+  void _confirmDelete(TaskModel task) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'حذف المهمة',
+          style: TextStyle(fontFamily: 'Alexandria'),
+        ),
+        content: const Text(
+          'هل أنت متأكد من حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء.',
+          style: TextStyle(fontFamily: 'Alexandria'),
+          textDirection: TextDirection.rtl,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => ref.read(routerProvider).pop(),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(fontFamily: 'Alexandria'),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              ref.read(routerProvider).pop();
+              await ref.read(workspaceRepoProvider).deleteTask(task.id);
+              ref.read(routerProvider).pop();
+            },
+            child: const Text(
+              'حذف',
+              style: TextStyle(fontFamily: 'Alexandria', color: Colors.red),
+            ),
+          ),
+        ],
       ),
     );
   }

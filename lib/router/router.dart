@@ -21,6 +21,7 @@ import 'package:teamtasks/screens/tasks/add_task_screen.dart';
 import 'package:teamtasks/screens/tasks/task_detail_screen.dart';
 import 'package:teamtasks/models/workspace_model.dart';
 import 'package:teamtasks/models/pending_assignment_model.dart';
+import 'package:teamtasks/models/task_model.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
 final routerProvider = Provider.autoDispose<GoRouter>((ref) {
@@ -184,12 +185,15 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/add-task',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const AddTaskScreen(),
-          dir: TextDirection.rtl,
-        ),
+        pageBuilder: (context, state) {
+          final task = state.extra as TaskModel?;
+          return buildPageWithTransition(
+            context: context,
+            state: state,
+            child: AddTaskScreen(task: task),
+            dir: TextDirection.rtl,
+          );
+        },
       ),
       GoRoute(
         path: '/task-detail',
