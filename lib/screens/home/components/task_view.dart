@@ -38,36 +38,39 @@ class _TaskViewState extends ConsumerState<TaskView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(widget.title, widget.workspaceName),
-            Expanded(
-              child: StreamBuilder<List<TaskModel>>(
-                stream: widget.taskStream,
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  var tasks = snap.data ?? [];
-                  if (widget.filter != null) {
-                    tasks = widget.filter!(tasks);
-                  }
-
-                  if (tasks.isEmpty) {
-                    return _buildEmptyState(
-                      widget.emptyMessage,
-                      widget.emptyIcon,
-                    );
-                  }
-
-                  return _buildGroupedTaskList(tasks);
-                },
+    return Directionality(
+      textDirection: .ltr,
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade100,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(widget.title, widget.workspaceName),
+              Expanded(
+                child: StreamBuilder<List<TaskModel>>(
+                  stream: widget.taskStream,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    var tasks = snap.data ?? [];
+                    if (widget.filter != null) {
+                      tasks = widget.filter!(tasks);
+                    }
+      
+                    if (tasks.isEmpty) {
+                      return _buildEmptyState(
+                        widget.emptyMessage,
+                        widget.emptyIcon,
+                      );
+                    }
+      
+                    return _buildGroupedTaskList(tasks);
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -101,15 +104,6 @@ class _TaskViewState extends ConsumerState<TaskView> {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            workspaceName,
-            style: TextStyle(
-              fontFamily: 'Alexandria',
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
           ),
         ],
       ),

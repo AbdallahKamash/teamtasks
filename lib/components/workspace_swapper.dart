@@ -194,8 +194,8 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
     if (workspace.id == selected?.id) return const SizedBox.shrink();
 
     return InkWell(
-      onTap: () {
-        selectedNotifier.select(workspace.id);
+      onTap: () async {
+        await selectedNotifier.select(workspace.id);
         _closeDropdown();
       },
       child: Directionality(

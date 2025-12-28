@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../auth/auth_prov.dart';
+import '../auth/shared_pref_provider.dart';
 import '../models/workspace_model.dart';
 import '../models/workspace_member_model.dart';
 import '../models/pending_assignment_model.dart';
@@ -34,30 +35,77 @@ class SelectedWorkspaceId extends _$SelectedWorkspaceId {
   @override
   String? build() {
     ref.watch(authStateProvider);
+    
+    // Trigger load on first build (no watching, just scheduling)
+    _loadSavedWorkspaceId();
+    
     return null;
   }
 
-  void select(String id) {
+  /// Load saved workspace ID from SharedPreferences
+  void _loadSavedWorkspaceId() {
+    Future(() async {
+      try {
+        final prefs = await ref.read(sharedPreferencesProvider.future);
+        final savedId = prefs.getString(SharedPrefKeys.selectedWorkspaceId);
+        if (savedId != null && state != savedId) {
+          state = savedId;
+        }
+      } catch (_) {
+        // Silently ignore errors
+      }
+    });
+  }
+
+  /// Select a workspace and persist it to SharedPreferences
+  Future<void> select(String id) async {
     state = id;
+    try {
+      final prefs = await ref.read(sharedPreferencesProvider.future);
+      await prefs.setString(SharedPrefKeys.selectedWorkspaceId, id);
+    } catch (e) {
+      // Even if saving fails, the state is already updated locally
+    }
+  }
+
+  /// Clear the saved workspace ID (e.g., when workspace is deleted)
+  Future<void> clear() async {
+    state = null;
+    try {
+      final prefs = await ref.read(sharedPreferencesProvider.future);
+      await prefs.remove(SharedPrefKeys.selectedWorkspaceId);
+    } catch (e) {
+      // Silently ignore errors
+    }
   }
 }
 
 @riverpod
 WorkspaceModel? selectedWorkspace(Ref ref) {
   final workspacesAsync = ref.watch(workspacesProvider);
+  final selectedId = ref.watch(selectedWorkspaceIdProvider);
 
   return workspacesAsync.maybeWhen(
     data: (workspaces) {
-      final selectedId = ref.watch(selectedWorkspaceIdProvider);
+      if (workspaces.isEmpty) return null;
 
+      // If we have a selectedId, try to find the workspace
       if (selectedId != null) {
-        return workspaces.firstWhere(
+        final workspace = workspaces.firstWhere(
           (w) => w.id == selectedId,
-          orElse: () => workspaces.first,
+          orElse: () {
+            // Fallback: Clear invalid saved ID and return first workspace
+            ref.read(selectedWorkspaceIdProvider.notifier).clear();
+            return workspaces.first;
+          },
         );
+        return workspace;
       }
 
-      return workspaces.isNotEmpty ? workspaces.first : null;
+      // No selected ID, return first workspace and save it as default
+      final firstWorkspace = workspaces.first;
+      ref.read(selectedWorkspaceIdProvider.notifier).select(firstWorkspace.id);
+      return firstWorkspace;
     },
     orElse: () => null,
   );

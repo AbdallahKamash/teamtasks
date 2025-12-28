@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teamtasks/router/router.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize SharedPreferences
+  await SharedPreferences.getInstance();
+  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

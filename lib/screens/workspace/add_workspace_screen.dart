@@ -87,10 +87,11 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
 
       if (!mounted) return;
 
-      ref.read(selectedWorkspaceIdProvider.notifier).select(workspaceId);
+      await ref.read(selectedWorkspaceIdProvider.notifier).select(workspaceId);
 
       _nameController.clear();
 
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
