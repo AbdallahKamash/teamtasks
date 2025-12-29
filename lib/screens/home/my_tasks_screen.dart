@@ -30,7 +30,7 @@ class MyTasksScreen extends ConsumerWidget {
       emptyIcon: Icons.task_alt_rounded,
       filter: (tasks) {
         return tasks
-            .where((t) => t.workerId == currentUser.uid || t.workerId == null)
+            .where((t) => (t.workerId == currentUser.uid || t.workerId == null) && t.status != 'completed')
             .toList();
       },
     );

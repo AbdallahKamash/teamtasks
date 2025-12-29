@@ -8,14 +8,9 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize SharedPreferences
   await SharedPreferences.getInstance();
-  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
   runApp(ProviderScope(child: MyApp()));
 }
 

@@ -28,6 +28,11 @@ class AssignedTasksScreen extends ConsumerWidget {
       workspaceName: selectedWorkspace.name,
       emptyMessage: 'لم تقم بإسناد أي مهام بعد',
       emptyIcon: Icons.assignment_ind_rounded,
+      filter: (tasks) {
+        return tasks
+            .where((t) => t.status != 'completed')
+            .toList();
+      },
     );
   }
 

@@ -216,97 +216,98 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 ),
                 const SizedBox(height: 20),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    // mark as finished -> submit to next reviewer
-                    if (workspace == null) return;
-                    final members = await ref
-                        .read(workspaceRepoProvider)
-                        .getWorkspaceMembers(workspace.id);
-
-                    WorkspaceMemberModel? currentMember;
-                    try {
-                      currentMember = members.firstWhere(
-                        (m) => m.uid == currentUser?.uid,
-                      );
-                    } catch (_) {
-                      currentMember = null;
-                    }
-
-                    String? parentRole;
-                    if (currentMember != null && workspace.scheme != null) {
-                      parentRole = workspace.scheme![currentMember.roleId];
-                    } else {
-                      parentRole = null;
-                    }
-
-                    if (parentRole == null) {
-                      // no parent role -> complete
-                      await ref
+                if (task.status != 'completed')
+                  ElevatedButton(
+                    onPressed: () async {
+                      // mark as finished -> submit to next reviewer
+                      if (workspace == null) return;
+                      final members = await ref
                           .read(workspaceRepoProvider)
-                          .approveTask(task: task);
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('تم إنهاء المهمة')),
-                      );
-                      ref.read(routerProvider).pop();
-                      return;
-                    }
+                          .getWorkspaceMembers(workspace.id);
 
-                    // find any member with parentRole
-                    WorkspaceMemberModel? reviewer;
-                    try {
-                      reviewer = members.firstWhere(
-                        (m) => m.roleId == parentRole,
-                      );
-                    } catch (_) {
-                      reviewer = null;
-                    }
-
-                    if (reviewer == null) {
-                      // no reviewer found, mark completed
-                      await ref
-                          .read(workspaceRepoProvider)
-                          .approveTask(task: task);
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('تم إنهاء المهمة')),
-                      );
-                      ref.read(routerProvider).pop();
-                      return;
-                    }
-
-                    await ref
-                        .read(workspaceRepoProvider)
-                        .submitTaskForReview(
-                          task: task,
-                          reviewerId: reviewer.uid,
-                          reviewerRoleId: parentRole,
+                      WorkspaceMemberModel? currentMember;
+                      try {
+                        currentMember = members.firstWhere(
+                          (m) => m.uid == currentUser?.uid,
                         );
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('تم إرسال المهمة للمراجعة')),
-                    );
-                    ref.read(routerProvider).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple.shade400,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      } catch (_) {
+                        currentMember = null;
+                      }
+
+                      String? parentRole;
+                      if (currentMember != null && workspace.scheme != null) {
+                        parentRole = workspace.scheme![currentMember.roleId];
+                      } else {
+                        parentRole = null;
+                      }
+
+                      if (parentRole == null) {
+                        // no parent role -> complete
+                        await ref
+                            .read(workspaceRepoProvider)
+                            .approveTask(task: task);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('تم إنهاء المهمة')),
+                        );
+                        ref.read(routerProvider).pop();
+                        return;
+                      }
+
+                      // find any member with parentRole
+                      WorkspaceMemberModel? reviewer;
+                      try {
+                        reviewer = members.firstWhere(
+                          (m) => m.roleId == parentRole,
+                        );
+                      } catch (_) {
+                        reviewer = null;
+                      }
+
+                      if (reviewer == null) {
+                        // no reviewer found, mark completed
+                        await ref
+                            .read(workspaceRepoProvider)
+                            .approveTask(task: task);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('تم إنهاء المهمة')),
+                        );
+                        ref.read(routerProvider).pop();
+                        return;
+                      }
+
+                      await ref
+                          .read(workspaceRepoProvider)
+                          .submitTaskForReview(
+                            task: task,
+                            reviewerId: reviewer.uid,
+                            reviewerRoleId: parentRole,
+                          );
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('تم إرسال المهمة للمراجعة')),
+                      );
+                      ref.read(routerProvider).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple.shade400,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'وضع علامة كمنتهية (أرسل للمراجعة)',
-                    style: TextStyle(
-                      fontFamily: 'Alexandria',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    child: const Text(
+                      'وضع علامة كمنتهية (أرسل للمراجعة)',
+                      style: TextStyle(
+                        fontFamily: 'Alexandria',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 20),
                 if (currentUser != null &&
                     task.status == 'submitted_for_review' &&
@@ -478,6 +479,11 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 onPressed: () =>
                     ref.read(routerProvider).push('/add-task', extra: task),
               ),
+            if (task.status == 'completed' && perms.tasks.add)
+              IconButton(
+                icon: const Icon(Icons.redo_rounded, color: Colors.green),
+                onPressed: () => _showReassignDialog(task),
+              ),
             if (perms.tasks.delete)
               IconButton(
                 icon: const Icon(Icons.delete_rounded, color: Colors.red),
@@ -526,5 +532,210 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showReassignDialog(TaskModel task) async {
+    final workspace = ref.read(selectedWorkspaceProvider);
+    final currentUser = ref.read(authRepoProvider).currentUser;
+
+    if (workspace == null || currentUser == null) return;
+
+    try {
+      // Get all members
+      final members = await ref
+          .read(workspaceRepoProvider)
+          .getWorkspaceMembers(workspace.id);
+
+      // Get current member
+      final currentMember = members.firstWhere(
+        (m) => m.uid == currentUser.uid,
+        orElse: () => members.isNotEmpty
+            ? members.first
+            : WorkspaceMemberModel(
+                uid: '',
+                email: '',
+                displayName: '',
+                joinedAt: DateTime.now(),
+              ),
+      );
+
+      if (currentMember.uid.isEmpty) return;
+
+      // Get descendant roles (people under current user's authority)
+      final currentRoleId = currentMember.roleId;
+      Set<String> descendantRoles = {};
+      if (currentRoleId != null) {
+        final scheme = workspace.scheme ?? {};
+        final allRoleIds = workspace.roles?.keys.toList() ?? [];
+        for (final roleId in allRoleIds) {
+          var cur = roleId;
+          while (true) {
+            final parent = scheme[cur];
+            if (parent == null) break;
+            if (parent == currentRoleId) {
+              descendantRoles.add(roleId);
+            }
+            cur = parent;
+          }
+        }
+      }
+
+      // Filter members to only those with descendant roles
+      final eligibleMembers = members
+          .where((m) => m.roleId != null && descendantRoles.contains(m.roleId))
+          .toList();
+
+      if (!mounted) return;
+
+      if (eligibleMembers.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('لا توجد أشخاص يمكنك إسناد المهام إليهم'),
+          ),
+        );
+        return;
+      }
+
+      // Find the current assignee in eligible members (default selection)
+      final defaultIndex = eligibleMembers.indexWhere(
+        (m) => m.uid == task.assigneeId,
+      );
+
+      String? selectedUid = defaultIndex >= 0
+          ? eligibleMembers[defaultIndex].uid
+          : eligibleMembers.first.uid;
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+              title: const Text(
+                'إعادة إسناد المهمة',
+                style: TextStyle(fontFamily: 'Alexandria'),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    const Text(
+                      'اختر الشخص الذي تريد إعادة إسناد المهمة إليه:',
+                      style: TextStyle(fontFamily: 'Alexandria'),
+                      textDirection: TextDirection.rtl,
+                    ),
+                    const SizedBox(height: 16),
+                    ...eligibleMembers.map((member) {
+                      final roleName = workspace.roles?[member.roleId] ?? 'بدون مسمى';
+                      final isSelected = selectedUid == member.uid;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isSelected
+                                ? Colors.purple.shade400
+                                : Colors.grey.shade300,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          color: isSelected
+                              ? Colors.purple.shade50
+                              : Colors.white,
+                        ),
+                        child: RadioListTile<String>(
+                          title: Text(
+                            member.displayName,
+                            style: const TextStyle(
+                              fontFamily: 'Alexandria',
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textDirection: TextDirection.rtl,
+                          ),
+                          subtitle: Text(
+                            roleName,
+                            style: const TextStyle(fontFamily: 'Alexandria'),
+                            textDirection: TextDirection.rtl,
+                          ),
+                          value: member.uid,
+                          groupValue: selectedUid,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedUid = value;
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => ref.read(routerProvider).pop(),
+                  child: const Text(
+                    'إلغاء',
+                    style: TextStyle(fontFamily: 'Alexandria'),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (selectedUid == null) return;
+
+                    try {
+                      // Update task to reassign it
+                      final updatedTask = task.copyWith(
+                        status: 'assigned',
+                        assigneeId: selectedUid,
+                        workerId: null,
+                      );
+
+                      await ref.read(workspaceRepoProvider).updateTask(
+                            task.id,
+                            {
+                              'status': 'assigned',
+                              'assigneeId': selectedUid,
+                              'workerId': null,
+                            },
+                          );
+
+                      if (!context.mounted) return;
+                      ref.read(routerProvider).pop(); // Close dialog
+                      ref.read(routerProvider).pop(); // Close task detail
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('تم إعادة إسناد المهمة')),
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('خطأ: ${e.toString()}'),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade500,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text(
+                    'إسناد',
+                    style: TextStyle(fontFamily: 'Alexandria'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطأ: ${e.toString()}'),
+        ),
+      );
+    }
   }
 }
