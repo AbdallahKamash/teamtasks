@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'workspace_member_model.dart';
@@ -9,6 +9,7 @@ part of 'workspace_member_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $WorkspaceMemberModelCopyWith<WorkspaceMemberModel> get copyWith => _$WorkspaceM
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkspaceMemberModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.roleId, roleId) || other.roleId == roleId)&&(identical(other.pfp, pfp) || other.pfp == pfp)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
+  final _this = this as WorkspaceMemberModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkspaceMemberModel&&(identical(other.uid, _this.uid) || other.uid == _this.uid)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.roleId, _this.roleId) || other.roleId == _this.roleId)&&(identical(other.pfp, _this.pfp) || other.pfp == _this.pfp)&&(identical(other.joinedAt, _this.joinedAt) || other.joinedAt == _this.joinedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,email,displayName,roleId,pfp,joinedAt);
+int get hashCode {
+  final _this = this as WorkspaceMemberModel;
+  return Object.hash(runtimeType,_this.uid,_this.email,_this.displayName,_this.roleId,_this.pfp,_this.joinedAt);
+}
 
 @override
 String toString() {
-  return 'WorkspaceMemberModel(uid: $uid, email: $email, displayName: $displayName, roleId: $roleId, pfp: $pfp, joinedAt: $joinedAt)';
+  final _this = this as WorkspaceMemberModel;
+  return 'WorkspaceMemberModel(uid: ${_this.uid}, email: ${_this.email}, displayName: ${_this.displayName}, roleId: ${_this.roleId}, pfp: ${_this.pfp}, joinedAt: ${_this.joinedAt})';
 }
 
 
@@ -66,7 +72,7 @@ class _$WorkspaceMemberModelCopyWithImpl<$Res>
 /// Create a copy of WorkspaceMemberModel
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? email = null,Object? displayName = null,Object? roleId = freezed,Object? pfp = freezed,Object? joinedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(WorkspaceMemberModel(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -237,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkspaceMemberModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.roleId, roleId) || other.roleId == roleId)&&(identical(other.pfp, pfp) || other.pfp == pfp)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkspaceMemberModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.roleId, roleId) || other.roleId == roleId)&&(identical(other.pfp, pfp) || other.pfp == pfp)&&(identical(other.joinedAt, joinedAt) || other.joinedAt == joinedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,email,displayName,roleId,pfp,joinedAt);
+int get hashCode {
+    return Object.hash(runtimeType,uid,email,displayName,roleId,pfp,joinedAt);
+}
 
 @override
 String toString() {
-  return 'WorkspaceMemberModel(uid: $uid, email: $email, displayName: $displayName, roleId: $roleId, pfp: $pfp, joinedAt: $joinedAt)';
+    return 'WorkspaceMemberModel(uid: $uid, email: $email, displayName: $displayName, roleId: $roleId, pfp: $pfp, joinedAt: $joinedAt)';
 }
 
 

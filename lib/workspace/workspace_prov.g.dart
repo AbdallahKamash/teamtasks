@@ -10,12 +10,12 @@ part of 'workspace_prov.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(workspaceRepo)
-const workspaceRepoProvider = WorkspaceRepoProvider._();
+final workspaceRepoProvider = WorkspaceRepoProvider._();
 
 final class WorkspaceRepoProvider
     extends $FunctionalProvider<WorkspaceRepo, WorkspaceRepo, WorkspaceRepo>
     with $Provider<WorkspaceRepo> {
-  const WorkspaceRepoProvider._()
+  WorkspaceRepoProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class WorkspaceRepoProvider
 String _$workspaceRepoHash() => r'ee84bb7a811902f3f365af9c2389230c5a4c6ed9';
 
 @ProviderFor(workspaces)
-const workspacesProvider = WorkspacesProvider._();
+final workspacesProvider = WorkspacesProvider._();
 
 final class WorkspacesProvider
     extends
@@ -63,7 +63,7 @@ final class WorkspacesProvider
     with
         $FutureModifier<List<WorkspaceModel>>,
         $StreamProvider<List<WorkspaceModel>> {
-  const WorkspacesProvider._()
+  WorkspacesProvider._()
     : super(
         from: null,
         argument: null,
@@ -92,11 +92,11 @@ final class WorkspacesProvider
 String _$workspacesHash() => r'3d4fb7ae3d56db1d1a1830098011b69ca02f6a6d';
 
 @ProviderFor(SelectedWorkspaceId)
-const selectedWorkspaceIdProvider = SelectedWorkspaceIdProvider._();
+final selectedWorkspaceIdProvider = SelectedWorkspaceIdProvider._();
 
 final class SelectedWorkspaceIdProvider
     extends $NotifierProvider<SelectedWorkspaceId, String?> {
-  const SelectedWorkspaceIdProvider._()
+  SelectedWorkspaceIdProvider._()
     : super(
         from: null,
         argument: null,
@@ -130,8 +130,7 @@ abstract class _$SelectedWorkspaceId extends $Notifier<String?> {
   String? build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String?, String?>;
     final element =
         ref.element
@@ -141,18 +140,18 @@ abstract class _$SelectedWorkspaceId extends $Notifier<String?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(selectedWorkspace)
-const selectedWorkspaceProvider = SelectedWorkspaceProvider._();
+final selectedWorkspaceProvider = SelectedWorkspaceProvider._();
 
 final class SelectedWorkspaceProvider
     extends
         $FunctionalProvider<WorkspaceModel?, WorkspaceModel?, WorkspaceModel?>
     with $Provider<WorkspaceModel?> {
-  const SelectedWorkspaceProvider._()
+  SelectedWorkspaceProvider._()
     : super(
         from: null,
         argument: null,
@@ -188,7 +187,7 @@ final class SelectedWorkspaceProvider
 String _$selectedWorkspaceHash() => r'7ff5d214dd572e033306073d23be16f1cba7331d';
 
 @ProviderFor(workspaceMembers)
-const workspaceMembersProvider = WorkspaceMembersFamily._();
+final workspaceMembersProvider = WorkspaceMembersFamily._();
 
 final class WorkspaceMembersProvider
     extends
@@ -200,7 +199,7 @@ final class WorkspaceMembersProvider
     with
         $FutureModifier<List<WorkspaceMemberModel>>,
         $StreamProvider<List<WorkspaceMemberModel>> {
-  const WorkspaceMembersProvider._({
+  WorkspaceMembersProvider._({
     required WorkspaceMembersFamily super.from,
     required String super.argument,
   }) : super(
@@ -248,7 +247,7 @@ String _$workspaceMembersHash() => r'ba31dfcc886fd43cdfc4c181b362f3606beba38d';
 
 final class WorkspaceMembersFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<WorkspaceMemberModel>>, String> {
-  const WorkspaceMembersFamily._()
+  WorkspaceMembersFamily._()
     : super(
         retry: null,
         name: r'workspaceMembersProvider',
@@ -265,7 +264,7 @@ final class WorkspaceMembersFamily extends $Family
 }
 
 @ProviderFor(rolePermissions)
-const rolePermissionsProvider = RolePermissionsFamily._();
+final rolePermissionsProvider = RolePermissionsFamily._();
 
 final class RolePermissionsProvider
     extends
@@ -277,7 +276,7 @@ final class RolePermissionsProvider
     with
         $FutureModifier<Map<String, dynamic>>,
         $StreamProvider<Map<String, dynamic>> {
-  const RolePermissionsProvider._({
+  RolePermissionsProvider._({
     required RolePermissionsFamily super.from,
     required String super.argument,
   }) : super(
@@ -325,7 +324,7 @@ String _$rolePermissionsHash() => r'9f82787739796859f9fa9e57b83cb115929fe5f8';
 
 final class RolePermissionsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<Map<String, dynamic>>, String> {
-  const RolePermissionsFamily._()
+  RolePermissionsFamily._()
     : super(
         retry: null,
         name: r'rolePermissionsProvider',
@@ -342,7 +341,7 @@ final class RolePermissionsFamily extends $Family
 }
 
 @ProviderFor(pendingAssignments)
-const pendingAssignmentsProvider = PendingAssignmentsProvider._();
+final pendingAssignmentsProvider = PendingAssignmentsProvider._();
 
 final class PendingAssignmentsProvider
     extends
@@ -354,7 +353,7 @@ final class PendingAssignmentsProvider
     with
         $FutureModifier<List<PendingAssignmentModel>>,
         $StreamProvider<List<PendingAssignmentModel>> {
-  const PendingAssignmentsProvider._()
+  PendingAssignmentsProvider._()
     : super(
         from: null,
         argument: null,
@@ -384,7 +383,7 @@ String _$pendingAssignmentsHash() =>
     r'8a6c16ba99b52e6a23740445134516db25ed7238';
 
 @ProviderFor(workspaceById)
-const workspaceByIdProvider = WorkspaceByIdFamily._();
+final workspaceByIdProvider = WorkspaceByIdFamily._();
 
 final class WorkspaceByIdProvider
     extends
@@ -394,7 +393,7 @@ final class WorkspaceByIdProvider
           FutureOr<WorkspaceModel?>
         >
     with $FutureModifier<WorkspaceModel?>, $FutureProvider<WorkspaceModel?> {
-  const WorkspaceByIdProvider._({
+  WorkspaceByIdProvider._({
     required WorkspaceByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -442,7 +441,7 @@ String _$workspaceByIdHash() => r'e172317339a0bf88940efb4f12c74f0b285edb56';
 
 final class WorkspaceByIdFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<WorkspaceModel?>, String> {
-  const WorkspaceByIdFamily._()
+  WorkspaceByIdFamily._()
     : super(
         retry: null,
         name: r'workspaceByIdProvider',
@@ -459,7 +458,7 @@ final class WorkspaceByIdFamily extends $Family
 }
 
 @ProviderFor(currentUserPermissions)
-const currentUserPermissionsProvider = CurrentUserPermissionsProvider._();
+final currentUserPermissionsProvider = CurrentUserPermissionsProvider._();
 
 final class CurrentUserPermissionsProvider
     extends
@@ -469,7 +468,7 @@ final class CurrentUserPermissionsProvider
           Stream<Permissions>
         >
     with $FutureModifier<Permissions>, $StreamProvider<Permissions> {
-  const CurrentUserPermissionsProvider._()
+  CurrentUserPermissionsProvider._()
     : super(
         from: null,
         argument: null,
@@ -499,7 +498,7 @@ String _$currentUserPermissionsHash() =>
     r'70a62e730d22787d02a808ac3ee92313c3e60f9c';
 
 @ProviderFor(appNotifications)
-const appNotificationsProvider = AppNotificationsProvider._();
+final appNotificationsProvider = AppNotificationsProvider._();
 
 final class AppNotificationsProvider
     extends
@@ -511,7 +510,7 @@ final class AppNotificationsProvider
     with
         $FutureModifier<List<AppNotificationModel>>,
         $StreamProvider<List<AppNotificationModel>> {
-  const AppNotificationsProvider._()
+  AppNotificationsProvider._()
     : super(
         from: null,
         argument: null,
@@ -540,7 +539,7 @@ final class AppNotificationsProvider
 String _$appNotificationsHash() => r'100c97321eb260f2cd419beaa4fa95b6fc31c14e';
 
 @ProviderFor(assignedTasks)
-const assignedTasksProvider = AssignedTasksFamily._();
+final assignedTasksProvider = AssignedTasksFamily._();
 
 final class AssignedTasksProvider
     extends
@@ -550,7 +549,7 @@ final class AssignedTasksProvider
           Stream<List<TaskModel>>
         >
     with $FutureModifier<List<TaskModel>>, $StreamProvider<List<TaskModel>> {
-  const AssignedTasksProvider._({
+  AssignedTasksProvider._({
     required AssignedTasksFamily super.from,
     required String super.argument,
   }) : super(
@@ -598,7 +597,7 @@ String _$assignedTasksHash() => r'3ec6f996cdcef4c059e511f7c4415ece25f3a8d7';
 
 final class AssignedTasksFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<TaskModel>>, String> {
-  const AssignedTasksFamily._()
+  AssignedTasksFamily._()
     : super(
         retry: null,
         name: r'assignedTasksProvider',
@@ -615,7 +614,7 @@ final class AssignedTasksFamily extends $Family
 }
 
 @ProviderFor(createdTasks)
-const createdTasksProvider = CreatedTasksFamily._();
+final createdTasksProvider = CreatedTasksFamily._();
 
 final class CreatedTasksProvider
     extends
@@ -625,7 +624,7 @@ final class CreatedTasksProvider
           Stream<List<TaskModel>>
         >
     with $FutureModifier<List<TaskModel>>, $StreamProvider<List<TaskModel>> {
-  const CreatedTasksProvider._({
+  CreatedTasksProvider._({
     required CreatedTasksFamily super.from,
     required String super.argument,
   }) : super(
@@ -673,7 +672,7 @@ String _$createdTasksHash() => r'9790012c7b62945344e7b8d8f56ea8aaaa6d7dac';
 
 final class CreatedTasksFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<TaskModel>>, String> {
-  const CreatedTasksFamily._()
+  CreatedTasksFamily._()
     : super(
         retry: null,
         name: r'createdTasksProvider',
@@ -690,7 +689,7 @@ final class CreatedTasksFamily extends $Family
 }
 
 @ProviderFor(taskHistory)
-const taskHistoryProvider = TaskHistoryFamily._();
+final taskHistoryProvider = TaskHistoryFamily._();
 
 final class TaskHistoryProvider
     extends
@@ -700,7 +699,7 @@ final class TaskHistoryProvider
           Stream<List<TaskModel>>
         >
     with $FutureModifier<List<TaskModel>>, $StreamProvider<List<TaskModel>> {
-  const TaskHistoryProvider._({
+  TaskHistoryProvider._({
     required TaskHistoryFamily super.from,
     required String super.argument,
   }) : super(
@@ -748,7 +747,7 @@ String _$taskHistoryHash() => r'166cbd18da1cb5f03958fa9cd8fbd8ddd09651be';
 
 final class TaskHistoryFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<TaskModel>>, String> {
-  const TaskHistoryFamily._()
+  TaskHistoryFamily._()
     : super(
         retry: null,
         name: r'taskHistoryProvider',

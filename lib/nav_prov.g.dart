@@ -10,10 +10,10 @@ part of 'nav_prov.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(NavIndex)
-const navIndexProvider = NavIndexProvider._();
+final navIndexProvider = NavIndexProvider._();
 
 final class NavIndexProvider extends $NotifierProvider<NavIndex, int> {
-  const NavIndexProvider._()
+  NavIndexProvider._()
     : super(
         from: null,
         argument: null,
@@ -46,8 +46,7 @@ abstract class _$NavIndex extends $Notifier<int> {
   int build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -57,6 +56,6 @@ abstract class _$NavIndex extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'workspace_model.dart';
@@ -9,6 +9,7 @@ part of 'workspace_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $WorkspaceModelCopyWith<WorkspaceModel> get copyWith => _$WorkspaceModelCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkspaceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other.roles, roles)&&const DeepCollectionEquality().equals(other.scheme, scheme));
+  final _this = this as WorkspaceModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkspaceModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.color, _this.color) || other.color == _this.color)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.logoUrl, _this.logoUrl) || other.logoUrl == _this.logoUrl)&&const DeepCollectionEquality().equals(other.roles, _this.roles)&&const DeepCollectionEquality().equals(other.scheme, _this.scheme));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,color,createdAt,description,logoUrl,const DeepCollectionEquality().hash(roles),const DeepCollectionEquality().hash(scheme));
+int get hashCode {
+  final _this = this as WorkspaceModel;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.color,_this.createdAt,_this.description,_this.logoUrl,const DeepCollectionEquality().hash(_this.roles),const DeepCollectionEquality().hash(_this.scheme));
+}
 
 @override
 String toString() {
-  return 'WorkspaceModel(id: $id, name: $name, color: $color, createdAt: $createdAt, description: $description, logoUrl: $logoUrl, roles: $roles, scheme: $scheme)';
+  final _this = this as WorkspaceModel;
+  return 'WorkspaceModel(id: ${_this.id}, name: ${_this.name}, color: ${_this.color}, createdAt: ${_this.createdAt}, description: ${_this.description}, logoUrl: ${_this.logoUrl}, roles: ${_this.roles}, scheme: ${_this.scheme})';
 }
 
 
@@ -66,7 +72,7 @@ class _$WorkspaceModelCopyWithImpl<$Res>
 /// Create a copy of WorkspaceModel
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? color = null,Object? createdAt = null,Object? description = freezed,Object? logoUrl = freezed,Object? roles = freezed,Object? scheme = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(WorkspaceModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
@@ -216,7 +222,7 @@ return $default(_that.id,_that.name,_that.color,_that.createdAt,_that.descriptio
 @JsonSerializable()
 
 class _WorkspaceModel implements WorkspaceModel {
-  const _WorkspaceModel({required this.id, required this.name, required this.color, required this.createdAt, this.description, this.logoUrl, final  Map<String, String>? roles, final  Map<String, String>? scheme}): _roles = roles,_scheme = scheme;
+  const _WorkspaceModel({required this.id, required this.name, required this.color, required this.createdAt, this.description, this.logoUrl,  Map<String, String>? roles,  Map<String, String>? scheme}): _roles = roles,_scheme = scheme;
   factory _WorkspaceModel.fromJson(Map<String, dynamic> json) => _$WorkspaceModelFromJson(json);
 
 @override final  String id;
@@ -257,16 +263,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkspaceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other._roles, _roles)&&const DeepCollectionEquality().equals(other._scheme, _scheme));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkspaceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.color, color) || other.color == color)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.description, description) || other.description == description)&&(identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl)&&const DeepCollectionEquality().equals(other.roles, _roles)&&const DeepCollectionEquality().equals(other.scheme, _scheme));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,color,createdAt,description,logoUrl,const DeepCollectionEquality().hash(_roles),const DeepCollectionEquality().hash(_scheme));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,color,createdAt,description,logoUrl,const DeepCollectionEquality().hash(_roles),const DeepCollectionEquality().hash(_scheme));
+}
 
 @override
 String toString() {
-  return 'WorkspaceModel(id: $id, name: $name, color: $color, createdAt: $createdAt, description: $description, logoUrl: $logoUrl, roles: $roles, scheme: $scheme)';
+    return 'WorkspaceModel(id: $id, name: $name, color: $color, createdAt: $createdAt, description: $description, logoUrl: $logoUrl, roles: $roles, scheme: $scheme)';
 }
 
 

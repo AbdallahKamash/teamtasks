@@ -10,12 +10,12 @@ part of 'auth_prov.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(fbAuth)
-const fbAuthProvider = FbAuthProvider._();
+final fbAuthProvider = FbAuthProvider._();
 
 final class FbAuthProvider
     extends $FunctionalProvider<FirebaseAuth, FirebaseAuth, FirebaseAuth>
     with $Provider<FirebaseAuth> {
-  const FbAuthProvider._()
+  FbAuthProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class FbAuthProvider
 String _$fbAuthHash() => r'9f4c98f2cdd2909d6e4117d3c7ad971151d94869';
 
 @ProviderFor(fbFirestore)
-const fbFirestoreProvider = FbFirestoreProvider._();
+final fbFirestoreProvider = FbFirestoreProvider._();
 
 final class FbFirestoreProvider
     extends
@@ -61,7 +61,7 @@ final class FbFirestoreProvider
           FirebaseFirestore
         >
     with $Provider<FirebaseFirestore> {
-  const FbFirestoreProvider._()
+  FbFirestoreProvider._()
     : super(
         from: null,
         argument: null,
@@ -98,12 +98,12 @@ final class FbFirestoreProvider
 String _$fbFirestoreHash() => r'294a8ce737934ee2bbb194e5bb11681df8d39b1b';
 
 @ProviderFor(authRepo)
-const authRepoProvider = AuthRepoProvider._();
+final authRepoProvider = AuthRepoProvider._();
 
 final class AuthRepoProvider
     extends $FunctionalProvider<AuthRepo, AuthRepo, AuthRepo>
     with $Provider<AuthRepo> {
-  const AuthRepoProvider._()
+  AuthRepoProvider._()
     : super(
         from: null,
         argument: null,
@@ -139,12 +139,12 @@ final class AuthRepoProvider
 String _$authRepoHash() => r'6578c6b762bdab638e2d7c0f5e80331e2ea131c8';
 
 @ProviderFor(authState)
-const authStateProvider = AuthStateProvider._();
+final authStateProvider = AuthStateProvider._();
 
 final class AuthStateProvider
     extends $FunctionalProvider<AsyncValue<User?>, User?, Stream<User?>>
     with $FutureModifier<User?>, $StreamProvider<User?> {
-  const AuthStateProvider._()
+  AuthStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -172,7 +172,7 @@ final class AuthStateProvider
 String _$authStateHash() => r'55f91f3b0f1711beaf8dad7ad594fa5d7c3f2bca';
 
 @ProviderFor(currentUserData)
-const currentUserDataProvider = CurrentUserDataProvider._();
+final currentUserDataProvider = CurrentUserDataProvider._();
 
 final class CurrentUserDataProvider
     extends
@@ -182,7 +182,7 @@ final class CurrentUserDataProvider
           Stream<UserModel?>
         >
     with $FutureModifier<UserModel?>, $StreamProvider<UserModel?> {
-  const CurrentUserDataProvider._()
+  CurrentUserDataProvider._()
     : super(
         from: null,
         argument: null,
