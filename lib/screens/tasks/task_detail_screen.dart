@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/task_model.dart';
 import '../../workspace/workspace_prov.dart';
@@ -667,7 +667,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                           },
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),

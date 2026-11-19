@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class MarqueeText extends StatefulWidget {
   final String text;
@@ -99,18 +99,10 @@ class _MarqueeTextState extends State<MarqueeText>
             physics: const NeverScrollableScrollPhysics(),
             child: Row(
               children: [
-                Text(
-                  widget.text,
-                  style: widget.style,
-                  softWrap: false,
-                ),
+                Text(widget.text, style: widget.style, softWrap: false),
                 if (_shouldScroll) SizedBox(width: widget.gap),
                 if (_shouldScroll)
-                  Text(
-                    widget.text,
-                    style: widget.style,
-                    softWrap: false,
-                  ),
+                  Text(widget.text, style: widget.style, softWrap: false),
               ],
             ),
           ),

@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/router/router.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import '../../components/app_toast.dart';
 import '../../components/my_textfield.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
@@ -26,6 +28,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   bool _isSignup = false;
 
+  Set<AuthField> _fieldErrors = {};
+  int _errorTick = 0;
+
   @override
   void dispose() {
     displayNameController.dispose();
@@ -39,31 +44,100 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     super.dispose();
   }
 
+  FocusNode _focusFor(AuthField field) => switch (field) {
+    AuthField.name => displayNameFocus,
+    AuthField.email => emailFocus,
+    AuthField.password => passwordFocus,
+    AuthField.confirmPassword => confirmPasswordFocus,
+  };
+
+  /// Highlights + shakes [failure.fields] and shows the failure as a toast.
+  void _fail(AuthFailure failure, {ToastType type = ToastType.error}) {
+    setState(() {
+      _fieldErrors = failure.fields;
+      _errorTick++;
+    });
+    if (failure.fields.isNotEmpty) {
+      final first = AuthField.values.firstWhere(failure.fields.contains);
+      _focusFor(first).requestFocus();
+    }
+    Toast.show(failure.title, message: failure.message, type: type);
+  }
+
+  void _clearError(AuthField field) {
+    if (_fieldErrors.contains(field)) {
+      setState(() => _fieldErrors = {..._fieldErrors}..remove(field));
+    }
+  }
+
+  void _toggleMode() {
+    setState(() {
+      _isSignup = !_isSignup;
+      _fieldErrors = {};
+    });
+  }
+
   Future<void> _signUp() async {
+    if (_isLoading) return;
     final displayName = displayNameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
-    if (displayName.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty) {
-      return;
+    final missing = [
+      if (displayName.isEmpty) AuthField.name,
+      if (email.isEmpty) AuthField.email,
+      if (password.isEmpty) AuthField.password,
+      if (confirmPassword.isEmpty) AuthField.confirmPassword,
+    ];
+    if (missing.isNotEmpty) {
+      return _fail(missingFields(missing), type: ToastType.warning);
     }
-
+    if (displayName.length < 2) {
+      return _fail(
+        const AuthFailure(
+          'الاسم قصير جدًا',
+          'أدخل اسمك الكامل ليتعرّف عليك فريقك.',
+          {AuthField.name},
+        ),
+        type: ToastType.warning,
+      );
+    }
+    if (!isValidEmail(email)) return _fail(invalidEmailFailure);
+    if (password.length < 6) {
+      return _fail(
+        const AuthFailure(
+          'كلمة المرور قصيرة',
+          'يجب أن تتكون من 6 أحرف على الأقل.',
+          {AuthField.password},
+        ),
+        type: ToastType.warning,
+      );
+    }
     if (password != confirmPassword) {
-      return;
+      return _fail(
+        const AuthFailure(
+          'كلمتا المرور غير متطابقتين',
+          'أعد كتابة كلمة المرور في حقل التأكيد.',
+          {AuthField.confirmPassword},
+        ),
+      );
     }
 
-    setState(() => _isLoading = true);
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _isLoading = true;
+      _fieldErrors = {};
+    });
 
     try {
       await ref
           .read(authRepoProvider)
           .signUp(email: email, password: password, displayName: displayName);
+      Toast.success('تم إنشاء حسابك', message: 'أرسلنا رابط التحقق إلى $email');
     } catch (e) {
       debugPrint(e.toString());
+      if (mounted) _fail(describeAuthError(e));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -72,20 +146,49 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _login() async {
+    if (_isLoading) return;
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      return;
+    final missing = [
+      if (email.isEmpty) AuthField.email,
+      if (password.isEmpty) AuthField.password,
+    ];
+    if (missing.isNotEmpty) {
+      return _fail(missingFields(missing), type: ToastType.warning);
     }
+    if (!isValidEmail(email)) return _fail(invalidEmailFailure);
 
-    setState(() => _isLoading = true);
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _isLoading = true;
+      _fieldErrors = {};
+    });
 
     try {
-      await ref.read(authRepoProvider).signIn(email: email, password: password);
-      if (!mounted) return;
+      final repo = ref.read(authRepoProvider);
+      await repo.signIn(email: email, password: password);
+      final user = repo.currentUser;
+      if (user != null && !user.emailVerified) {
+        Toast.info(
+          'أكّد بريدك الإلكتروني',
+          message: 'افتح رابط التحقق المرسل إلى $email للمتابعة.',
+        );
+      } else {
+        final name = user?.displayName;
+        Toast.success(
+          'تم تسجيل الدخول',
+          message: name != null && name.isNotEmpty
+              ? 'أهلًا بعودتك، $name'
+              : 'أهلًا بعودتك',
+        );
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) _fail(describeAuthError(e));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -158,6 +261,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                   ? MyTextField(
                                       hintText: 'الاسم بالكامل',
                                       controller: displayNameController,
+                                      hasError: _fieldErrors.contains(
+                                        AuthField.name,
+                                      ),
+                                      errorTick: _errorTick,
+                                      onChanged: (_) =>
+                                          _clearError(AuthField.name),
+                                      textInputAction: TextInputAction.next,
+                                      onSubmitted: (_) =>
+                                          emailFocus.requestFocus(),
                                       focusNode: displayNameFocus,
                                       autofillHints: const [AutofillHints.name],
                                     )
@@ -170,6 +282,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           hintText: 'البريد الإلكتروني',
                           fieldType: .email,
                           controller: emailController,
+                          hasError: _fieldErrors.contains(AuthField.email),
+                          errorTick: _errorTick,
+                          onChanged: (_) => _clearError(AuthField.email),
+                          textInputAction: TextInputAction.next,
+                          onSubmitted: (_) => passwordFocus.requestFocus(),
                           focusNode: emailFocus,
                           autofillHints: const [AutofillHints.email],
                         ),
@@ -178,6 +295,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           hintText: 'كلمة المرور',
                           fieldType: .password,
                           controller: passwordController,
+                          hasError: _fieldErrors.contains(AuthField.password),
+                          errorTick: _errorTick,
+                          onChanged: (_) => _clearError(AuthField.password),
+                          textInputAction: _isSignup
+                              ? TextInputAction.next
+                              : TextInputAction.done,
+                          onSubmitted: (_) => _isSignup
+                              ? confirmPasswordFocus.requestFocus()
+                              : _login(),
                           focusNode: passwordFocus,
                           autofillHints: const [AutofillHints.password],
                         ),
@@ -199,6 +325,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       hintText: 'تأكيد كلمة المرور',
                                       fieldType: .password,
                                       controller: confirmPasswordController,
+                                      hasError: _fieldErrors.contains(
+                                        AuthField.confirmPassword,
+                                      ),
+                                      errorTick: _errorTick,
+                                      onChanged: (_) => _clearError(
+                                        AuthField.confirmPassword,
+                                      ),
+                                      textInputAction: TextInputAction.done,
+                                      onSubmitted: (_) => _signUp(),
                                       focusNode: confirmPasswordFocus,
                                       autofillHints: const [
                                         AutofillHints.password,
@@ -282,11 +417,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _isSignup = !_isSignup;
-                          });
-                        },
+                        onTap: _toggleMode,
                         child: Text(
                           _isSignup ? 'سجل دخولك' : 'أنشئ حسابك',
                           style: TextStyle(

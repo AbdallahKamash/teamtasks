@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 import 'package:teamtasks/router/router.dart';
 
+import 'package:teamtasks/auth/auth_errors.dart';
+import '../../components/app_toast.dart';
 import '../../components/my_textfield.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -17,6 +19,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final emailController = TextEditingController();
   final emailFocus = FocusNode();
   bool _isLoading = false;
+  bool _emailError = false;
+  int _errorTick = 0;
+
+  void _fail(AuthFailure failure, {ToastType type = ToastType.error}) {
+    setState(() {
+      _emailError = failure.fields.contains(AuthField.email);
+      _errorTick++;
+    });
+    if (_emailError) emailFocus.requestFocus();
+    Toast.show(failure.title, message: failure.message, type: type);
+  }
 
   @override
   void dispose() {
@@ -29,17 +42,27 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final email = emailController.text.trim();
 
     if (email.isEmpty) {
-      return;
+      return _fail(missingFields([AuthField.email]), type: ToastType.warning);
     }
+    if (!isValidEmail(email)) return _fail(invalidEmailFailure);
 
-    setState(() => _isLoading = true);
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _isLoading = true;
+      _emailError = false;
+    });
 
     try {
       await ref.read(authRepoProvider).sendPasswordResetEmail(email);
+      Toast.success(
+        'تم إرسال الرابط',
+        message: 'تحقق من صندوق الوارد في $email',
+      );
       if (!mounted) return;
       ref.read(routerProvider).pop();
     } catch (e) {
       if (!mounted) return;
+      _fail(describeAuthError(e));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -95,8 +118,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   const SizedBox(height: 32),
                   MyTextField(
                     hintText: 'البريد الإلكتروني',
+                    fieldType: .email,
                     controller: emailController,
                     focusNode: emailFocus,
+                    autofillHints: const [AutofillHints.email],
+                    hasError: _emailError,
+                    errorTick: _errorTick,
+                    onChanged: (_) {
+                      if (_emailError) setState(() => _emailError = false);
+                    },
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _resetPassword(),
                   ),
                   const SizedBox(height: 24),
                   GestureDetector(

@@ -1,9 +1,11 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 import 'package:teamtasks/router/router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import 'package:teamtasks/components/app_toast.dart';
 
 const _verifyCooldownSeconds = 120;
 const _verifyLastSentKey = 'verify_last_sent_time';
@@ -42,6 +44,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     await authRepo.reloadUser();
     if (authRepo.currentUser?.emailVerified ?? false) {
       _refreshTimer?.cancel();
+      Toast.success('تم تأكيد بريدك', message: 'كل شيء جاهز، لنبدأ!');
       if (mounted) {
         ref.read(routerProvider).go('/home');
       }
@@ -122,11 +125,17 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         DateTime.now().millisecondsSinceEpoch,
       );
 
-      if (!mounted) return;
-      if (!silent) {}
+      if (!silent) {
+        Toast.success(
+          'تم إعادة الإرسال',
+          message: 'أرسلنا رابط تحقق جديدًا إلى بريدك.',
+        );
+      }
     } catch (e) {
-      if (!mounted) return;
-      if (!silent) {}
+      if (!silent) {
+        final failure = describeAuthError(e);
+        Toast.error(failure.title, message: failure.message);
+      }
     }
   }
 
