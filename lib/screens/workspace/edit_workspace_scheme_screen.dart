@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/router/router.dart';
 import 'package:teamtasks/models/workspace_model.dart';
@@ -66,9 +68,10 @@ class _EditWorkspaceSchemeScreenState
     if (title.isEmpty) return;
 
     if (_roles.containsValue(title)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('المسمى موجود بالفعل')));
+      Toast.warning(
+        'المسمى موجود بالفعل',
+        message: 'اختر اسمًا مختلفًا لهذا الدور.',
+      );
       return;
     }
 
@@ -110,14 +113,9 @@ class _EditWorkspaceSchemeScreenState
 
       if (pendingCount > 0) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'لا يمكن حذف الدور: يوجد $pendingCount دعوات معلقة بهذا الدور',
-              style: const TextStyle(fontFamily: 'Alexandria'),
-            ),
-            backgroundColor: Colors.red,
-          ),
+        Toast.error(
+          'لا يمكن حذف الدور',
+          message: 'يوجد $pendingCount دعوات معلقة بهذا الدور.',
         );
         return;
       }
@@ -129,14 +127,9 @@ class _EditWorkspaceSchemeScreenState
 
       if (activeCount > 0) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'لا يمكن حذف الدور: يوجد $activeCount أعضاء حاليين بهذا الدور',
-              style: const TextStyle(fontFamily: 'Alexandria'),
-            ),
-            backgroundColor: Colors.red,
-          ),
+        Toast.error(
+          'لا يمكن حذف الدور',
+          message: 'يوجد $activeCount أعضاء حاليين بهذا الدور.',
         );
         return;
       }
@@ -151,11 +144,10 @@ class _EditWorkspaceSchemeScreenState
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ أثناء التحقق: $e'),
-          backgroundColor: Colors.red,
-        ),
+      debugPrint('$e');
+      Toast.error(
+        'تعذّر التحقق من الدور',
+        message: describeAuthError(e).message,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -196,9 +188,7 @@ class _EditWorkspaceSchemeScreenState
         if (roleId == managerId) return;
 
         if (_scheme[managerId] == roleId) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('لا يمكن إنشاء حلقة دائرية')),
-          );
+          Toast.warning('لا يمكن إنشاء حلقة دائرية');
           return;
         }
         _scheme[roleId] = managerId;
@@ -225,9 +215,11 @@ class _EditWorkspaceSchemeScreenState
             .updateRolePermissions(widget.workspace.id, _permissions);
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('خطأ أثناء حفظ الأذونات: $e')));
+          debugPrint('$e');
+          Toast.error(
+            'تعذّر حفظ الأذونات',
+            message: describeAuthError(e).message,
+          );
         }
       }
 
@@ -237,16 +229,16 @@ class _EditWorkspaceSchemeScreenState
       ref.invalidate(workspacesProvider);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم حفظ الهيكل التنظيمي بنجاح')),
-        );
+        Toast.success('تم حفظ الهيكل التنظيمي');
         ref.read(routerProvider).pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));
+        debugPrint('$e');
+        Toast.error(
+          'تعذّر حفظ الهيكل التنظيمي',
+          message: describeAuthError(e).message,
+        );
       }
     } finally {
       if (mounted) {
@@ -594,23 +586,10 @@ class _EditWorkspaceSchemeScreenState
 
                                                     if (otherRolesWithAll ==
                                                         0) {
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        const SnackBar(
-                                                          content: Text(
-                                                            'يجب أن يكون لديك على الأقل مسمى واحد بجميع الأذونات',
-                                                            style: TextStyle(
-                                                              fontFamily:
-                                                                  'Alexandria',
-                                                            ),
-                                                          ),
-                                                          backgroundColor:
-                                                              Colors.red,
-                                                          duration: Duration(
-                                                            seconds: 2,
-                                                          ),
-                                                        ),
+                                                      Toast.warning(
+                                                        'لا يمكن إزالة هذا الإذن',
+                                                        message:
+                                                            'يجب أن يكون لديك على الأقل مسمى واحد بجميع الأذونات.',
                                                       );
                                                       return;
                                                     }

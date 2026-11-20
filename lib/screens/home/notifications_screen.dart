@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/router/router.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
@@ -369,18 +370,14 @@ class _NotificationCard extends ConsumerWidget {
         );
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تم قبول الدعوة بنجاح')));
+      Toast.success('تم قبول الدعوة بنجاح');
     }
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
     await ref.read(workspaceRepoProvider).rejectAssignment(assignment.id);
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تم رفض الدعوة')));
+      Toast.info('تم رفض الدعوة');
     }
   }
 

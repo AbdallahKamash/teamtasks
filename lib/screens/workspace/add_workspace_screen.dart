@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../router/router.dart';
@@ -49,15 +51,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
 
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'يرجى إدخال اسم مساحة العمل',
-            style: TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      Toast.warning('حقل مطلوب', message: 'يرجى إدخال اسم مساحة العمل.');
       return;
     }
 
@@ -95,28 +89,16 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
       _nameController.clear();
 
       // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'تم إنشاء مساحة العمل بنجاح',
-            style: TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      Toast.success('تم إنشاء مساحة العمل');
 
       ref.read(routerProvider).pop();
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'خطأ: $e',
-            style: const TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      debugPrint('$e');
+      Toast.error(
+        'تعذّر إنشاء مساحة العمل',
+        message: describeAuthError(e).message,
       );
     } finally {
       if (mounted) {

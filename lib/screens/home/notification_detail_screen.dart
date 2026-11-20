@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 import 'package:teamtasks/models/pending_assignment_model.dart';
@@ -243,9 +244,7 @@ class NotificationDetailScreen extends ConsumerWidget {
     if (context.mounted) {
       // One reverse slide straight back to home (detail + list both close).
       ref.read(routerProvider).go('/home');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تم قبول الدعوة بنجاح')));
+      Toast.success('تم قبول الدعوة بنجاح');
     }
   }
 
@@ -253,9 +252,7 @@ class NotificationDetailScreen extends ConsumerWidget {
     await ref.read(workspaceRepoProvider).rejectAssignment(assignment.id);
     if (context.mounted) {
       ref.read(routerProvider).pop();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تم رفض الدعوة')));
+      Toast.info('تم رفض الدعوة');
     }
   }
 

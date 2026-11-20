@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/router/router.dart';
@@ -70,15 +72,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
 
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'يرجى إدخال اسم مساحة العمل',
-            style: TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      Toast.warning('حقل مطلوب', message: 'يرجى إدخال اسم مساحة العمل.');
       return;
     }
 
@@ -100,26 +94,14 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'تم تحديث مساحة العمل بنجاح',
-            style: TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      Toast.success('تم تحديث مساحة العمل');
       ref.read(routerProvider).pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'خطأ: $e',
-            style: const TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      debugPrint('$e');
+      Toast.error(
+        'تعذّر تحديث مساحة العمل',
+        message: describeAuthError(e).message,
       );
     } finally {
       if (mounted) {
@@ -281,25 +263,13 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
       final router = ref.read(routerProvider);
       router.canPop() ? router.pop() : router.go('/home');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'تم حذف مساحة العمل بنجاح',
-            style: TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      Toast.success('تم حذف مساحة العمل');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'خطأ في حذف مساحة العمل: $e',
-            style: const TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      debugPrint('$e');
+      Toast.error(
+        'تعذّر حذف مساحة العمل',
+        message: describeAuthError(e).message,
       );
       setState(() => _isLoading = false);
     }

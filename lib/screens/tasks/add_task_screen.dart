@@ -1,5 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../workspace/workspace_prov.dart';
 import '../../models/workspace_member_model.dart';
@@ -423,23 +425,21 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
                                       .createTask(data);
                                 }
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      widget.task != null
-                                          ? 'تم تحديث المهمة'
-                                          : 'تم إنشاء المهمة',
-                                    ),
-                                  ),
+                                Toast.success(
+                                  widget.task != null
+                                      ? 'تم تحديث المهمة'
+                                      : 'تم إنشاء المهمة',
                                 );
                                 ref.read(routerProvider).pop();
                               } catch (e) {
                                 setState(() => _isLoading = false);
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('خطأ: ${e.toString()}'),
-                                  ),
+                                debugPrint('$e');
+                                Toast.error(
+                                  widget.task != null
+                                      ? 'تعذّر تحديث المهمة'
+                                      : 'تعذّر إنشاء المهمة',
+                                  message: describeAuthError(e).message,
                                 );
                               }
                             }

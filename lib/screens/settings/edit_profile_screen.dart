@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
@@ -60,15 +61,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
       _pfpController.text = pfpValue;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'تم تحديث الملف الشخصي بنجاح',
-              style: TextStyle(fontFamily: 'Alexandria'),
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+        Toast.success('تم تحديث الملف الشخصي');
         ref.read(routerProvider).pop();
       }
     } finally {

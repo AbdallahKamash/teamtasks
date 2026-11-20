@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/workspace_model.dart';
@@ -33,18 +35,18 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
   Future<void> _addUser(WorkspaceModel workspace) async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      _showError('يرجى إدخال البريد الإلكتروني');
+      _showWarning('حقل مطلوب', 'يرجى إدخال البريد الإلكتروني.');
       return;
     }
     if (_selectedRoleId == null) {
-      _showError('يرجى اختيار الدور');
+      _showWarning('حقل مطلوب', 'يرجى اختيار الدور.');
       return;
     }
 
     final currentUser = ref.read(authRepoProvider).currentUser;
     final currentUserEmail = currentUser?.email ?? "";
     if (currentUserEmail == email) {
-      _showError('لا يمكن إضافة نفسك إلى مساحة العمل');
+      _showWarning('لا يمكن إضافة نفسك', 'أنت عضو في مساحة العمل بالفعل.');
       return;
     }
 
@@ -55,14 +57,20 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
 
       final isPending = await repo.isUserPending(workspace.id, email);
       if (isPending) {
-        _showError('المستخدم لديه دعوة معلقة بالفعل');
+        _showWarning(
+          'الدعوة مرسلة بالفعل',
+          'المستخدم لديه دعوة معلقة لهذه المساحة.',
+        );
         return;
       }
 
       final user = await repo.getUserByEmail(email);
 
       if (user == null) {
-        _showError('المستخدم غير موجود. يرجى التأكد من البريد الإلكتروني');
+        _showError(
+          'المستخدم غير موجود',
+          message: 'يرجى التأكد من البريد الإلكتروني.',
+        );
         return;
       }
 
@@ -83,35 +91,30 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       await repo.addPendingAssignment(assignment);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'تمت إضافة المستخدم بنجاح (بانتظار القبول)',
-            style: TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      Toast.success('تمت إضافة المستخدم', message: 'بانتظار قبوله للدعوة.');
       _emailController.clear();
       setState(() => _selectedRoleId = null);
     } catch (e) {
-      _showError('حدث خطأ: $e');
+      _showFailure('تعذّر إضافة المستخدم', e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showError(String message) {
+  void _showError(String title, {String? message}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(fontFamily: 'Alexandria'),
-        ),
-        backgroundColor: Colors.red,
-      ),
-    );
+    Toast.error(title, message: message);
+  }
+
+  void _showWarning(String title, String message) {
+    if (!mounted) return;
+    Toast.warning(title, message: message);
+  }
+
+  /// Friendly message for the user; the raw error stays in the debug log.
+  void _showFailure(String title, Object e) {
+    debugPrint('$e');
+    _showError(title, message: describeAuthError(e).message);
   }
 
   Future<void> _updateRole(
@@ -133,7 +136,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
           .read(workspaceRepoProvider)
           .updateMemberRole(widget.workspaceId, memberId, newRole);
     } catch (e) {
-      _showError('حدث خطأ أثناء تحديث الدور: $e');
+      _showFailure('تعذّر تحديث الدور', e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -205,7 +208,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     final isDeletingSelf = memberId == currentUserId;
 
     if (isDeletingSelf && isLastAdmin) {
-      _showError('لا يمكنك حذف نفسك - أنت الأدمن الوحيد في مساحة العمل');
+      _showWarning('لا يمكنك حذف نفسك', 'أنت الأدمن الوحيد في مساحة العمل.');
       return;
     }
 
@@ -257,17 +260,9 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
       if (isDeletingSelf) {
         ref.read(routerProvider).pop();
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'تم حذف العضو بنجاح',
-            style: TextStyle(fontFamily: 'Alexandria'),
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      Toast.success('تم حذف العضو');
     } catch (e) {
-      _showError('حدث خطأ أثناء الحذف: $e');
+      _showFailure('تعذّر حذف العضو', e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

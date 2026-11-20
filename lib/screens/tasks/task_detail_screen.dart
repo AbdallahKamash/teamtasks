@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/auth/auth_errors.dart';
+import 'package:teamtasks/components/app_toast.dart';
 import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/task_model.dart';
@@ -248,9 +250,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                             .read(workspaceRepoProvider)
                             .approveTask(task: task);
                         if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('تم إنهاء المهمة')),
-                        );
+                        Toast.success('تم إنهاء المهمة');
                         ref.read(routerProvider).pop();
                         return;
                       }
@@ -271,9 +271,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                             .read(workspaceRepoProvider)
                             .approveTask(task: task);
                         if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('تم إنهاء المهمة')),
-                        );
+                        Toast.success('تم إنهاء المهمة');
                         ref.read(routerProvider).pop();
                         return;
                       }
@@ -286,11 +284,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                             reviewerRoleId: parentRole,
                           );
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('تم إرسال المهمة للمراجعة'),
-                        ),
-                      );
+                      Toast.success('تم إرسال المهمة للمراجعة');
                       ref.read(routerProvider).pop();
                     },
                     style: ElevatedButton.styleFrom(
@@ -387,11 +381,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                                       .read(workspaceRepoProvider)
                                       .approveTask(task: task);
                                   if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('تم الموافقة'),
-                                    ),
-                                  );
+                                  Toast.success('تمت الموافقة على المهمة');
                                   ref.read(routerProvider).pop();
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -429,9 +419,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                                         returnAssigneeId: returnAssignee,
                                       );
                                   if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('تم الرفض')),
-                                  );
+                                  Toast.info('تم رفض المهمة');
                                   ref.read(routerProvider).pop();
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -591,10 +579,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       if (!mounted) return;
 
       if (eligibleMembers.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('لا توجد أشخاص يمكنك إسناد المهام إليهم'),
-          ),
+        Toast.warning(
+          'لا يوجد أعضاء متاحون',
+          message: 'لا توجد أشخاص يمكنك إسناد المهام إليهم.',
         );
         return;
       }
@@ -706,13 +693,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                       if (!context.mounted) return;
                       ref.read(routerProvider).pop(); // Close dialog
                       ref.read(routerProvider).pop(); // Close task detail
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('تم إعادة إسناد المهمة')),
-                      );
+                      Toast.success('تم إعادة إسناد المهمة');
                     } catch (e) {
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('خطأ: ${e.toString()}')),
+                      debugPrint('$e');
+                      Toast.error(
+                        'تعذّر إعادة إسناد المهمة',
+                        message: describeAuthError(e).message,
                       );
                     }
                   },
@@ -732,9 +719,8 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('خطأ: ${e.toString()}')));
+      debugPrint('$e');
+      Toast.error('تعذّر تحميل الأعضاء', message: describeAuthError(e).message);
     }
   }
 }
