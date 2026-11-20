@@ -21,9 +21,7 @@ class AssignedTasksScreen extends ConsumerWidget {
     }
 
     return TaskView(
-      taskStream: ref
-          .watch(workspaceRepoProvider)
-          .getCreatedTasksStream(selectedWorkspace.id, currentUser.uid),
+      tasks: ref.watch(createdTasksProvider(selectedWorkspace.id)),
       title: 'المهام التي أسندتها',
       workspaceName: selectedWorkspace.name,
       emptyMessage: 'لم تقم بإسناد أي مهام بعد',

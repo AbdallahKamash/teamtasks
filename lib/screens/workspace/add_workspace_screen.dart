@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:teamtasks/auth/auth_errors.dart';
 import 'package:teamtasks/components/app_toast.dart';
@@ -80,9 +82,11 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
             user.email ?? '',
           );
 
-      if (!mounted) return;
-
+      // Remember the new workspace as the selection right away, then wait
+      // until it is actually in the list so home opens on it (not on the
+      // previous workspace).
       await ref.read(selectedWorkspaceIdProvider.notifier).select(workspaceId);
+      await _waitUntilListed(workspaceId);
       // Swipe-back makes leaving mid-save possible.
       if (!mounted) return;
 
@@ -104,6 +108,27 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  /// Completes once [workspaceId] appears in [workspacesProvider], or after a
+  /// short timeout (the selection is already saved, so it shows up anyway).
+  Future<void> _waitUntilListed(String workspaceId) async {
+    bool listed(AsyncValue<List<WorkspaceModel>> v) =>
+        v.value?.any((w) => w.id == workspaceId) ?? false;
+    if (listed(ref.read(workspacesProvider))) return;
+
+    final arrived = Completer<void>();
+    final sub = ref.listenManual(workspacesProvider, (_, next) {
+      if (listed(next) && !arrived.isCompleted) arrived.complete();
+    });
+    try {
+      await arrived.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {},
+      );
+    } finally {
+      sub.close();
     }
   }
 

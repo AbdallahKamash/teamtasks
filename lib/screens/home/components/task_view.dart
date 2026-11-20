@@ -7,7 +7,9 @@ import '../../../models/workspace_member_model.dart';
 import '../../../workspace/workspace_prov.dart';
 
 class TaskView extends ConsumerStatefulWidget {
-  final Stream<List<TaskModel>> taskStream;
+  /// The tasks from a Riverpod provider. Keeps its previous value while the
+  /// provider reloads, so the list never flashes back to a spinner.
+  final AsyncValue<List<TaskModel>> tasks;
   final String title;
   final String workspaceName;
   final String emptyMessage;
@@ -16,7 +18,7 @@ class TaskView extends ConsumerStatefulWidget {
 
   const TaskView({
     super.key,
-    required this.taskStream,
+    required this.tasks,
     required this.title,
     required this.workspaceName,
     required this.emptyMessage,
@@ -47,16 +49,21 @@ class _TaskViewState extends ConsumerState<TaskView> {
             children: [
               _buildHeader(widget.title, widget.workspaceName),
               Expanded(
-                child: StreamBuilder<List<TaskModel>>(
-                  stream: widget.taskStream,
-                  builder: (context, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
+                child: Builder(
+                  builder: (context) {
+                    final value = widget.tasks.value;
+                    if (value == null) {
+                      if (widget.tasks.hasError) {
+                        return _buildEmptyState(
+                          'تعذّر تحميل المهام',
+                          Icons.cloud_off_rounded,
+                        );
+                      }
                       return const Center(child: CircularProgressIndicator());
                     }
-                    var tasks = snap.data ?? [];
-                    if (widget.filter != null) {
-                      tasks = widget.filter!(tasks);
-                    }
+                    final tasks = widget.filter != null
+                        ? widget.filter!(value)
+                        : value;
 
                     if (tasks.isEmpty) {
                       return _buildEmptyState(

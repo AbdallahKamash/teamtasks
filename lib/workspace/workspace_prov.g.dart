@@ -50,8 +50,73 @@ final class WorkspaceRepoProvider
 
 String _$workspaceRepoHash() => r'ee84bb7a811902f3f365af9c2389230c5a4c6ed9';
 
+/// Ids of the signed-in user's workspaces.
+///
+/// Only rebuilds when the user id changes, so auth events that keep the same
+/// user don't restart the Firestore listener.
+
+@ProviderFor(workspaceIds)
+final workspaceIdsProvider = WorkspaceIdsProvider._();
+
+/// Ids of the signed-in user's workspaces.
+///
+/// Only rebuilds when the user id changes, so auth events that keep the same
+/// user don't restart the Firestore listener.
+
+final class WorkspaceIdsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<String>>,
+          List<String>,
+          Stream<List<String>>
+        >
+    with $FutureModifier<List<String>>, $StreamProvider<List<String>> {
+  /// Ids of the signed-in user's workspaces.
+  ///
+  /// Only rebuilds when the user id changes, so auth events that keep the same
+  /// user don't restart the Firestore listener.
+  WorkspaceIdsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'workspaceIdsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$workspaceIdsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<String>> create(Ref ref) {
+    return workspaceIds(ref);
+  }
+}
+
+String _$workspaceIdsHash() => r'0c59b6d1687c65f02e549847efb5574efcdba511';
+
+/// The signed-in user's workspaces, newest first.
+///
+/// Rebuilds (with a fresh query) whenever the set of ids changes — e.g. right
+/// after creating, joining or leaving a workspace. While it reloads it keeps
+/// the previous list, so the UI never blanks out.
+
 @ProviderFor(workspaces)
 final workspacesProvider = WorkspacesProvider._();
+
+/// The signed-in user's workspaces, newest first.
+///
+/// Rebuilds (with a fresh query) whenever the set of ids changes — e.g. right
+/// after creating, joining or leaving a workspace. While it reloads it keeps
+/// the previous list, so the UI never blanks out.
 
 final class WorkspacesProvider
     extends
@@ -63,6 +128,11 @@ final class WorkspacesProvider
     with
         $FutureModifier<List<WorkspaceModel>>,
         $StreamProvider<List<WorkspaceModel>> {
+  /// The signed-in user's workspaces, newest first.
+  ///
+  /// Rebuilds (with a fresh query) whenever the set of ids changes — e.g. right
+  /// after creating, joining or leaving a workspace. While it reloads it keeps
+  /// the previous list, so the UI never blanks out.
   WorkspacesProvider._()
     : super(
         from: null,
@@ -89,20 +159,36 @@ final class WorkspacesProvider
   }
 }
 
-String _$workspacesHash() => r'3d4fb7ae3d56db1d1a1830098011b69ca02f6a6d';
+String _$workspacesHash() => r'0f7df4349b7b8b3a46883fcc5a5f2c8313cccc8f';
+
+/// The id of the workspace the user picked, persisted per user.
+///
+/// Read synchronously from SharedPreferences, so the right workspace is
+/// selected on the first frame after launch. Only rebuilds when the signed-in
+/// user changes (not on every auth event such as token refreshes).
 
 @ProviderFor(SelectedWorkspaceId)
 final selectedWorkspaceIdProvider = SelectedWorkspaceIdProvider._();
 
+/// The id of the workspace the user picked, persisted per user.
+///
+/// Read synchronously from SharedPreferences, so the right workspace is
+/// selected on the first frame after launch. Only rebuilds when the signed-in
+/// user changes (not on every auth event such as token refreshes).
 final class SelectedWorkspaceIdProvider
     extends $NotifierProvider<SelectedWorkspaceId, String?> {
+  /// The id of the workspace the user picked, persisted per user.
+  ///
+  /// Read synchronously from SharedPreferences, so the right workspace is
+  /// selected on the first frame after launch. Only rebuilds when the signed-in
+  /// user changes (not on every auth event such as token refreshes).
   SelectedWorkspaceIdProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'selectedWorkspaceIdProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -124,7 +210,13 @@ final class SelectedWorkspaceIdProvider
 }
 
 String _$selectedWorkspaceIdHash() =>
-    r'f7e58a9e999931797c03d5ca5f5b625f667d12ce';
+    r'480b5eb65a9c77f0d9bdeacf6a37238722d73dc9';
+
+/// The id of the workspace the user picked, persisted per user.
+///
+/// Read synchronously from SharedPreferences, so the right workspace is
+/// selected on the first frame after launch. Only rebuilds when the signed-in
+/// user changes (not on every auth event such as token refreshes).
 
 abstract class _$SelectedWorkspaceId extends $Notifier<String?> {
   String? build();
@@ -144,13 +236,30 @@ abstract class _$SelectedWorkspaceId extends $Notifier<String?> {
   }
 }
 
+/// The workspace currently shown.
+///
+/// Pure derivation with no side effects: the saved choice if it is in the
+/// list, otherwise the newest workspace. Keeps the previous list while the
+/// stream reloads, so the UI never blanks out.
+
 @ProviderFor(selectedWorkspace)
 final selectedWorkspaceProvider = SelectedWorkspaceProvider._();
+
+/// The workspace currently shown.
+///
+/// Pure derivation with no side effects: the saved choice if it is in the
+/// list, otherwise the newest workspace. Keeps the previous list while the
+/// stream reloads, so the UI never blanks out.
 
 final class SelectedWorkspaceProvider
     extends
         $FunctionalProvider<WorkspaceModel?, WorkspaceModel?, WorkspaceModel?>
     with $Provider<WorkspaceModel?> {
+  /// The workspace currently shown.
+  ///
+  /// Pure derivation with no side effects: the saved choice if it is in the
+  /// list, otherwise the newest workspace. Keeps the previous list while the
+  /// stream reloads, so the UI never blanks out.
   SelectedWorkspaceProvider._()
     : super(
         from: null,
@@ -184,7 +293,7 @@ final class SelectedWorkspaceProvider
   }
 }
 
-String _$selectedWorkspaceHash() => r'7ff5d214dd572e033306073d23be16f1cba7331d';
+String _$selectedWorkspaceHash() => r'0bc36ff91d17764fa53c56a8a0474ff6de68bf6b';
 
 @ProviderFor(workspaceMembers)
 final workspaceMembersProvider = WorkspaceMembersFamily._();
@@ -457,17 +566,31 @@ final class WorkspaceByIdFamily extends $Family
   String toString() => r'workspaceByIdProvider';
 }
 
+/// The signed-in user's permissions in the selected workspace.
+///
+/// Derived synchronously from the members and role-permission streams, so it
+/// keeps its last value while those reload (no flicker of tabs/FAB).
+
 @ProviderFor(currentUserPermissions)
 final currentUserPermissionsProvider = CurrentUserPermissionsProvider._();
+
+/// The signed-in user's permissions in the selected workspace.
+///
+/// Derived synchronously from the members and role-permission streams, so it
+/// keeps its last value while those reload (no flicker of tabs/FAB).
 
 final class CurrentUserPermissionsProvider
     extends
         $FunctionalProvider<
           AsyncValue<Permissions>,
-          Permissions,
-          Stream<Permissions>
+          AsyncValue<Permissions>,
+          AsyncValue<Permissions>
         >
-    with $FutureModifier<Permissions>, $StreamProvider<Permissions> {
+    with $Provider<AsyncValue<Permissions>> {
+  /// The signed-in user's permissions in the selected workspace.
+  ///
+  /// Derived synchronously from the members and role-permission streams, so it
+  /// keeps its last value while those reload (no flicker of tabs/FAB).
   CurrentUserPermissionsProvider._()
     : super(
         from: null,
@@ -484,18 +607,26 @@ final class CurrentUserPermissionsProvider
 
   @$internal
   @override
-  $StreamProviderElement<Permissions> $createElement(
+  $ProviderElement<AsyncValue<Permissions>> $createElement(
     $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  ) => $ProviderElement(pointer);
 
   @override
-  Stream<Permissions> create(Ref ref) {
+  AsyncValue<Permissions> create(Ref ref) {
     return currentUserPermissions(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<Permissions> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<Permissions>>(value),
+    );
   }
 }
 
 String _$currentUserPermissionsHash() =>
-    r'70a62e730d22787d02a808ac3ee92313c3e60f9c';
+    r'8cf6f0899546e5e3d35beebbdb683e36222e86a2';
 
 @ProviderFor(appNotifications)
 final appNotificationsProvider = AppNotificationsProvider._();

@@ -21,9 +21,7 @@ class MyTasksScreen extends ConsumerWidget {
     }
 
     return TaskView(
-      taskStream: ref
-          .watch(workspaceRepoProvider)
-          .getAssignedTasksStream(selectedWorkspace.id, currentUser.uid),
+      tasks: ref.watch(assignedTasksProvider(selectedWorkspace.id)),
       title: 'مهامي',
       workspaceName: selectedWorkspace.name,
       emptyMessage: 'لا توجد مهام مخصصة لك حالياً',

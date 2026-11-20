@@ -258,6 +258,13 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
 
       if (!mounted) return;
 
+      // Forget the deleted workspace so the next one is picked cleanly.
+      final selection = ref.read(selectedWorkspaceIdProvider.notifier);
+      if (ref.read(selectedWorkspaceIdProvider) == widget.workspace.id) {
+        await selection.clear();
+        if (!mounted) return;
+      }
+
       // pop() targets the topmost present route, so this stays one smooth
       // reverse slide even while the delete dialog is still fading out.
       final router = ref.read(routerProvider);

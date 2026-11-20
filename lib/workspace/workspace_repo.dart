@@ -12,53 +12,71 @@ class WorkspaceRepo {
 
   WorkspaceRepo(this._firestore);
 
-  Stream<List<WorkspaceModel>> getWorkspacesStream(String userId) {
+  /// Firestore's `whereIn` accepts at most 30 values per query.
+  static const int _whereInLimit = 30;
+
+  /// The ids of the workspaces [userId] belongs to (sorted, de-duplicated).
+  Stream<List<String>> getWorkspaceIdsStream(String userId) {
     return _firestore
         .collection('users_workspaces')
         .doc(userId)
         .snapshots()
-        .switchMap((userDoc) {
-          final data = userDoc.data();
-          if (data == null) {
-            return Stream.value([]);
-          }
+        .map((userDoc) => _workspaceIdsFrom(userDoc.data()));
+  }
 
-          final List<String> workspaceIds = [];
+  /// Live workspaces for [workspaceIds], newest first.
+  ///
+  /// A plain stream per query (no switchMap): when the ids change, the
+  /// provider rebuilds and calls this again. That keeps it safe for Riverpod
+  /// to pause and resume while the home screen is hidden.
+  Stream<List<WorkspaceModel>> getWorkspacesByIds(List<String> workspaceIds) {
+    if (workspaceIds.isEmpty) return Stream.value(const []);
 
-          if (data['workspaces'] != null) {
-            final List<dynamic> workspacesList = data['workspaces'];
-            for (final w in workspacesList) {
-              if (w is Map && w['workspaceId'] != null) {
-                workspaceIds.add(w['workspaceId'] as String);
-              }
-            }
-          } else if (data['workspaceIds'] != null) {
-            workspaceIds.addAll(List<String>.from(data['workspaceIds']));
-          }
+    Stream<List<WorkspaceModel>> query(List<String> ids) => _firestore
+        .collection('workspaces')
+        .where(FieldPath.documentId, whereIn: ids)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => WorkspaceModel.fromJson({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
 
-          if (workspaceIds.isEmpty) {
-            return Stream.value([]);
-          }
+    List<WorkspaceModel> newestFirst(Iterable<WorkspaceModel> all) =>
+        all.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-          return _firestore
-              .collection('workspaces')
-              .where(FieldPath.documentId, whereIn: workspaceIds)
-              .snapshots()
-              .map((snapshot) {
-                final workspaces = snapshot.docs
-                    .map(
-                      (doc) => WorkspaceModel.fromJson({
-                        ...doc.data(),
-                        'id': doc.id,
-                      }),
-                    )
-                    .toList();
+    if (workspaceIds.length <= _whereInLimit) {
+      return query(workspaceIds).map(newestFirst);
+    }
 
-                workspaces.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final chunks = <List<String>>[
+      for (var i = 0; i < workspaceIds.length; i += _whereInLimit)
+        workspaceIds.sublist(
+          i,
+          (i + _whereInLimit).clamp(0, workspaceIds.length),
+        ),
+    ];
+    return Rx.combineLatestList(
+      chunks.map(query),
+    ).map((lists) => newestFirst(lists.expand((l) => l)));
+  }
 
-                return workspaces;
-              });
-        });
+  static List<String> _workspaceIdsFrom(Map<String, dynamic>? data) {
+    if (data == null) return const [];
+    final ids = <String>[];
+    final list = data['workspaces'];
+    if (list is List) {
+      for (final w in list) {
+        if (w is Map && w['workspaceId'] is String) {
+          ids.add(w['workspaceId'] as String);
+        }
+      }
+    } else if (data['workspaceIds'] is List) {
+      ids.addAll(List<String>.from(data['workspaceIds'] as List));
+    }
+    return ids.toSet().toList()..sort();
   }
 
   Future<String> createWorkspace(
@@ -94,16 +112,6 @@ class WorkspaceRepo {
       roles: defaultRoles,
     );
 
-    await workspaceRef.set(workspaceWithId.toJson());
-
-    await workspaceRef.update({'rolePermissions': defaultPermissions});
-
-    await _firestore.collection('users_workspaces').doc(creatorId).set({
-      'workspaces': FieldValue.arrayUnion([
-        {'workspaceId': workspaceRef.id},
-      ]),
-    }, SetOptions(merge: true));
-
     final member = WorkspaceMemberModel(
       uid: creatorId,
       email: creatorEmail,
@@ -112,10 +120,20 @@ class WorkspaceRepo {
       roleId: adminRoleId,
     );
 
-    await workspaceRef
-        .collection('members')
-        .doc(creatorId)
-        .set(member.toJson());
+    // One atomic batch (one round trip): the workspace, the creator's
+    // membership and their workspace index appear together or not at all.
+    final batch = _firestore.batch()
+      ..set(workspaceRef, {
+        ...workspaceWithId.toJson(),
+        'rolePermissions': defaultPermissions,
+      })
+      ..set(workspaceRef.collection('members').doc(creatorId), member.toJson())
+      ..set(_firestore.collection('users_workspaces').doc(creatorId), {
+        'workspaces': FieldValue.arrayUnion([
+          {'workspaceId': workspaceRef.id},
+        ]),
+      }, SetOptions(merge: true));
+    await batch.commit();
 
     return workspaceRef.id;
   }

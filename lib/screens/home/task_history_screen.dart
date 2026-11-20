@@ -21,9 +21,7 @@ class TaskHistoryScreen extends ConsumerWidget {
     }
 
     return TaskView(
-      taskStream: ref
-          .watch(workspaceRepoProvider)
-          .getTaskHistoryStream(selectedWorkspace.id, currentUser.uid),
+      tasks: ref.watch(taskHistoryProvider(selectedWorkspace.id)),
       title: 'سجل المهام',
       workspaceName: selectedWorkspace.name,
       emptyMessage: 'سجل المهام فارغ',

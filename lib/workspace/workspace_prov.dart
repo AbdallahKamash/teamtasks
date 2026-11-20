@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../auth/auth_prov.dart';
 import '../auth/shared_pref_provider.dart';
@@ -17,98 +17,105 @@ WorkspaceRepo workspaceRepo(Ref ref) {
   return WorkspaceRepo(ref.watch(fbFirestoreProvider));
 }
 
+/// Ids of the signed-in user's workspaces.
+///
+/// Only rebuilds when the user id changes, so auth events that keep the same
+/// user don't restart the Firestore listener.
 @riverpod
-Stream<List<WorkspaceModel>> workspaces(Ref ref) {
-  final userAsync = ref.watch(authStateProvider);
-  return userAsync.when(
-    data: (user) {
-      if (user == null) return Stream.value([]);
-      return ref.watch(workspaceRepoProvider).getWorkspacesStream(user.uid);
-    },
-    loading: () => const Stream.empty(),
-    error: (e, s) => Stream.error(e, s),
+Stream<List<String>> workspaceIds(Ref ref) {
+  final auth = ref.watch(
+    authStateProvider.select(
+      (a) => (waiting: !a.hasValue && a.isLoading, uid: a.value?.uid),
+    ),
   );
+  if (auth.waiting) return const Stream.empty(); // stay loading until known
+  final uid = auth.uid;
+  if (uid == null) return Stream.value(const []);
+  return ref.watch(workspaceRepoProvider).getWorkspaceIdsStream(uid);
 }
 
+/// The signed-in user's workspaces, newest first.
+///
+/// Rebuilds (with a fresh query) whenever the set of ids changes — e.g. right
+/// after creating, joining or leaving a workspace. While it reloads it keeps
+/// the previous list, so the UI never blanks out.
 @riverpod
+Stream<List<WorkspaceModel>> workspaces(Ref ref) {
+  final ids = ref.watch(
+    workspaceIdsProvider.select(
+      (a) => (key: a.value?.join('|'), error: a.error),
+    ),
+  );
+  final key = ids.key;
+  if (key == null) {
+    final error = ids.error;
+    if (error != null) return Stream.error(error);
+    return const Stream.empty(); // stay loading until the ids arrive
+  }
+  final list = key.isEmpty ? const <String>[] : key.split('|');
+  return ref.watch(workspaceRepoProvider).getWorkspacesByIds(list);
+}
+
+/// The id of the workspace the user picked, persisted per user.
+///
+/// Read synchronously from SharedPreferences, so the right workspace is
+/// selected on the first frame after launch. Only rebuilds when the signed-in
+/// user changes (not on every auth event such as token refreshes).
+@Riverpod(keepAlive: true)
 class SelectedWorkspaceId extends _$SelectedWorkspaceId {
   @override
   String? build() {
-    ref.watch(authStateProvider);
-
-    // Trigger load on first build (no watching, just scheduling)
-    _loadSavedWorkspaceId();
-
-    return null;
+    final uid = ref.watch(authStateProvider.select((a) => a.value?.uid));
+    if (uid == null) return null;
+    final prefs = ref.read(sharedPreferencesProvider);
+    return prefs.getString(SharedPrefKeys.selectedWorkspaceIdFor(uid)) ??
+        prefs.getString(SharedPrefKeys.selectedWorkspaceId);
   }
 
-  /// Load saved workspace ID from SharedPreferences
-  void _loadSavedWorkspaceId() {
-    Future(() async {
-      try {
-        final prefs = await ref.read(sharedPreferencesProvider.future);
-        final savedId = prefs.getString(SharedPrefKeys.selectedWorkspaceId);
-        if (savedId != null && state != savedId) {
-          state = savedId;
-        }
-      } catch (_) {
-        // Silently ignore errors
-      }
-    });
+  String? get _key {
+    final uid = ref.read(authStateProvider).value?.uid;
+    return uid == null ? null : SharedPrefKeys.selectedWorkspaceIdFor(uid);
   }
 
-  /// Select a workspace and persist it to SharedPreferences
+  /// Select a workspace and persist the choice.
   Future<void> select(String id) async {
     state = id;
+    final key = _key;
+    if (key == null) return;
     try {
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      await prefs.setString(SharedPrefKeys.selectedWorkspaceId, id);
-    } catch (e) {
-      // Even if saving fails, the state is already updated locally
+      await ref.read(sharedPreferencesProvider).setString(key, id);
+    } catch (_) {
+      // The in-memory selection still applies for this session.
     }
   }
 
-  /// Clear the saved workspace ID (e.g., when workspace is deleted)
+  /// Forget the saved choice (e.g. the workspace was deleted).
   Future<void> clear() async {
     state = null;
+    final key = _key;
+    if (key == null) return;
     try {
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      await prefs.remove(SharedPrefKeys.selectedWorkspaceId);
-    } catch (e) {
-      // Silently ignore errors
-    }
+      await ref.read(sharedPreferencesProvider).remove(key);
+    } catch (_) {}
   }
 }
 
+/// The workspace currently shown.
+///
+/// Pure derivation with no side effects: the saved choice if it is in the
+/// list, otherwise the newest workspace. Keeps the previous list while the
+/// stream reloads, so the UI never blanks out.
 @riverpod
 WorkspaceModel? selectedWorkspace(Ref ref) {
-  final workspacesAsync = ref.watch(workspacesProvider);
+  final workspaces = ref.watch(workspacesProvider).value;
+  if (workspaces == null || workspaces.isEmpty) return null;
   final selectedId = ref.watch(selectedWorkspaceIdProvider);
-
-  return workspacesAsync.maybeWhen(
-    data: (workspaces) {
-      if (workspaces.isEmpty) return null;
-
-      // If we have a selectedId, try to find the workspace
-      if (selectedId != null) {
-        final workspace = workspaces.firstWhere(
-          (w) => w.id == selectedId,
-          orElse: () {
-            // Fallback: Clear invalid saved ID and return first workspace
-            ref.read(selectedWorkspaceIdProvider.notifier).clear();
-            return workspaces.first;
-          },
-        );
-        return workspace;
-      }
-
-      // No selected ID, return first workspace and save it as default
-      final firstWorkspace = workspaces.first;
-      ref.read(selectedWorkspaceIdProvider.notifier).select(firstWorkspace.id);
-      return firstWorkspace;
-    },
-    orElse: () => null,
-  );
+  if (selectedId != null) {
+    for (final w in workspaces) {
+      if (w.id == selectedId) return w;
+    }
+  }
+  return workspaces.first;
 }
 
 @riverpod
@@ -146,44 +153,42 @@ Future<WorkspaceModel?> workspaceById(Ref ref, String workspaceId) {
   return ref.watch(workspaceRepoProvider).getWorkspaceById(workspaceId);
 }
 
+/// The signed-in user's permissions in the selected workspace.
+///
+/// Derived synchronously from the members and role-permission streams, so it
+/// keeps its last value while those reload (no flicker of tabs/FAB).
 @riverpod
-Stream<Permissions> currentUserPermissions(Ref ref) {
+AsyncValue<Permissions> currentUserPermissions(Ref ref) {
   final workspace = ref.watch(selectedWorkspaceProvider);
   final user = ref.watch(authStateProvider).value;
 
   if (workspace == null || user == null) {
-    return Stream.value(_emptyPermissions());
+    return AsyncData(_emptyPermissions());
   }
 
-  return ref
-      .watch(workspaceMembersProvider(workspace.id))
-      .when(
-        data: (members) {
-          final currentMember = members
-              .where((m) => m.uid == user.uid)
-              .firstOrNull;
+  final membersAsync = ref.watch(workspaceMembersProvider(workspace.id));
+  final rolesAsync = ref.watch(rolePermissionsProvider(workspace.id));
 
-          if (currentMember?.roleId == null) {
-            return Stream.value(_emptyPermissions());
-          }
-
-          return ref
-              .watch(rolePermissionsProvider(workspace.id))
-              .when(
-                data: (permissions) {
-                  final rolePerms = permissions[currentMember!.roleId];
-                  if (rolePerms is Map<String, dynamic>) {
-                    return Stream.value(Permissions.fromMap(rolePerms));
-                  }
-                  return Stream.value(_emptyPermissions());
-                },
-                loading: () => const Stream.empty(),
-                error: (e, s) => Stream.error(e, s),
-              );
-        },
-        loading: () => const Stream.empty(),
-        error: (e, s) => Stream.error(e, s),
+  final members = membersAsync.value;
+  final roles = rolesAsync.value;
+  if (members == null || roles == null) {
+    final error = membersAsync.error ?? rolesAsync.error;
+    if (error != null) {
+      return AsyncError(
+        error,
+        membersAsync.stackTrace ?? rolesAsync.stackTrace ?? StackTrace.current,
       );
+    }
+    return const AsyncLoading();
+  }
+
+  final roleId = members.where((m) => m.uid == user.uid).firstOrNull?.roleId;
+  final rolePerms = roleId == null ? null : roles[roleId];
+  return AsyncData(
+    rolePerms is Map<String, dynamic>
+        ? Permissions.fromMap(rolePerms)
+        : _emptyPermissions(),
+  );
 }
 
 Permissions _emptyPermissions() {

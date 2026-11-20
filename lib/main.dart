@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teamtasks/components/app_toast.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
+import 'package:teamtasks/auth/shared_pref_provider.dart';
 import 'package:teamtasks/router/auth_curtain.dart';
 import 'package:teamtasks/router/auth_transition.dart';
 import 'package:teamtasks/router/motion.dart';
@@ -15,10 +16,35 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(ProviderScope(child: MyApp()));
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      retry: _retry,
+      child: const MyApp(),
+    ),
+  );
+}
+
+/// Riverpod 3 retries failed providers automatically, showing them as
+/// "loading" in between. Errors that can never succeed on retry (permission
+/// rules, bad data) should surface immediately instead of looking like a
+/// slow spinner; transient ones (network) keep the default backoff.
+Duration? _retry(int retryCount, Object error) {
+  if (error is FirebaseException &&
+      const {
+        'permission-denied',
+        'unauthenticated',
+        'not-found',
+        'invalid-argument',
+        'failed-precondition',
+      }.contains(error.code)) {
+    return null;
+  }
+  if (error is TypeError || error is FormatException) return null;
+  return ProviderContainer.defaultRetry(retryCount, error);
 }
 
 class MyApp extends ConsumerWidget {

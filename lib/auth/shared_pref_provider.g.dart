@@ -8,27 +8,41 @@ part of 'shared_pref_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Synchronous access to SharedPreferences.
+///
+/// The instance is loaded once in `main()` and injected with
+/// `sharedPreferencesProvider.overrideWithValue(prefs)`, so reads (like the
+/// saved workspace) are available on the very first frame.
 
 @ProviderFor(sharedPreferences)
 final sharedPreferencesProvider = SharedPreferencesProvider._();
 
+/// Synchronous access to SharedPreferences.
+///
+/// The instance is loaded once in `main()` and injected with
+/// `sharedPreferencesProvider.overrideWithValue(prefs)`, so reads (like the
+/// saved workspace) are available on the very first frame.
+
 final class SharedPreferencesProvider
     extends
         $FunctionalProvider<
-          AsyncValue<SharedPreferences>,
           SharedPreferences,
-          FutureOr<SharedPreferences>
+          SharedPreferences,
+          SharedPreferences
         >
-    with
-        $FutureModifier<SharedPreferences>,
-        $FutureProvider<SharedPreferences> {
+    with $Provider<SharedPreferences> {
+  /// Synchronous access to SharedPreferences.
+  ///
+  /// The instance is loaded once in `main()` and injected with
+  /// `sharedPreferencesProvider.overrideWithValue(prefs)`, so reads (like the
+  /// saved workspace) are available on the very first frame.
   SharedPreferencesProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'sharedPreferencesProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -38,14 +52,22 @@ final class SharedPreferencesProvider
 
   @$internal
   @override
-  $FutureProviderElement<SharedPreferences> $createElement(
+  $ProviderElement<SharedPreferences> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $ProviderElement(pointer);
 
   @override
-  FutureOr<SharedPreferences> create(Ref ref) {
+  SharedPreferences create(Ref ref) {
     return sharedPreferences(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SharedPreferences value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SharedPreferences>(value),
+    );
   }
 }
 
-String _$sharedPreferencesHash() => r'dc403fbb1d968c7d5ab4ae1721a29ffe173701c7';
+String _$sharedPreferencesHash() => r'd8a123f8131dddc25218cf0b7e15eff43b58543c';
