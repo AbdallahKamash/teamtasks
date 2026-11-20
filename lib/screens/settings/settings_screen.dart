@@ -2,6 +2,8 @@ import 'dart:ui' as ui;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
+import 'package:teamtasks/components/app_dialog.dart';
+import 'package:teamtasks/router/auth_transition.dart';
 import 'package:teamtasks/router/router.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -13,9 +15,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _showLogoutConfirmation() async {
-    return showDialog(
+    final ok = await showAppDialog<bool>(
       context: context,
-      builder: (context) => Directionality(
+      builder: (dialogContext) => Directionality(
         textDirection: ui.TextDirection.rtl,
         child: AlertDialog(
           title: const Text(
@@ -31,21 +33,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => ref.read(routerProvider).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text(
                 'إلغاء',
                 style: TextStyle(fontFamily: 'Alexandria', color: Colors.grey),
               ),
             ),
             TextButton(
-              onPressed: () async {
-                ref.read(routerProvider).pop();
-                final authRepo = ref.read(authRepoProvider);
-                await authRepo.signOut();
-                if (context.mounted) {
-                  ref.read(routerProvider).go('/');
-                }
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text(
                 'تسجيل الخروج',
                 style: TextStyle(fontFamily: 'Alexandria', color: Colors.red),
@@ -55,6 +50,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+    // AuthTransition owns the whole logout: curtain, stack swap, then signOut.
+    if (ok == true && mounted) {
+      await ref.read(authTransitionProvider).signOut();
+    }
   }
 
   @override

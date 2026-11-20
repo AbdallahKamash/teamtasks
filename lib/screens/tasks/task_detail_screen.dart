@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/task_model.dart';
 import '../../workspace/workspace_prov.dart';
@@ -286,7 +287,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                           );
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('تم إرسال المهمة للمراجعة')),
+                        const SnackBar(
+                          content: Text('تم إرسال المهمة للمراجعة'),
+                        ),
                       );
                       ref.read(routerProvider).pop();
                     },
@@ -498,7 +501,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
   }
 
   void _confirmDelete(TaskModel task) {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(
@@ -605,7 +608,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           ? eligibleMembers[defaultIndex].uid
           : eligibleMembers.first.uid;
 
-      showDialog(
+      showAppDialog(
         context: context,
         builder: (context) {
           return StatefulBuilder(
@@ -627,7 +630,8 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 16),
                     ...eligibleMembers.map((member) {
-                      final roleName = workspace.roles?[member.roleId] ?? 'بدون مسمى';
+                      final roleName =
+                          workspace.roles?[member.roleId] ?? 'بدون مسمى';
                       final isSelected = selectedUid == member.uid;
 
                       return Container(
@@ -691,14 +695,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                         workerId: null,
                       );
 
-                      await ref.read(workspaceRepoProvider).updateTask(
-                            task.id,
-                            {
-                              'status': 'assigned',
-                              'assigneeId': selectedUid,
-                              'workerId': null,
-                            },
-                          );
+                      await ref
+                          .read(workspaceRepoProvider)
+                          .updateTask(task.id, {
+                            'status': 'assigned',
+                            'assigneeId': selectedUid,
+                            'workerId': null,
+                          });
 
                       if (!context.mounted) return;
                       ref.read(routerProvider).pop(); // Close dialog
@@ -709,9 +712,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                     } catch (e) {
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('خطأ: ${e.toString()}'),
-                        ),
+                        SnackBar(content: Text('خطأ: ${e.toString()}')),
                       );
                     }
                   },
@@ -731,11 +732,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ: ${e.toString()}'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('خطأ: ${e.toString()}')));
     }
   }
 }

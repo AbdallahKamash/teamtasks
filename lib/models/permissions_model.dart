@@ -84,7 +84,8 @@ class Permissions {
   }
 
   @override
-  String toString() => 'Permissions(workspace: $workspace, tasks: $tasks, '
+  String toString() =>
+      'Permissions(workspace: $workspace, tasks: $tasks, '
       'messages: $messages, roles: $roles, people: $people)';
 }
 
@@ -92,10 +93,7 @@ class WorkspacePermissions {
   final bool edit;
   final bool delete;
 
-  WorkspacePermissions({
-    required this.edit,
-    required this.delete,
-  });
+  WorkspacePermissions({required this.edit, required this.delete});
 
   @override
   String toString() => 'WorkspacePermissions(edit: $edit, delete: $delete)';
@@ -113,7 +111,8 @@ class TasksPermissions {
   });
 
   @override
-  String toString() => 'TasksPermissions(add: $add, edit: $edit, delete: $delete)';
+  String toString() =>
+      'TasksPermissions(add: $add, edit: $edit, delete: $delete)';
 }
 
 class MessagesPermissions {
@@ -128,7 +127,8 @@ class MessagesPermissions {
   });
 
   @override
-  String toString() => 'MessagesPermissions(add: $add, edit: $edit, delete: $delete)';
+  String toString() =>
+      'MessagesPermissions(add: $add, edit: $edit, delete: $delete)';
 }
 
 class RolesPermissions {
@@ -143,7 +143,8 @@ class RolesPermissions {
   });
 
   @override
-  String toString() => 'RolesPermissions(add: $add, edit: $edit, delete: $delete)';
+  String toString() =>
+      'RolesPermissions(add: $add, edit: $edit, delete: $delete)';
 }
 
 class PeoplePermissions {
@@ -158,5 +159,6 @@ class PeoplePermissions {
   });
 
   @override
-  String toString() => 'PeoplePermissions(add: $add, edit: $edit, delete: $delete)';
+  String toString() =>
+      'PeoplePermissions(add: $add, edit: $edit, delete: $delete)';
 }

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../router/router.dart';
 
@@ -88,6 +89,8 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
       if (!mounted) return;
 
       await ref.read(selectedWorkspaceIdProvider.notifier).select(workspaceId);
+      // Swipe-back makes leaving mid-save possible.
+      if (!mounted) return;
 
       _nameController.clear();
 
@@ -358,7 +361,7 @@ class _AddWorkspaceScreenState extends ConsumerState<AddWorkspaceScreen> {
   }
 
   void _showColorPicker() {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (context) {
         Color pickedColor = _selectedColor;

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
-import 'package:teamtasks/router/router.dart';
+import 'package:teamtasks/router/auth_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teamtasks/auth/auth_errors.dart';
 import 'package:teamtasks/components/app_toast.dart';
@@ -23,6 +23,12 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   Timer? _refreshTimer;
   bool _canResend = false;
 
+  /// A reload() is in flight; skip overlapping poller ticks.
+  bool _checking = false;
+
+  /// Leaving this screen (verified or signing out); stop reacting.
+  bool _leaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,15 +46,41 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   }
 
   Future<void> _checkEmailVerified() async {
-    final authRepo = ref.read(authRepoProvider);
-    await authRepo.reloadUser();
-    if (authRepo.currentUser?.emailVerified ?? false) {
-      _refreshTimer?.cancel();
-      Toast.success('تم تأكيد بريدك', message: 'كل شيء جاهز، لنبدأ!');
-      if (mounted) {
-        ref.read(routerProvider).go('/home');
+    if (_checking || _leaving) return;
+    _checking = true;
+    try {
+      final authRepo = ref.read(authRepoProvider);
+      await authRepo.reloadUser();
+      if (!mounted || _leaving) return;
+      if (authRepo.currentUser?.emailVerified ?? false) {
+        _leaving = true;
+        _refreshTimer?.cancel();
+        final arrived = await ref.read(authTransitionProvider).enterApp();
+        if (arrived) {
+          Toast.success('تم تأكيد بريدك', message: 'كل شيء جاهز، لنبدأ!');
+        } else if (mounted) {
+          _resume(); // still on /verify: keep polling and allow going back
+        }
       }
+    } finally {
+      _checking = false;
     }
+  }
+
+  /// Verify-back: sign out behind the curtain and return to the welcome screen.
+  Future<void> _leaveAndSignOut() async {
+    if (_leaving) return;
+    _leaving = true;
+    _refreshTimer?.cancel();
+    final ok = await ref.read(authTransitionProvider).signOut();
+    if (!ok && mounted) _resume();
+  }
+
+  /// Undo [_leaving] when a transition did not happen, so the screen keeps
+  /// working instead of freezing with the poller stopped.
+  void _resume() {
+    _leaving = false;
+    _startRefreshTimer();
   }
 
   Future<void> _initCooldown() async {
@@ -151,12 +183,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final email = user?.email ?? '';
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        await ref.read(authRepoProvider).signOut();
-        if (context.mounted) {
-          ref.read(routerProvider).go('/');
-        }
+        _leaveAndSignOut();
       },
       child: Scaffold(
         backgroundColor: Colors.grey.shade100,
@@ -221,11 +250,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 ),
                 const SizedBox(height: 24),
                 GestureDetector(
-                  onTap: () async {
-                    await ref.read(authRepoProvider).signOut();
-                    if (!context.mounted) return;
-                    ref.read(routerProvider).go('/');
-                  },
+                  onTap: _leaveAndSignOut,
                   child: Text(
                     'العودة',
                     style: TextStyle(

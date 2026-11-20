@@ -59,12 +59,17 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
           child: Material(
             color: Colors.transparent,
             child: SizeTransition(
-              sizeFactor: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+              sizeFactor: CurvedAnimation(
+                parent: _controller,
+                curve: Curves.easeOut,
+              ),
               axisAlignment: -1.0,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(12),
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -91,15 +96,14 @@ class _WorkspaceButtonState extends ConsumerState<WorkspaceButton>
         onTap: _toggleDropdown,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-          ),
+          decoration: BoxDecoration(color: Colors.grey.shade300),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               Container(
                 margin: const EdgeInsets.only(left: 8),
-                height: 30, width: 30,
+                height: 30,
+                width: 30,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
                   color: Colors.purple.shade100,

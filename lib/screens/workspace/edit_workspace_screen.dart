@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/router/router.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -255,7 +256,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
   }
 
   Future<void> _confirmDeleteWorkspace() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (context) =>
           DeleteConfirmationDialog(workspaceName: widget.workspace.name),
@@ -275,7 +276,10 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
 
       if (!mounted) return;
 
-      ref.read(routerProvider).go('/home');
+      // pop() targets the topmost present route, so this stays one smooth
+      // reverse slide even while the delete dialog is still fading out.
+      final router = ref.read(routerProvider);
+      router.canPop() ? router.pop() : router.go('/home');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -417,7 +421,7 @@ class _EditWorkspaceScreenState extends ConsumerState<EditWorkspaceScreen> {
   }
 
   void _showColorPickerDialog() {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (context) {
         Color pickedColor = _selectedColor;

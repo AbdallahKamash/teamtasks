@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:teamtasks/components/app_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/workspace_model.dart';
 import '../../models/pending_assignment_model.dart';
@@ -118,7 +119,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
     String? currentRoleId,
     Map<String, String> roles,
   ) async {
-    final newRole = await showDialog<String?>(
+    final newRole = await showAppDialog<String?>(
       context: context,
       builder: (context) =>
           _RoleSelectionDialog(currentRoleId: currentRoleId, roles: roles),
@@ -210,7 +211,7 @@ class _WorkspaceUsersScreenState extends ConsumerState<WorkspaceUsersScreen> {
 
     if (!mounted) return;
 
-    final confirm = await showDialog<bool>(
+    final confirm = await showAppDialog<bool>(
       context: context,
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,

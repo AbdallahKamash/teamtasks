@@ -1,9 +1,15 @@
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show CupertinoPageTransitionsBuilder;
 import 'package:material_ui/material_ui.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teamtasks/components/app_toast.dart';
+import 'package:teamtasks/auth/auth_prov.dart';
+import 'package:teamtasks/router/auth_curtain.dart';
+import 'package:teamtasks/router/auth_transition.dart';
+import 'package:teamtasks/router/motion.dart';
 import 'package:teamtasks/router/router.dart';
 import 'firebase_options.dart';
 
@@ -22,10 +28,23 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
+    // Clear toasts when the session ends outside AuthTransition (e.g. token
+    // revoked remotely); AuthTransition clears them itself on logout.
+    ref.listen(authStateProvider, (prev, next) {
+      if (prev?.value != null && next.value == null) Toast.dismissAll();
+    });
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: router,
-      builder: (context, child) => AppToastHost(child: child!),
+      scaffoldMessengerKey: rootMessengerKey,
+      // Layering, outermost first: RTL → toasts → auth curtain → Navigator.
+      // RTL here (inside Localizations, above the Navigator) makes every
+      // route, dialog and the iOS swipe-back gesture mirror correctly.
+      builder: (context, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AppToastHost(child: AuthCurtainHost(child: child!)),
+      ),
       title: 'Animated Riverpod Routing',
       theme: ThemeData(
         fontFamily: 'Alexandria',
@@ -34,6 +53,17 @@ class MyApp extends ConsumerWidget {
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
         splashColor: Colors.transparent,
+        // A builders map replaces all defaults, so iOS/macOS are listed too.
+        // Routes use CupertinoPage on iOS; this covers stray MaterialPages.
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: ZoomPageTransitionsBuilder(
+              backgroundColor: AppMotion.surface,
+            ),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
     );
   }

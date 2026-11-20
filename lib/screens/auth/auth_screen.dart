@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/router/router.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
+import 'package:teamtasks/router/auth_transition.dart';
 import 'package:teamtasks/auth/auth_errors.dart';
 import '../../components/app_toast.dart';
 import '../../components/my_textfield.dart';
@@ -131,9 +132,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     });
 
     try {
-      await ref
-          .read(authRepoProvider)
-          .signUp(email: email, password: password, displayName: displayName);
+      final repo = ref.read(authRepoProvider);
+      // Holds the redirect until the profile is written, then swaps to
+      // /verify behind the curtain.
+      final ran = await ref
+          .read(authTransitionProvider)
+          .signIn(
+            () => repo.signUp(
+              email: email,
+              password: password,
+              displayName: displayName,
+            ),
+          );
+      if (!ran) return; // another auth transition is already running
       Toast.success('تم إنشاء حسابك', message: 'أرسلنا رابط التحقق إلى $email');
     } catch (e) {
       debugPrint(e.toString());
@@ -167,7 +178,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     try {
       final repo = ref.read(authRepoProvider);
-      await repo.signIn(email: email, password: password);
+      final ran = await ref
+          .read(authTransitionProvider)
+          .signIn(() => repo.signIn(email: email, password: password));
+      if (!ran) return; // another auth transition is already running
       final user = repo.currentUser;
       if (user != null && !user.emailVerified) {
         Toast.info(
@@ -203,7 +217,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => ref.read(routerProvider).pop(),
+          onPressed: () {
+            final router = ref.read(routerProvider);
+            router.canPop() ? router.pop() : router.go('/');
+          },
         ),
       ),
       body: Container(

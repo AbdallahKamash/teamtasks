@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_prov.dart';
 import '../router/router.dart';
 
-
 class AppDrawer extends ConsumerStatefulWidget {
   const AppDrawer({super.key});
 
@@ -35,20 +34,20 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                         CircleAvatar(
                           backgroundColor: Colors.purple.shade100,
                           backgroundImage:
-                          user.pfp != null && user.pfp!.isNotEmpty
+                              user.pfp != null && user.pfp!.isNotEmpty
                               ? NetworkImage(user.pfp!)
                               : null,
                           child: user.pfp == null || user.pfp!.isEmpty
                               ? Text(
-                            user.displayName.isNotEmpty
-                                ? user.displayName[0].toUpperCase()
-                                : 'U',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.purple,
-                            ),
-                          )
+                                  user.displayName.isNotEmpty
+                                      ? user.displayName[0].toUpperCase()
+                                      : 'U',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.purple,
+                                  ),
+                                )
                               : null,
                         ),
                         const SizedBox(width: 12),
@@ -80,7 +79,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ),
 
                   const SizedBox(height: 16),
-                  Divider(height: 0, color: Colors.grey.shade300,)
+                  Divider(height: 0, color: Colors.grey.shade300),
                 ],
 
                 Expanded(
@@ -89,24 +88,30 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                     children: const [
                       ListTile(
                         leading: Icon(Icons.description_outlined),
-                        title: Text('Page 1',
-                            style: TextStyle(fontFamily: 'Alexandria')),
+                        title: Text(
+                          'Page 1',
+                          style: TextStyle(fontFamily: 'Alexandria'),
+                        ),
                       ),
                       ListTile(
                         leading: Icon(Icons.description_outlined),
-                        title: Text('Page 2',
-                            style: TextStyle(fontFamily: 'Alexandria')),
+                        title: Text(
+                          'Page 2',
+                          style: TextStyle(fontFamily: 'Alexandria'),
+                        ),
                       ),
                       ListTile(
                         leading: Icon(Icons.description_outlined),
-                        title: Text('Page 3',
-                            style: TextStyle(fontFamily: 'Alexandria')),
+                        title: Text(
+                          'Page 3',
+                          style: TextStyle(fontFamily: 'Alexandria'),
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                Divider(height: 1, color: Colors.grey.shade300,),
+                Divider(height: 1, color: Colors.grey.shade300),
 
                 ListTile(
                   leading: const Icon(Icons.settings_outlined),
@@ -115,6 +120,9 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                     style: TextStyle(fontFamily: 'Alexandria'),
                   ),
                   onTap: () {
+                    // Close the drawer as Settings pushes, so it is never left
+                    // open underneath a page or a logout.
+                    Scaffold.of(context).closeDrawer();
                     router.push('/settings');
                   },
                 ),

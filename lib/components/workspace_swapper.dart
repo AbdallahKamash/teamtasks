@@ -18,7 +18,12 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
   bool _expanded = false;
 
   final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
+
+  /// Hosts the dropdown in the Overlay *just above this route's entry*
+  /// (unlike a raw OverlayEntry, which floats above every route), so pushed
+  /// pages and auth transitions always cover it.
+  final OverlayPortalController _portal = OverlayPortalController();
+  Size _targetSize = Size.zero;
 
   late final AnimationController _controller;
 
@@ -31,160 +36,148 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
     );
   }
 
-  void _toggleDropdown(List<WorkspaceModel> workspaces) {
+  void _toggleDropdown() {
     if (_expanded) {
       _closeDropdown();
     } else {
-      _openDropdown(workspaces);
+      _openDropdown();
     }
   }
 
-  void _openDropdown(List<WorkspaceModel> workspaces) {
-    _overlayEntry = _createOverlayEntry(workspaces);
-    Overlay.of(context).insert(_overlayEntry!);
+  void _openDropdown() {
+    _targetSize = (context.findRenderObject()! as RenderBox).size;
+    _portal.show();
     _controller.forward();
     setState(() => _expanded = true);
   }
 
-  void _closeDropdown() async {
-    if (_overlayEntry == null) return;
-
-    final entry = _overlayEntry;
-    _overlayEntry = null;
+  Future<void> _closeDropdown() async {
+    if (!_portal.isShowing) return;
     if (mounted) setState(() => _expanded = false);
-
     await _controller.reverse();
-    entry?.remove();
+    if (mounted && !_expanded) _portal.hide();
   }
 
-  OverlayEntry _createOverlayEntry(List<WorkspaceModel> workspaces) {
-    final renderBox = context.findRenderObject() as RenderBox;
-    final size = renderBox.size;
+  Widget _buildDropdown(List<WorkspaceModel> workspaces) {
+    final size = _targetSize;
 
-    return OverlayEntry(
-      builder: (_) => Stack(
-        children: [
-          GestureDetector(
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
             onTap: _closeDropdown,
             behavior: HitTestBehavior.translucent,
           ),
-          Positioned(
-            width: size.width,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              offset: Offset(0, size.height),
-              showWhenUnlinked: false,
-              child: Material(
-                color: Colors.transparent,
-                child: SizeTransition(
-                  sizeFactor: CurvedAnimation(
-                    parent: _controller,
-                    curve: Curves.easeOut,
+        ),
+        Positioned(
+          width: size.width,
+          child: CompositedTransformFollower(
+            link: _layerLink,
+            offset: Offset(0, size.height),
+            showWhenUnlinked: false,
+            child: Material(
+              color: Colors.transparent,
+              child: SizeTransition(
+                sizeFactor: CurvedAnimation(
+                  parent: _controller,
+                  curve: Curves.easeOut,
+                ),
+                axisAlignment: -1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(12),
+                    ),
+                    border: Border.all(color: Colors.grey.shade300),
                   ),
-                  axisAlignment: -1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(12),
-                      ),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 8),
-                        for (final workspace in workspaces)
-                          _workspaceItem(workspace),
-                        if (workspaces.length > 1)
-                          Divider(height: 0, color: Colors.grey.shade300),
-                        if (workspaces.length > 1) const SizedBox(height: 8),
-                        _addWorkspace(hasWorkspaces: workspaces.isNotEmpty),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 8),
+                      for (final workspace in workspaces)
+                        _workspaceItem(workspace),
+                      if (workspaces.length > 1)
+                        Divider(height: 0, color: Colors.grey.shade300),
+                      if (workspaces.length > 1) const SizedBox(height: 8),
+                      _addWorkspace(hasWorkspaces: workspaces.isNotEmpty),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<List<WorkspaceModel>>>(workspacesProvider, (
-      previous,
-      next,
-    ) {
-      if (!_expanded || _overlayEntry == null) return;
-      if (!next.hasValue) return;
-
-      _overlayEntry!.remove();
-      _overlayEntry = _createOverlayEntry(next.value!);
-      Overlay.of(context).insert(_overlayEntry!);
-    });
-
     final workspacesAsync = ref.watch(workspacesProvider);
     final selected = ref.watch(selectedWorkspaceProvider);
 
-    return workspacesAsync.when(
-      loading: _loading,
-      error: (_, _) => _error(),
-      data: (workspaces) {
-        return CompositedTransformTarget(
-          link: _layerLink,
-          child: GestureDetector(
-            onTap: () => _toggleDropdown(workspaces),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 100),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: _expanded
-                    ? const BorderRadius.vertical(top: Radius.circular(12))
-                    : BorderRadius.circular(12),
-              ),
-              child: selected == null
-                  ? _addWorkspace()
-                  : Row(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          height: 20,
-                          width: 20,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: _hexToColor(selected.color),
-                          ),
-                        ),
-                        Expanded(
-                          child: MarqueeText(
-                            text: selected.name,
-                            style: const TextStyle(
-                              fontFamily: 'Alexandria',
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+    return OverlayPortal(
+      controller: _portal,
+      overlayChildBuilder: (_) =>
+          _buildDropdown(workspacesAsync.value ?? const <WorkspaceModel>[]),
+      child: workspacesAsync.when(
+        loading: _loading,
+        error: (_, _) => _error(),
+        data: (workspaces) {
+          return CompositedTransformTarget(
+            link: _layerLink,
+            child: GestureDetector(
+              onTap: _toggleDropdown,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: _expanded
+                      ? const BorderRadius.vertical(top: Radius.circular(12))
+                      : BorderRadius.circular(12),
+                ),
+                child: selected == null
+                    ? _addWorkspace()
+                    : Row(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            height: 20,
+                            width: 20,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: _hexToColor(selected.color),
                             ),
                           ),
-                        ),
-                        AnimatedRotation(
-                          turns: _expanded ? -0.25 : 0,
-                          duration: const Duration(milliseconds: 100),
-                          child: const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 12,
+                          Expanded(
+                            child: MarqueeText(
+                              text: selected.name,
+                              style: const TextStyle(
+                                fontFamily: 'Alexandria',
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                          AnimatedRotation(
+                            turns: _expanded ? -0.25 : 0,
+                            duration: const Duration(milliseconds: 100),
+                            child: const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -294,7 +287,6 @@ class _WorkspaceSwapperState extends ConsumerState<WorkspaceSwapper>
   @override
   void dispose() {
     _controller.dispose();
-    _overlayEntry?.remove();
     super.dispose();
   }
 }

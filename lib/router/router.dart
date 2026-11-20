@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teamtasks/router/router_ani.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:teamtasks/router/app_pages.dart';
+import 'package:teamtasks/router/auth_transition.dart';
+import 'package:teamtasks/router/motion.dart';
 import 'package:teamtasks/screens/auth/auth_screen.dart';
 import 'package:teamtasks/screens/auth/forgot_password_screen.dart';
 import 'package:teamtasks/screens/auth/launch_screen.dart';
@@ -24,117 +27,112 @@ import 'package:teamtasks/models/pending_assignment_model.dart';
 import 'package:teamtasks/models/task_model.dart';
 import 'package:teamtasks/auth/auth_prov.dart';
 
+/// Locations a signed-out user may visit.
+const kPublicPaths = <String>{'/', '/auth', '/forgot-password'};
+
+/// The single source of truth for auth-based routing.
+///
+/// RULE: UI code never calls `go('/')` / `go('/home')` for auth. Only this
+/// table and [AuthTransition] decide where an auth change lands.
+String? authRedirect({
+  required String location,
+  required bool signedIn,
+  required bool verified,
+  required bool signingOut,
+  required bool holdingLogin,
+}) {
+  final bool isPublic = kPublicPaths.contains(location);
+  if (signingOut) return location == '/' ? null : '/';
+  if (!signedIn) return isPublic ? null : '/';
+  if (holdingLogin && isPublic) return null; // credential call in flight
+  if (!verified) return location == '/verify' ? null : '/verify';
+  if (isPublic || location == '/verify') return '/home';
+  return null;
+}
+
 final routerProvider = Provider.autoDispose<GoRouter>((ref) {
-  return GoRouter(
+  final refresh = GoRouterRefreshStream(
+    ref.watch(fbAuthProvider).authStateChanges(),
+  );
+  final router = GoRouter(
     initialLocation: '/',
-    refreshListenable: GoRouterRefreshStream(
-      ref.watch(fbAuthProvider).authStateChanges(),
-    ),
-    redirect: (context, state) async {
+    debugLogDiagnostics: kDebugMode,
+    refreshListenable: refresh,
+    // Synchronous on purpose: refresh()/go() then update the location in the
+    // same call, which AuthTransition relies on.
+    redirect: (context, state) {
       final user = ref.read(fbAuthProvider).currentUser;
-      final isLoggedIn = user != null;
-      final verified = user?.emailVerified ?? false;
-      final isLoggingIn = state.uri.toString() == '/';
-      final isAuth = state.uri.toString() == '/auth';
-
-      if (isLoggedIn) {
-        if (!verified) {
-          if (state.uri.toString() != '/verify') return '/verify';
-        } else if (isLoggingIn || isAuth) {
-          return '/home';
-        }
-      } else {
-        if (!isLoggingIn &&
-            !isAuth &&
-            state.uri.toString() != '/forgot-password') {
-          return '/auth';
-        }
-      }
-
-      return null;
+      final flow = ref.read(authTransitionProvider);
+      return authRedirect(
+        location: state.matchedLocation,
+        signedIn: user != null,
+        verified: user?.emailVerified ?? false,
+        signingOut: flow.isSigningOut,
+        holdingLogin: flow.holdsAuthRedirect,
+      );
     },
     routes: [
       GoRoute(
         path: '/',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const LaunchScreen(),
-          dir: TextDirection.ltr,
+        pageBuilder: (context, state) => rootPage(
+          context,
+          state,
+          const LaunchScreen(),
+          entrance: RootEntrance.backward,
         ),
       ),
       GoRoute(
         path: '/auth',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const AuthScreen(),
-          dir: TextDirection.rtl,
-        ),
+        pageBuilder: (context, state) =>
+            pushPage(context, state, const AuthScreen()),
       ),
       GoRoute(
         path: '/home',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const MainPage(),
-          dir: TextDirection.rtl,
+        pageBuilder: (context, state) => rootPage(
+          context,
+          state,
+          const MainPage(),
+          entrance: RootEntrance.forward,
+          backdrop: AppMotion.homeSurface,
         ),
       ),
       GoRoute(
         path: '/forgot-password',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const ForgotPasswordScreen(),
-          dir: TextDirection.rtl,
-        ),
+        pageBuilder: (context, state) =>
+            pushPage(context, state, const ForgotPasswordScreen()),
       ),
       GoRoute(
         path: '/verify',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const VerifyEmailScreen(),
-          dir: TextDirection.rtl,
+        pageBuilder: (context, state) => rootPage(
+          context,
+          state,
+          const VerifyEmailScreen(),
+          entrance: RootEntrance.forward,
         ),
       ),
       GoRoute(
         path: '/settings',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const SettingsScreen(),
-          dir: TextDirection.rtl,
-        ),
+        pageBuilder: (context, state) =>
+            pushPage(context, state, const SettingsScreen()),
       ),
       GoRoute(
         path: '/edit-profile',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const EditProfileScreen(),
-          dir: TextDirection.rtl,
-        ),
+        pageBuilder: (context, state) =>
+            pushPage(context, state, const EditProfileScreen()),
       ),
       GoRoute(
         path: '/add-workspace',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const AddWorkspaceScreen(),
-          dir: TextDirection.rtl,
-        ),
+        pageBuilder: (context, state) =>
+            pushPage(context, state, const AddWorkspaceScreen()),
       ),
       GoRoute(
         path: '/edit-workspace',
         pageBuilder: (context, state) {
           final workspace = state.extra as WorkspaceModel;
-          return buildPageWithTransition(
-            context: context,
-            state: state,
-            child: EditWorkspaceScreen(workspace: workspace),
-            dir: TextDirection.rtl,
+          return pushPage(
+            context,
+            state,
+            EditWorkspaceScreen(workspace: workspace),
           );
         },
       ),
@@ -142,11 +140,10 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
         path: '/edit-workspace-scheme',
         pageBuilder: (context, state) {
           final workspace = state.extra as WorkspaceModel;
-          return buildPageWithTransition(
-            context: context,
-            state: state,
-            child: EditWorkspaceSchemeScreen(workspace: workspace),
-            dir: TextDirection.rtl,
+          return pushPage(
+            context,
+            state,
+            EditWorkspaceSchemeScreen(workspace: workspace),
           );
         },
       ),
@@ -154,32 +151,26 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
         path: '/workspace-users',
         pageBuilder: (context, state) {
           final workspaceId = state.extra as String;
-          return buildPageWithTransition(
-            context: context,
-            state: state,
-            child: WorkspaceUsersScreen(workspaceId: workspaceId),
-            dir: TextDirection.rtl,
+          return pushPage(
+            context,
+            state,
+            WorkspaceUsersScreen(workspaceId: workspaceId),
           );
         },
       ),
       GoRoute(
         path: '/notifications',
-        pageBuilder: (context, state) => buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const NotificationsScreen(),
-          dir: TextDirection.rtl,
-        ),
+        pageBuilder: (context, state) =>
+            pushPage(context, state, const NotificationsScreen()),
       ),
       GoRoute(
         path: '/notification-detail',
         pageBuilder: (context, state) {
           final assignment = state.extra as PendingAssignmentModel;
-          return buildPageWithTransition(
-            context: context,
-            state: state,
-            child: NotificationDetailScreen(assignment: assignment),
-            dir: TextDirection.rtl,
+          return pushPage(
+            context,
+            state,
+            NotificationDetailScreen(assignment: assignment),
           );
         },
       ),
@@ -187,28 +178,23 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
         path: '/add-task',
         pageBuilder: (context, state) {
           final task = state.extra as TaskModel?;
-          return buildPageWithTransition(
-            context: context,
-            state: state,
-            child: AddTaskScreen(task: task),
-            dir: TextDirection.rtl,
-          );
+          return pushPage(context, state, AddTaskScreen(task: task));
         },
       ),
       GoRoute(
         path: '/task-detail',
         pageBuilder: (context, state) {
           final task = state.extra as dynamic;
-          return buildPageWithTransition(
-            context: context,
-            state: state,
-            child: TaskDetailScreen(task: task),
-            dir: TextDirection.rtl,
-          );
+          return pushPage(context, state, TaskDetailScreen(task: task));
         },
       ),
     ],
   );
+  ref.onDispose(() {
+    router.dispose();
+    refresh.dispose();
+  });
+  return router;
 });
 
 class GoRouterRefreshStream extends ChangeNotifier {

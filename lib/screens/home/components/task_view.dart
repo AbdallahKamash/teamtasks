@@ -57,14 +57,14 @@ class _TaskViewState extends ConsumerState<TaskView> {
                     if (widget.filter != null) {
                       tasks = widget.filter!(tasks);
                     }
-      
+
                     if (tasks.isEmpty) {
                       return _buildEmptyState(
                         widget.emptyMessage,
                         widget.emptyIcon,
                       );
                     }
-      
+
                     return _buildGroupedTaskList(tasks);
                   },
                 ),

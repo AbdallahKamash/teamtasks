@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teamtasks/components/bottom_navbar.dart';
+import 'package:teamtasks/components/fade_through_indexed_stack.dart';
 import 'package:teamtasks/components/workspace_swapper.dart';
 import 'package:teamtasks/screens/home/my_tasks_screen.dart';
 import 'package:teamtasks/screens/home/assigned_tasks_screen.dart';
@@ -19,20 +20,6 @@ class MainPage extends ConsumerStatefulWidget {
 }
 
 class _MainPageState extends ConsumerState<MainPage> {
-  late PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: ref.read(navIndexProvider));
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final perm = ref.watch(currentUserPermissionsProvider);
@@ -49,23 +36,13 @@ class _MainPageState extends ConsumerState<MainPage> {
       error: (_, _) => false,
     );
 
-    ref.listen(navIndexProvider, (previous, next) {
-      if (_pageController.hasClients) {
-        if (!editWorkspace && next >= 3) {
-          ref.read(navIndexProvider.notifier).setIndex(0);
-          return;
-        }
-
-        _pageController.animateToPage(
-          next,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeInOutQuad,
-        );
-      }
-    });
-
-    final currentIndex = ref.watch(navIndexProvider);
-    if (!editWorkspace && currentIndex >= 3) {
+    // If the workspace-settings tab disappears (permission lost), fall back to
+    // tab 0 in this same build so the tabs fade once, straight to tab 0.
+    final requestedIndex = ref.watch(navIndexProvider);
+    final currentIndex = (!editWorkspace && requestedIndex >= 3)
+        ? 0
+        : requestedIndex;
+    if (currentIndex != requestedIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(navIndexProvider.notifier).setIndex(0);
       });
@@ -95,9 +72,9 @@ class _MainPageState extends ConsumerState<MainPage> {
         title: const WorkspaceSwapper(),
       ),
       drawer: const AppDrawer(),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
+      // Tabs fade through (no sideways sweep) and keep their state.
+      body: FadeThroughIndexedStack(
+        index: currentIndex,
         children: [
           const MyTasksScreen(),
           const AssignedTasksScreen(),

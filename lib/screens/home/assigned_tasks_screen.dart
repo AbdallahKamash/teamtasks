@@ -29,9 +29,7 @@ class AssignedTasksScreen extends ConsumerWidget {
       emptyMessage: 'لم تقم بإسناد أي مهام بعد',
       emptyIcon: Icons.assignment_ind_rounded,
       filter: (tasks) {
-        return tasks
-            .where((t) => t.status != 'completed')
-            .toList();
+        return tasks.where((t) => t.status != 'completed').toList();
       },
     );
   }

@@ -35,10 +35,10 @@ class SelectedWorkspaceId extends _$SelectedWorkspaceId {
   @override
   String? build() {
     ref.watch(authStateProvider);
-    
+
     // Trigger load on first build (no watching, just scheduling)
     _loadSavedWorkspaceId();
-    
+
     return null;
   }
 

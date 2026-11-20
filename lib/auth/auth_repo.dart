@@ -40,15 +40,19 @@ class AuthRepo {
     final user = _auth.currentUser;
 
     if (user != null) {
-      await user.updateDisplayName(displayName);
-
-      await _firestore.collection('users').doc(user.uid).set({
-        'email': user.email,
-        'displayName': displayName,
-        'pfp': pfp ?? "",
-        'dob': dob != null ? Timestamp.fromDate(dob) : null,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      // Bounded: on a stalled network the account already exists, so don't
+      // hold the sign-up flow forever. Firestore still commits the queued
+      // write once the connection returns.
+      await Future.wait([
+        user.updateDisplayName(displayName),
+        _firestore.collection('users').doc(user.uid).set({
+          'email': user.email,
+          'displayName': displayName,
+          'pfp': pfp ?? "",
+          'dob': dob != null ? Timestamp.fromDate(dob) : null,
+          'createdAt': FieldValue.serverTimestamp(),
+        }),
+      ]).timeout(const Duration(seconds: 8), onTimeout: () => const []);
     }
   }
 

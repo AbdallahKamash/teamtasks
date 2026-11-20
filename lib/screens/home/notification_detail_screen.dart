@@ -241,8 +241,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         );
 
     if (context.mounted) {
-      ref.read(routerProvider).pop();
-      ref.read(routerProvider).pop();
+      // One reverse slide straight back to home (detail + list both close).
+      ref.read(routerProvider).go('/home');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم قبول الدعوة بنجاح')));
